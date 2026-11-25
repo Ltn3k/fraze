@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sa
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
 .screen{display:none}
-body[data-screen=intro] #intro,body[data-screen=tiers] #tiers,body[data-screen=app] #app{display:block}
+body[data-screen=intro] #intro,body[data-screen=tiers] #tiers,body[data-screen=app] #app,body[data-screen=city] #city{display:block}
 .btn{border:0;border-radius:12px;padding:12px 20px;min-height:48px;font-weight:700;background:var(--acc);color:#fff}
 .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .btn.wide{width:100%}
@@ -141,6 +141,53 @@ body.dict .meta{margin:4px 0 8px}
 body.dict .field textarea,body.dict .reveal{font-size:16px;padding:8px 10px;min-height:42px}
 body.dict .say{width:42px}
 body.dict .card.compact{padding:6px 6px 6px 12px;margin:0}
+/* město */
+.citycard{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;text-align:left;border:0;border-radius:18px;padding:14px;margin-bottom:16px;background:linear-gradient(135deg,#c4e6aa,#a8dcf7);color:#15181d}
+.citycard .ic{font-size:36px;text-align:center}.citycard b{font-size:18px;display:block}.citycard span span{font-size:14px;color:#3d4a3a}.citycard em{font-style:normal;font-weight:700}
+.chead{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.chead .wrap{display:flex;gap:8px;align-items:center;padding-top:10px;padding-bottom:10px;flex-wrap:wrap}
+#cRes{display:flex;gap:6px;flex:1;justify-content:flex-end;flex-wrap:wrap}
+#cRes span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-weight:700;font-size:13px;white-space:nowrap}
+.chead .langs button{padding:6px 10px;min-height:36px}
+.chead .wrap{flex-wrap:nowrap}
+#cRes.bump span{animation:pop .4s}
+#cityBody{padding-top:14px;padding-bottom:40px}
+.mapwrap{max-width:520px;margin:0 auto}
+.map{width:100%;display:block;border-radius:26px;box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.map .tap{cursor:pointer}
+.map .pulse{animation:pulse 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{50%{opacity:.6}}
+.map .fogout{animation:fadeout 1.6s forwards}
+.map .petg{transform-box:fill-box}
+.cards{display:grid;gap:10px;margin-top:14px}
+.ccard{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;flex-wrap:wrap}
+.ccard>div{flex:1 1 220px;display:grid;gap:2px}.ccard b{font-size:17px}.ccard span{font-size:14px;color:var(--mute)}
+.ccard.act{border:2px solid var(--acc)}.ccard.warn{border:2px solid #e0614f}.ccard.main{background:var(--soft);border-color:transparent}
+.kap{font-size:12px!important;font-weight:700;letter-spacing:.06em;color:var(--acc)!important;text-transform:uppercase}
+.small{font-size:13px;color:var(--mute)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:14px;min-height:40px}
+.lhead{display:flex;gap:12px;align-items:center;margin-bottom:14px}.lhead>div{flex:1;display:grid}.lhead b{font-size:18px}
+.btn.sm{min-height:40px;padding:8px 12px}
+.setup{max-width:480px;margin:0 auto}
+.avs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 14px}
+.avc{border:2px solid var(--line);background:var(--card);border-radius:18px;padding:12px;display:grid;justify-items:center;gap:4px}
+.avc svg{width:90px;height:126px}.avc.on{border-color:var(--acc);background:var(--soft)}
+.tin,.ain{width:100%;font:inherit;font-size:17px;padding:11px 12px;border-radius:10px;border:2px solid var(--line);background:var(--field);color:var(--ink);margin-bottom:12px;outline:none;resize:none}
+.tin:focus,.ain:focus{border-color:var(--acc)}
+.ain.shake{border-color:var(--bad);background:var(--badbg);animation:shake .3s}
+.amsg{min-height:20px;color:var(--bad);font-size:14px!important}
+.petpick{display:flex;justify-content:center;gap:16px}.petpick svg{width:96px;height:90px}
+.petpick svg.happy{animation:hop .8s cubic-bezier(.3,.7,.4,1) 2}
+.shopk{display:flex;gap:10px;align-items:center}.shopk .sk{width:80px;height:80px;flex:none}.shopk .sk svg{width:100%;height:100%}
+.bub{background:var(--soft);border-radius:14px;padding:8px 12px;display:grid}.bub span{font-size:13px;color:var(--mute)}
+.items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.item{border:1px solid var(--line);background:var(--field);border-radius:12px;padding:10px 6px;display:grid;gap:2px;min-height:64px}
+.item span{font-size:13px;color:var(--mute)}.item:disabled{opacity:.45}
+.hbar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.hbar div{height:100%}
+.fly{position:fixed;transform:translateX(-50%);font-weight:700;font-size:18px;pointer-events:none;animation:flyup 1.1s ease-out forwards;z-index:60;color:var(--acc)}
+@keyframes flyup{to{transform:translate(-50%,-70px);opacity:0}}
+#cmodal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;z-index:35;padding:16px}
+#cmodal[hidden]{display:none}
 .danger{background:var(--badbg);color:var(--bad);border:1px solid var(--bad)}
 
 /* level up */
@@ -195,6 +242,7 @@ body.dict .card.compact{padding:6px 6px 6px 12px;margin:0}
 <section id="tiers" class="screen"><div class="wrap">
  <div class="tierhead"><h1>Vyber úroveň</h1><div class="tswitch"><div class="langs modes"><button data-m="f">Fráze</button><button data-m="w">Slovník</button></div><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div></div>
  <p class="lead" style="margin-bottom:18px" id="tLead"></p>
+ <button class="citycard" id="toCity"><span class="ic">🏡</span><span><b>Moje město</b><span>Nová hra (beta): uč se slova a fráze a buduj s nimi vlastní městečko.</span></span><em>Hrát →</em></button>
  <div class="tlist" id="tlist"></div>
  <div class="more" style="padding-top:18px"><button class="btn ghost" id="backApp" hidden>Zpět k procvičování</button></div>
 </div></section>
@@ -220,9 +268,17 @@ body.dict .card.compact{padding:6px 6px 6px 12px;margin:0}
 </main>
 </div>
 
+<!-- ── MĚSTO ── -->
+<section id="city" class="screen">
+ <div class="chead"><div class="wrap"><button class="btn ghost sm" id="cBack">←</button><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div><div id="cRes"></div></div></div>
+ <div class="wrap" id="cityBody"></div>
+</section>
+<div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
+
 <div id="menu" hidden><div class="sheet">
  <h2>Menu</h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
+ <button class="btn" id="mCity">🏡 Moje město</button>
  <p id="progressAll"></p>
  <div id="stats"></div>
  <ul>
@@ -543,12 +599,13 @@ function say(text){
   const u=new SpeechSynthesisUtterance(text);u.lang=LANG[S.lang].tts;u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
 }
 let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2200)}
-function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers()}
+function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers();if(name==="city"){document.body.dataset.tier="B";window.City&&City.render()}else applyTier()}
 function setLang(l){
  S.lang=l;save();
  document.querySelectorAll(".langs button[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
  applyTier();
- if(document.body.dataset.screen==="app")buildRound();else renderTiers();
+ const scr=document.body.dataset.screen;
+ if(scr==="app")buildRound();else if(scr==="city"){document.body.dataset.tier="B";window.City&&City.render()}else renderTiers();
 }
 document.addEventListener("click",e=>{const b=e.target.closest(".langs button[data-l]");if(b&&b.dataset.l!==S.lang)setLang(b.dataset.l)});
 $("#toTiers").addEventListener("click",()=>{S.seen=true;save();show("tiers")});
@@ -575,6 +632,10 @@ $("#closeMenu").addEventListener("click",()=>$("#menu").hidden=true);
 $("#menu").addEventListener("click",e=>{if(e.target.id==="menu")$("#menu").hidden=true});
 $("#mTiers").addEventListener("click",()=>{$("#menu").hidden=true;show("tiers")});
 $("#mIntro").addEventListener("click",()=>{$("#menu").hidden=true;show("intro")});
+$("#mCity").addEventListener("click",()=>{$("#menu").hidden=true;show("city")});
+$("#toCity").addEventListener("click",()=>show("city"));
+$("#cBack").addEventListener("click",()=>{if(S.started){show("app");if(!round.length)buildRound()}else show("tiers")});
+window.APP={get S(){return S},save,toast,esc,norm,noAcc,say:t=>{try{const u=new SpeechSynthesisUtterance(t);u.lang=LANG[S.lang].tts;u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}},CRIT,SPK};
 $("#reset").addEventListener("click",e=>{
  if(!armed){armed=true;e.target.textContent="Opravdu? Klepni znovu";return}
  delete S.langs[K()];save();$("#menu").hidden=true;applyTier();buildRound();toast("Postup resetován");
@@ -588,5 +649,6 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
+<script src="city.js"></script>
 </body>
 </html>
