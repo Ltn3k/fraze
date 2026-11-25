@@ -132,6 +132,15 @@ main{padding:16px 0 40px}
 .sheet{background:var(--card);border-radius:18px;padding:20px;max-width:460px;width:100%;display:grid;gap:12px;max-height:90vh;overflow:auto}
 .sheet h2{margin:0;font-size:20px}.sheet p,.sheet li{font-size:14px;color:var(--mute);margin:0}.sheet ul{margin:0;padding-left:18px;display:grid;gap:4px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tswitch{display:flex;gap:8px;flex-wrap:wrap}
+body.dict #list{display:grid;gap:10px}
+@media(min-width:600px){body.dict #list{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+body.dict .card{padding:10px 12px;margin:0;border-radius:14px}
+body.dict .cs{font-size:17px}
+body.dict .meta{margin:4px 0 8px}
+body.dict .field textarea,body.dict .reveal{font-size:16px;padding:8px 10px;min-height:42px}
+body.dict .say{width:42px}
+body.dict .card.compact{padding:6px 6px 6px 12px;margin:0}
 .danger{background:var(--badbg);color:var(--bad);border:1px solid var(--bad)}
 
 /* level up */
@@ -164,7 +173,7 @@ main{padding:16px 0 40px}
 <!-- ── ÚVOD ── -->
 <section id="intro" class="screen"><div class="wrap">
  <h1>Frázový trenér</h1>
- <p class="lead">300 frází v angličtině a španělštině, od pozdravu po idiomy. Vidíš českou větu a napíšeš ji v cizím jazyce.</p>
+ <p class="lead">300 frází a 300 slovíček v angličtině a španělštině, od pozdravu po idiomy. Vidíš česky a napíšeš to v cizím jazyce.</p>
  <div class="demo" aria-hidden="true">
   <div class="cs">Kolik to stojí?</div>
   <div class="dfield">How much is it?</div>
@@ -176,6 +185,7 @@ main{padding:16px 0 40px}
   <li><i>☝</i><div><b>Podrž českou větu pro nápovědu</b><span>Ukáže se správný překlad. Taková odpověď se ale nepočítá.</span></div></li>
   <li><i>3×</i><div><b>Každá nová věta 3× správně = další level</b><span>Pak přibudou 3 nové věty. Kola se míchají a starší věty se vracejí na opakování.</span></div></li>
   <li><i>!</i><div><b>Chyby se vracejí častěji</b><span>Appka si pamatuje posledních 5 odpovědí na každou větu. Až to umíš, přestane ji tlačit.</span></div></li>
+  <li><i>Aa</i><div><b>Fráze, nebo slovník</b><span>Přepínačem „Slovník“ přejdeš z celých vět na jednotlivá slova. Princip je stejný, postup se počítá zvlášť.</span></div></li>
   <li><i>A</i><div><b>5 kategorií po 20 levelech</b><span>Od začátečníka po rodilého mluvčího. Každá má svou barvu.</span><div class="pills" style="margin-top:8px"><span class="pill" style="background:#3566d6">A</span><span class="pill" style="background:#22844a">B</span><span class="pill" style="background:#c13b79">C</span><span class="pill" style="background:#b8651a">D</span><span class="pill" style="background:#6a4ecb">E</span></div></div></li>
  </ul>
  <button class="btn wide" id="toTiers">Vybrat úroveň</button>
@@ -183,8 +193,8 @@ main{padding:16px 0 40px}
 
 <!-- ── VÝBĚR ÚROVNĚ ── -->
 <section id="tiers" class="screen"><div class="wrap">
- <div class="tierhead"><h1>Vyber úroveň</h1><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div>
- <p class="lead" style="margin-bottom:18px">Každá kategorie má 20 levelů a 60 vět. Můžeš začít kdekoli; nižší kategorie se dají kdykoli zopakovat.</p>
+ <div class="tierhead"><h1>Vyber úroveň</h1><div class="tswitch"><div class="langs modes"><button data-m="f">Fráze</button><button data-m="w">Slovník</button></div><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div></div>
+ <p class="lead" style="margin-bottom:18px" id="tLead"></p>
  <div class="tlist" id="tlist"></div>
  <div class="more" style="padding-top:18px"><button class="btn ghost" id="backApp" hidden>Zpět k procvičování</button></div>
 </div></section>
@@ -199,14 +209,14 @@ main{padding:16px 0 40px}
   <button class="ib" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
  </div>
  <div class="sub"><div id="status"></div>
-  <div class="tools"><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"><label class="sw"><input type="checkbox" id="showAll"> Zobrazit vše</label></div>
+  <div class="tools"><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"><label class="sw"><input type="checkbox" id="dict"> Slovník</label></div>
  </div>
  <div class="bar"><div id="barFill"></div></div>
 </div></header>
 <main class="wrap">
  <div id="list"></div>
- <div class="more"><button class="btn ghost" id="addMore">+3 věty</button></div>
- <p class="help">Podrž českou větu pro nápovědu · Enter = zkontrolovat</p>
+ <div class="more"><button class="btn ghost" id="addMore">+3</button></div>
+ <p class="help" id="help"></p>
 </main>
 </div>
 
@@ -216,7 +226,8 @@ main{padding:16px 0 40px}
  <p id="progressAll"></p>
  <div id="stats"></div>
  <ul>
-  <li>Kolo má nejvýš 8 vět: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích.</li>
+  <li>Ve slovníku je člen (the, a, to / el, la…) na začátku nepovinný.</li>
+  <li>Kolo má nejvýš 8 položek: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích.</li>
   <li>Velká písmena, čárky, tečky, pomlčky a apostrofy se ignorují. U otázek je potřeba otazník.</li>
   <li>Španělsky: první dvě odpovědi na větu projdou i bez diakritiky, od třetí už musí být přesně.</li>
   <li>Pole „lvl“ nahoře (vývojář): napiš 1–100 a Enter pro skok na level (21 = B1, 41 = C1 …).</li>
@@ -227,11 +238,15 @@ main{padding:16px 0 40px}
 <div id="toast"></div>
 
 <script src="data.js"></script>
+<script src="words.js"></script>
 <script>
 {
 // ── data ──
-const P=window.FRAZE_A.concat(window.FRAZE_B.map(a=>({cs:a[0],en:a[1],es:a[2],n:a[3]})));
+const DATA={f:window.FRAZE_A.concat(window.FRAZE_B.map(a=>({cs:a[0],en:a[1],es:a[2],n:a[3]}))),
+ w:window.SLOVA_T.flat().map(a=>({cs:a[0],en:a[1],es:a[2],n:a[3]}))};
+let P=DATA.f;
 const LANG={en:{name:"ENG",tts:"en-US"},es:{name:"ESP",tts:"es-ES"}};
+const WDESC=["Jídlo, rodina, čas, barvy, základní slovesa.","Cestování, obchod, počasí, oblečení, běžná slovesa.","Práce, pocity, abstraktní pojmy.","Postoje, nuance, spojovací výrazy.","Vzácnější a hovorová slova, gesta, příslovce."];
 const TIERS=[
  {k:"A",name:"Začátečník",desc:"Pozdravy, restaurace, cesta, základní otázky.",bg:"#eaf1ff",acc:"#3566d6"},
  {k:"B",name:"Mírně pokročilý",desc:"Běžné situace, minulý a budoucí čas, hotel, nákupy.",bg:"#e6f6eb",acc:"#22844a"},
@@ -250,8 +265,13 @@ let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.langs)S={lang:"en",langs:{}};
 if(!LANG[S.lang])S.lang="en";
+if(S.mode!=="w")S.mode="f";P=DATA[S.mode];
+const isW=()=>S.mode==="w";
+const UNIT=()=>isW()?{one:"slovo",few:"slova",many:"slov"}:{one:"věta",few:"věty",many:"vět"};
+const K=()=>(isW()?"w_":"")+S.lang;
+const tdesc=t=>isW()?WDESC[t]:TIERS[t].desc;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-const L=()=>{const l=S.langs[S.lang]||(S.langs[S.lang]={level:1,st:{}});if(l.view===undefined)l.view=null;if(l.level>MAXLV)l.level=MAXLV;return l};
+const L=()=>{const l=S.langs[K()]||(S.langs[K()]={level:1,st:{}});if(l.view===undefined)l.view=null;if(l.level>MAXLV)l.level=MAXLV;return l};
 const stat=i=>{const s=L().st[i]||(L().st[i]={c:0,w:0,h:[]});if(!s.h)s.h=[];return s};
 const errs=i=>stat(i).h.filter(x=>!x).length;
 const tierOf=lv=>Math.min(TIERS.length-1,Math.floor((lv-1)/PER));
@@ -271,11 +291,13 @@ function norm(s){
  const t=s.toLowerCase().replace(/['’‘`´"“”„«»\-‐–—]/g,"").replace(/[?？¿¡.,!;:…]/g," ").replace(/\s+/g," ").trim();
  return {t,q};
 }
+const ART={en:/^(the|a|an|to) /,es:/^(el|la|los|las|un|una|unos|unas|lo) /};
+const normW=(s,lang)=>{const n=norm(s);if(isW())n.t=n.t.replace(ART[lang],"");return n};
 function check(raw,p,lang){
- const inp=norm(raw); if(!inp.t)return{s:"empty"};
+ const inp=normW(raw,lang); if(!inp.t)return{s:"empty"};
  let best=null;
  for(const a of p[lang]){
-  const t=norm(a),needQ=t.q&&!inp.q;
+  const t=normW(a,lang),needQ=t.q&&!inp.q;
   if(inp.t===t.t){if(needQ){best=best||{s:"noq"};continue}return{s:"ok",a}}
   if(lang==="es"&&noAcc(inp.t)===noAcc(t.t)){if(needQ){best=best||{s:"noq"};continue}best={s:"accent",a}}
  }
@@ -367,15 +389,15 @@ function checkLevel(){
  levelUp(true);
 }
 function levelUp(auto){
- if(isReview())return toast("V režimu opakování se nové věty nepřidávají");
- if(unlocked()>=P.length)return toast("Všechny věty už jsou odemčené");
+ if(isReview())return toast("V režimu opakování se nic nového nepřidává");
+ if(unlocked()>=P.length)return toast("Všechno už je odemčené");
  const before=curT();
  L().level++;save();
  const fresh=newest().map(makeCard);
  round.forEach(markTags);
  round=fresh.concat(round);
  applyTier();render();
- if(auto)celebrate(curT()!==before?"tier":"level");else toast("Přidány 3 nové věty");
+ if(auto)celebrate(curT()!==before?"tier":"level");else toast(`Přidána 3 nová ${UNIT().few}`);
 }
 function weightedPick(pool,n){
  const t=activeT(),out=[],items=pool.map((i,k)=>{const s=stat(i);
@@ -403,7 +425,7 @@ function render(){
  const list=$("#list");list.textContent="";
  round.forEach(c=>list.appendChild(c.el));
  round.forEach(c=>fit(c.inp));
- applyShowAll();update();
+ update();
 }
 function update(){
  const lv=L().level,done=round.filter(c=>c.done).length,nb=newest(),T=TIERS[activeT()];
@@ -412,7 +434,9 @@ function update(){
  $("#status").innerHTML=isReview()?`<b>${T.k} · opakování</b> · kolo ${done}/${round.length}`:`<b>${T.k} · level ${subOf(lv)}</b>/${PER} · kolo ${done}/${round.length}`;
  $("#barFill").style.width=(nb.length?nb.reduce((a,i)=>a+Math.min(stat(i).c,NEED),0)/(NEED*nb.length):round.length?done/round.length:0)*100+"%";
  $("#addMore").hidden=isReview()||unlocked()>=P.length;
- $("#reset").textContent=`Resetovat postup (${LANG[S.lang].name})`;
+ $("#addMore").textContent=`+3 ${UNIT().few}`;
+ $("#help").textContent=`Podrž ${isW()?"české slovo":"českou větu"} pro nápovědu · Enter = zkontrolovat`;
+ $("#reset").textContent=`Resetovat postup (${isW()?"slovník":"fráze"}, ${LANG[S.lang].name})`;
  if(round.length&&done===round.length&&!nextT){
   nextT=setTimeout(function go(){
    if($("#lvl")){nextT=setTimeout(go,300);return}
@@ -427,12 +451,17 @@ function applyTier(){
 }
 
 // ── zobrazit vše ──
-const showAllOn=()=>$("#showAll").checked;
-function applyShowAll(){
- const on=showAllOn();document.body.classList.toggle("all",on);
- round.forEach(c=>{if(c.done)return;c.inp.disabled=on;c.el.classList.remove("bad");c.el.querySelector(".info").innerHTML=on?infoHTML(P[c.i],S.lang,""):""});
+const showAllOn=()=>false;
+function setMode(m){
+ S.mode=m;P=DATA[m];save();
+ document.body.classList.toggle("dict",m==="w");
+ $("#dict").checked=m==="w";
+ document.querySelectorAll(".modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+ applyTier();
+ if(document.body.dataset.screen==="app")buildRound();else renderTiers();
 }
-$("#showAll").addEventListener("change",applyShowAll);
+$("#dict").addEventListener("change",e=>{setMode(e.target.checked?"w":"f");toast(e.target.checked?"Slovník":"Fráze")});
+document.addEventListener("click",e=>{const b=e.target.closest(".modes button");if(b&&b.dataset.m!==S.mode)setMode(b.dataset.m)});
 
 // ── výběr úrovně ──
 function renderTiers(){
@@ -442,9 +471,11 @@ function renderTiers(){
   if(t<cur){st="Hotovo ✓ · opakovat";prog=1}
   else if(t===cur){st=L().allDone?"Hotovo ✓":`Level ${subOf(lv)}/${PER} · pokračovat`;prog=L().allDone?1:(subOf(lv)-1)/PER}
   else{st="Začít zde";prog=0}
-  return `<button class="tcard${t===act?" cur":""}" data-t="${t}" style="--tbg:${T.bg};--tacc:${T.acc}"><span class="L">${T.k}</span><span><b>${T.name}</b><span>${T.desc}</span><div class="tbar"><div style="width:${prog*100}%"></div></div></span><em>${st}</em></button>`;
+  return `<button class="tcard${t===act?" cur":""}" data-t="${t}" style="--tbg:${T.bg};--tacc:${T.acc}"><span class="L">${T.k}</span><span><b>${T.name}</b><span>${tdesc(t)}</span><div class="tbar"><div style="width:${prog*100}%"></div></div></span><em>${st}</em></button>`;
  }).join("");
  $("#backApp").hidden=!S.started;
+ $("#tLead").textContent=`${isW()?"Slovník":"Fráze"}: každá kategorie má 20 levelů a 60 ${UNIT().many}. Můžeš začít kdekoli; nižší kategorie se dají kdykoli zopakovat.`;
+ document.querySelectorAll(".modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.mode));
 }
 $("#tlist").addEventListener("click",e=>{
  const b=e.target.closest(".tcard");if(!b)return;
@@ -495,9 +526,9 @@ function celebrate(kind){
  const conf=range(0,n).map(()=>{const a=Math.random()*Math.PI*2,d=120+Math.random()*(kind==="level"?140:220);
   return `<i class="cf" style="--x:${(Math.cos(a)*d).toFixed(0)}px;--y:${(Math.sin(a)*d-50).toFixed(0)}px;--r:${(Math.random()*720-360).toFixed(0)}deg;background:${pick(col)};animation-delay:${(Math.random()*.2).toFixed(2)}s"></i>`}).join("");
  let label,num,sub;
- if(kind==="final"){label="VŠECHNO ZVLÁDNUTO";num="★";sub=`Všech ${P.length} vět je tvých. Jsi rodilý mluvčí!`}
- else if(kind==="tier"){label="NOVÁ KATEGORIE";num=`<span class="L">${T.k}</span>`;sub=`${T.name} · začínáš level 1. ${T.desc}`}
- else{label="LEVEL";num=`<span class="L">${T.k}</span>${subOf(lv)}`;sub=`${pick(QUIP)} Přibyly 3 nové věty.`}
+ if(kind==="final"){label="VŠECHNO ZVLÁDNUTO";num="★";sub=`Všech ${P.length} ${UNIT().many} je tvých. Jsi rodilý mluvčí!`}
+ else if(kind==="tier"){label="NOVÁ KATEGORIE";num=`<span class="L">${T.k}</span>`;sub=`${T.name} · začínáš level 1. ${tdesc(curT())}`}
+ else{label="LEVEL";num=`<span class="L">${T.k}</span>${subOf(lv)}`;sub=`${pick(QUIP)} Přibyla 3 nová ${UNIT().few}.`}
  const o=document.createElement("div");o.id="lvl";
  o.innerHTML=`<div class="lv-box">${conf}<div class="lv-say">${esc(pick(EXCL[S.lang]))}</div><div class="lv-crit">${CRIT[lv%CRIT.length]}</div><div class="lv-shadow"></div>
   <div class="lv-label">${label}</div><div class="lv-num">${num}</div><div class="lv-sub">${esc(sub)}</div></div>`;
@@ -515,11 +546,11 @@ let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on
 function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers()}
 function setLang(l){
  S.lang=l;save();
- document.querySelectorAll(".langs button").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
+ document.querySelectorAll(".langs button[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
  applyTier();
  if(document.body.dataset.screen==="app")buildRound();else renderTiers();
 }
-document.addEventListener("click",e=>{const b=e.target.closest(".langs button");if(b&&b.dataset.l!==S.lang)setLang(b.dataset.l)});
+document.addEventListener("click",e=>{const b=e.target.closest(".langs button[data-l]");if(b&&b.dataset.l!==S.lang)setLang(b.dataset.l)});
 $("#toTiers").addEventListener("click",()=>{S.seen=true;save();show("tiers")});
 $("#backApp").addEventListener("click",()=>{show("app");if(!round.length)buildRound()});
 $("#badge").addEventListener("click",()=>show("tiers"));
@@ -535,9 +566,9 @@ $("#dev").addEventListener("keydown",e=>{
 let armed=false;
 $("#menuBtn").addEventListener("click",()=>{
  armed=false;update();
- $("#progressAll").textContent="Postup: "+Object.keys(LANG).map(k=>{const lv=(S.langs[k]||{level:1}).level;return `${LANG[k].name} ${TIERS[tierOf(lv)].k} · level ${subOf(lv)}`}).join("  ·  ");
+ $("#progressAll").innerHTML=[["f","Fráze",""],["w","Slovník","w_"]].map(([m,n,pre])=>`<b>${n}:</b> `+Object.keys(LANG).map(k=>{const lv=(S.langs[pre+k]||{level:1}).level;return `${LANG[k].name} ${TIERS[tierOf(lv)].k} · ${subOf(lv)}`}).join(" · ")).join("<br>");
  const bad=range(0,unlocked()).filter(i=>errs(i)>0).sort((a,b)=>errs(b)-errs(a)||stat(b).w-stat(a).w).slice(0,6);
- $("#stats").innerHTML=`<p style="margin-bottom:6px"><b>Nejčastější chyby (${LANG[S.lang].name}, posledních ${HIST} odpovědí)</b></p>`+(bad.length?`<ul>${bad.map(i=>`<li>${esc(P[i].cs)} · ${errs(i)}/${stat(i).h.length} chyb</li>`).join("")}</ul>`:`<p>Zatím žádné, jen tak dál.</p>`);
+ $("#stats").innerHTML=`<p style="margin-bottom:6px"><b>Nejčastější chyby (${isW()?"slovník":"fráze"}, ${LANG[S.lang].name}, posledních ${HIST} odpovědí)</b></p>`+(bad.length?`<ul>${bad.map(i=>`<li>${esc(P[i].cs)} · ${errs(i)}/${stat(i).h.length} chyb</li>`).join("")}</ul>`:`<p>Zatím žádné, jen tak dál.</p>`);
  $("#menu").hidden=false;
 });
 $("#closeMenu").addEventListener("click",()=>$("#menu").hidden=true);
@@ -546,11 +577,13 @@ $("#mTiers").addEventListener("click",()=>{$("#menu").hidden=true;show("tiers")}
 $("#mIntro").addEventListener("click",()=>{$("#menu").hidden=true;show("intro")});
 $("#reset").addEventListener("click",e=>{
  if(!armed){armed=true;e.target.textContent="Opravdu? Klepni znovu";return}
- delete S.langs[S.lang];save();$("#menu").hidden=true;applyTier();buildRound();toast("Postup resetován");
+ delete S.langs[K()];save();$("#menu").hidden=true;applyTier();buildRound();toast("Postup resetován");
 });
 
 // ── start ──
-document.querySelectorAll(".langs button").forEach(b=>b.classList.toggle("on",b.dataset.l===S.lang));
+document.querySelectorAll(".langs button[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===S.lang));
+document.querySelectorAll(".modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.mode));
+document.body.classList.toggle("dict",isW());$("#dict").checked=isW();
 applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
