@@ -3,97 +3,142 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eaf1ff">
 <title>Frázový trenér</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* VOICE: calm study notebook, quick to use one-handed
-   IDEA: a stack of flash cards, Czech on top, your answer below
-   PICTURE: the working card list itself
-   COLOUR and TYPE: paper white / deep ink, one accent per language; Instrument Sans + Noto Sans JP
-   LAYOUT: sticky control bar, one column of cards, max 720px */
+   IDEA: flash cards sorted into five coloured boxes A–E
+   PICTURE: the working card list; each category tints the whole room
+   COLOUR and TYPE: pastel ground per category (blue, green, pink, peach, lavender), deep ink; Instrument Sans
+   LAYOUT: intro → category picker → sticky bar + one column of cards, max 720px */
 :root{color-scheme:light dark;
- --bg:light-dark(#f4f2ee,#14161a);--card:light-dark(#ffffff,#1d2026);--ink:light-dark(#15181d,#eceae5);
- --mute:light-dark(#6b6f76,#9a9ea6);--line:light-dark(#e2dfd8,#2c3038);--field:light-dark(#f7f6f3,#16181d);
+ --ink:light-dark(#15181d,#eceae5);--mute:light-dark(#5f646c,#a2a6ae);--line:light-dark(#dcd9e2,#30343d);
+ --card:light-dark(#ffffff,#1d2028);--field:light-dark(#f8f8fa,#16181e);
  --ok:light-dark(#1d8a4c,#46c27d);--okbg:light-dark(#e3f5ea,#163524);--bad:light-dark(#d23b3b,#ff6b6b);--badbg:light-dark(#fdeaea,#3a1a1c);
- --warn:light-dark(#9a6a00,#f0c050);--acc:#2b5bd7}
+ --warn:light-dark(#9a6a00,#f0c050);
+ --bg:light-dark(#eaf1ff,#121a2a);--acc:light-dark(#3566d6,#86a8ff);--soft:light-dark(#d6e3ff,#1e2a44)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-body[data-lang=en]{--acc:light-dark(#2b5bd7,#7da2ff)}
-body[data-lang=es]{--acc:light-dark(#c7372f,#ff8a7a)}
-body[data-lang=ja]{--acc:light-dark(#b8285e,#ff86b4)}
+body[data-tier=A]{--bg:light-dark(#eaf1ff,#121a2a);--acc:light-dark(#3566d6,#86a8ff);--soft:light-dark(#d6e3ff,#1e2a44)}
+body[data-tier=B]{--bg:light-dark(#e6f6eb,#122219);--acc:light-dark(#22844a,#6fd49a);--soft:light-dark(#cdeed8,#1b3526)}
+body[data-tier=C]{--bg:light-dark(#fcebf3,#261520);--acc:light-dark(#c13b79,#ff8fc0);--soft:light-dark(#f7d3e4,#3a1f30)}
+body[data-tier=D]{--bg:light-dark(#fff1df,#261d12);--acc:light-dark(#b8651a,#ffb36b);--soft:light-dark(#ffe0bb,#3a2a18)}
+body[data-tier=E]{--bg:light-dark(#f1edff,#1b1730);--acc:light-dark(#6a4ecb,#b4a0ff);--soft:light-dark(#ddd5ff,#2a2448)}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans","Noto Sans JP",system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent;transition:background .5s}
 button{font:inherit;color:inherit;cursor:pointer}
-header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
-.top{display:flex;gap:10px;align-items:center;padding-top:12px}
-.langs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;flex:1}
-.langs button{flex:1;border:0;background:none;padding:9px 0;border-radius:9px;font-weight:700;letter-spacing:.02em;min-height:40px}
+.screen{display:none}
+body[data-screen=intro] #intro,body[data-screen=tiers] #tiers,body[data-screen=app] #app{display:block}
+.btn{border:0;border-radius:12px;padding:12px 20px;min-height:48px;font-weight:700;background:var(--acc);color:#fff}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn.wide{width:100%}
+.langs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+.langs button{flex:1;border:0;background:none;padding:8px 14px;border-radius:9px;font-weight:700;letter-spacing:.02em;min-height:40px}
 .langs button.on{background:var(--acc);color:#fff}
+
+/* intro */
+#intro .wrap,#tiers .wrap{padding-top:clamp(28px,6vw,56px);padding-bottom:40px}
+h1{font-size:clamp(34px,8vw,48px);line-height:1.05;margin:0 0 10px;text-wrap:balance}
+.lead{font-size:18px;color:var(--mute);margin:0 0 24px;max-width:34em}
+.demo{background:var(--card);border-radius:18px;border:1px solid var(--line);padding:16px;margin-bottom:24px;display:grid;gap:10px}
+.demo .cs{cursor:default}
+.dfield{border:2px solid var(--ok);background:var(--okbg);border-radius:10px;padding:10px 12px;font-size:17px}
+.dfield.b{border-color:var(--bad);background:var(--badbg)}
+.how{display:grid;gap:14px;margin:0 0 28px;padding:0;list-style:none}
+.how li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:start}
+.how i{width:36px;height:36px;border-radius:10px;background:var(--soft);display:grid;place-items:center;font-style:normal;font-weight:700;color:var(--acc)}
+.how b{display:block}.how span{color:var(--mute);font-size:15px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff}
+
+/* tiers */
+.tierhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.tierhead h1{margin:0}
+.tlist{display:grid;gap:12px}
+.tcard{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;text-align:left;border:2px solid transparent;border-radius:18px;padding:14px;background:var(--tbg);color:#15181d;width:100%}
+.tcard.cur{border-color:var(--tacc)}
+.tcard .L{width:64px;height:64px;border-radius:16px;background:var(--tacc);color:#fff;display:grid;place-items:center;font-size:32px;font-weight:700}
+.tcard b{font-size:18px;display:block}.tcard span{font-size:14px;color:#4c5058;display:block}
+.tcard em{font-style:normal;font-size:13px;font-weight:700;color:var(--tacc);text-align:right;white-space:nowrap}
+.tbar{height:5px;border-radius:3px;background:rgba(0,0,0,.08);margin-top:8px;overflow:hidden}.tbar div{height:100%;background:var(--tacc)}
+@media(max-width:480px){.tcard{grid-template-columns:52px minmax(0,1fr)}.tcard .L{width:52px;height:52px;font-size:26px}.tcard em{grid-column:2;text-align:left}}
+
+/* app header */
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top{display:flex;gap:8px;align-items:center;padding-top:12px}
+.top .langs{flex:none}
+.badge{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:4px 10px 4px 4px;min-height:44px;flex:1;text-align:left}
+.badge .L{width:34px;height:34px;border-radius:9px;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.badge span{font-size:13px;line-height:1.2;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge span b{display:block;color:var(--ink);font-size:14px}
+@media(max-width:440px){.top .langs button{padding:8px 10px}.badge #bName{display:none}.badge #bSub{color:var(--ink);font-weight:700;font-size:14px}}
 .ib{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;flex:none}
 .ib svg{width:20px;height:20px}
-.sub{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0 8px;flex-wrap:wrap}
+.sub{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;padding:10px 0 8px;flex-wrap:wrap}
 #status{font-size:14px;color:var(--mute)}#status b{color:var(--ink)}
-.sw{display:flex;align-items:center;gap:8px;font-size:14px;user-select:none;cursor:pointer}
-.sw input{appearance:none;width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .2s}
+.tools{display:flex;align-items:center;gap:12px}
+#dev{width:64px;height:32px;border-radius:8px;border:1px dashed var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:16px;padding:0 6px;text-align:center}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;user-select:none;cursor:pointer;white-space:nowrap}
+.sw input{appearance:none;width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .2s;flex:none}
 .sw input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
 .sw input:checked{background:var(--acc)}.sw input:checked::after{transform:translateX(16px)}
-.bar{height:4px;background:var(--line);border-radius:2px;margin-bottom:10px;overflow:hidden}
+.bar{height:4px;background:var(--soft);border-radius:2px;margin-bottom:10px;overflow:hidden}
 #barFill{height:100%;background:var(--acc);width:0;transition:width .4s}
+
+/* cards */
 main{padding:16px 0 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;margin-bottom:12px}
-.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.cs{font-size:18px;font-weight:600;line-height:1.3;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;cursor:help;padding:2px 0 8px;flex:1}
+.cs{font-size:18px;font-weight:600;line-height:1.35;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:pan-y;cursor:help;overflow-wrap:break-word}
 .cs.holding{color:var(--acc)}
-.meta{display:flex;gap:6px;align-items:center;flex:none;padding-top:3px}
-.tag{font-size:12px;padding:2px 7px;border-radius:6px;background:var(--field);color:var(--mute);white-space:nowrap}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 10px;min-height:20px}
+.tag{font-size:12px;line-height:1.3;padding:2px 7px;border-radius:6px;background:var(--field);color:var(--mute);white-space:nowrap}
 .tag.new{background:var(--acc);color:#fff}
-.dots{display:flex;gap:3px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--ok)}
-.field{position:relative;display:flex;gap:8px}
-.field input{flex:1;font:inherit;font-size:17px;padding:11px 12px;border-radius:10px;border:2px solid var(--line);background:var(--field);color:var(--ink);outline:none;transition:background .2s,border-color .2s;min-height:48px}
-body[data-lang=ja] .field input,.reveal,.ja b,.ja span{font-family:"Noto Sans JP","Instrument Sans",sans-serif}
-.field input:focus{border-color:var(--acc)}
-.card.ok input{background:var(--okbg);border-color:var(--ok)}
-.card.bad input{background:var(--badbg);border-color:var(--bad);animation:shake .3s}
+.tag.st{background:var(--badbg);color:var(--bad)}
+.dots{display:flex;gap:3px;margin-right:4px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--ok)}
+.field{display:flex;gap:8px;align-items:stretch}
+.field textarea{flex:1;font:inherit;font-size:17px;line-height:1.35;padding:11px 12px;border-radius:10px;border:2px solid var(--line);background:var(--field);color:var(--ink);outline:none;resize:none;overflow:hidden;min-height:48px;display:block;transition:background .2s,border-color .2s}
+.field textarea:focus{border-color:var(--acc)}
+.card.ok textarea{background:var(--okbg);border-color:var(--ok)}
+.card.bad textarea{background:var(--badbg);border-color:var(--bad);animation:shake .3s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.reveal{position:absolute;left:0;top:0;bottom:0;right:0;display:none;align-items:center;padding:0 14px;border-radius:10px;background:var(--field);border:2px dashed var(--acc);color:var(--acc);font-size:17px;pointer-events:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.card.peek .reveal,body.all .card:not(.ok) .reveal{display:flex}
+.reveal{display:none;flex:1;padding:10px 12px;border-radius:10px;background:var(--field);border:2px dashed var(--acc);color:var(--acc);font-size:17px;line-height:1.35;overflow-wrap:break-word}
+.card.peek textarea,body.all .card:not(.ok) textarea{display:none}
+.card.peek .reveal,body.all .card:not(.ok) .reveal{display:block}
 .say{display:none;width:48px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--card);place-items:center}
 .say svg{width:20px;height:20px}
 .card.ok .say,body.all .say{display:grid}
-body.all .card:not(.ok) .field{padding-right:56px}body.all .card:not(.ok) .say{position:absolute;right:0;top:0;bottom:0}
-.info{font-size:14px;color:var(--mute);margin-top:8px;display:grid;gap:4px}.info:empty{display:none}
+.info{font-size:14px;color:var(--mute);margin-top:8px;display:grid;gap:4px;overflow-wrap:break-word}.info:empty{display:none}
 .info .warn{color:var(--warn);font-weight:600}.info .vars b{color:var(--ink);font-weight:600}
-.ja{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}.ja b{color:var(--ink);font-size:16px}.ja em{font-style:normal}
-.msg{font-size:13px;color:var(--bad);margin-top:6px}.msg:empty{display:none}
+.msg{font-size:13px;color:var(--bad);margin-top:6px;overflow-wrap:break-word}.msg:empty{display:none}
 .msg.strict{font-size:15px;font-weight:700}.msg u{text-decoration:underline 3px;text-underline-offset:3px;background:var(--badbg);border-radius:3px;padding:0 1px}
-.tag.st{background:var(--badbg);color:var(--bad)}
-.mini{display:none;align-items:center;gap:10px;cursor:pointer;min-height:36px}
-.mini .mcs{flex:1 1 45%;font-size:14px;color:var(--mute);line-height:1.3}
-.mini .man{flex:1 1 55%;font-size:15px;font-weight:600;line-height:1.3}
-.mini .mw{color:var(--warn);font-weight:700;flex:none}
-.mini .say{display:grid;width:36px;height:36px;flex:none}
-.card.compact{padding:6px 8px 6px 12px;margin-bottom:6px;border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:color-mix(in srgb,var(--okbg) 50%,var(--card));animation:fold .25s}
-.card.compact .head,.card.compact .field,.card.compact .msg,.card.compact .info{display:none}
-.card.compact .mini{display:flex}.card.compact.open .info{display:grid;padding-bottom:6px}
-@keyframes fold{from{transform:scaleY(.9);opacity:.6}}
-.done{text-align:center;background:var(--card);border:2px solid var(--ok);border-radius:16px;padding:18px;margin-bottom:12px}
-.done p{margin:0 0 12px;font-weight:600}
-.btn{border:0;border-radius:12px;padding:12px 20px;min-height:44px;font-weight:700;background:var(--acc);color:#fff}
-.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.mini{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) 36px;gap:4px 12px;align-items:center;cursor:pointer}
+.mini .mcs{font-size:14px;color:var(--mute);line-height:1.3;overflow-wrap:break-word}
+.mini .man{font-size:15px;font-weight:600;line-height:1.3;overflow-wrap:break-word}
+.mini .mw{color:var(--warn);font-weight:700;margin-left:4px}
+.mini .say{display:grid;width:36px;height:36px}
+@media(max-width:520px){.mini{grid-template-columns:minmax(0,1fr) 36px}.mini .mcs{grid-column:1;grid-row:1}.mini .man{grid-column:1;grid-row:2}.mini .say{grid-column:2;grid-row:1/3}}
+.card.compact{padding:8px 8px 8px 12px;margin-bottom:6px;border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:color-mix(in srgb,var(--okbg) 50%,var(--card));animation:fold .25s}
+.card.compact>.cs,.card.compact .meta,.card.compact .field,.card.compact .msg,.card.compact .info{display:none}
+.card.compact .mini{display:grid}.card.compact.open .info{display:grid;padding-top:4px}
+@keyframes fold{from{transform:scaleY(.92);opacity:.6}}
 .more{display:flex;justify-content:center;padding-top:6px}
 .help{font-size:13px;color:var(--mute);text-align:center;margin-top:14px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;font-weight:600;transition:.3s;pointer-events:none;z-index:20;max-width:90vw;text-align:center}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;font-weight:600;transition:.3s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
 #toast.on{transform:translate(-50%,0);opacity:1}
 #menu{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;z-index:30;padding:16px}
 #menu[hidden]{display:none}
-.sheet{background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;display:grid;gap:12px}
+.sheet{background:var(--card);border-radius:18px;padding:20px;max-width:460px;width:100%;display:grid;gap:12px;max-height:90vh;overflow:auto}
 .sheet h2{margin:0;font-size:20px}.sheet p,.sheet li{font-size:14px;color:var(--mute);margin:0}.sheet ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .danger{background:var(--badbg);color:var(--bad);border:1px solid var(--bad)}
+
+/* level up */
 #lvl{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(4px);animation:fadein .2s;overflow:hidden;cursor:pointer}
 #lvl.out{animation:fadeout .35s forwards}
 .lv-box{position:relative;display:grid;justify-items:center;text-align:center;padding:16px}
-.lv-say{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:6px 14px;font-weight:700;font-size:17px;margin-bottom:6px;animation:pop .45s cubic-bezier(.2,1.6,.4,1) .3s both;font-family:"Noto Sans JP","Instrument Sans",sans-serif}
+.lv-say{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:6px 14px;font-weight:700;font-size:17px;margin-bottom:6px;animation:pop .45s cubic-bezier(.2,1.6,.4,1) .3s both}
 .lv-say::after{content:"";position:absolute;left:50%;bottom:-9px;width:14px;height:14px;background:var(--card);border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
 .lv-crit{width:170px;height:170px;animation:hop .7s cubic-bezier(.3,.7,.4,1) 3}
 .lv-crit svg{width:100%;height:100%;overflow:visible}
@@ -101,8 +146,9 @@ body.all .card:not(.ok) .field{padding-right:56px}body.all .card:not(.ok) .say{p
 .lv-crit .arm.r{animation-delay:.15s}
 .lv-shadow{width:90px;height:14px;border-radius:50%;background:rgba(0,0,0,.18);margin-top:-8px;animation:shad .7s 3}
 .lv-label{font-weight:700;letter-spacing:.12em;color:var(--mute);font-size:15px;margin-top:10px}
-.lv-num{font-size:clamp(72px,20vw,120px);font-weight:700;line-height:1;color:var(--acc);animation:pop .6s cubic-bezier(.2,1.7,.4,1) .15s both}
-.lv-sub{margin-top:8px;color:var(--mute);font-size:15px;max-width:280px}
+.lv-num{font-size:clamp(72px,20vw,120px);font-weight:700;line-height:1;color:var(--acc);animation:pop .6s cubic-bezier(.2,1.7,.4,1) .15s both;display:flex;align-items:center;gap:14px}
+.lv-num .L{font-size:.55em;width:1.5em;height:1.5em;border-radius:.3em;background:var(--acc);color:#fff;display:grid;place-items:center}
+.lv-sub{margin-top:8px;color:var(--mute);font-size:15px;max-width:290px}
 .cf{position:absolute;left:50%;top:38%;width:9px;height:13px;border-radius:2px;opacity:0;animation:burst 1.5s cubic-bezier(.1,.7,.3,1) forwards}
 @keyframes burst{0%{transform:translate(0,0) rotate(0);opacity:1}80%{opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
 @keyframes hop{0%,100%{transform:translateY(0) scale(1.07,.9)}40%,60%{transform:translateY(-48px) scale(.95,1.06)}}
@@ -110,189 +156,175 @@ body.all .card:not(.ok) .field{padding-right:56px}body.all .card:not(.ok) .say{p
 @keyframes wave{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
 @keyframes pop{from{transform:scale(0);opacity:0}}
 @keyframes fadein{from{opacity:0}}@keyframes fadeout{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){.cf{display:none}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){.cf{display:none}*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body data-lang="en">
+<body data-screen="intro" data-tier="A">
+
+<!-- ── ÚVOD ── -->
+<section id="intro" class="screen"><div class="wrap">
+ <h1>Frázový trenér</h1>
+ <p class="lead">300 frází v angličtině a španělštině, od pozdravu po idiomy. Vidíš českou větu a napíšeš ji v cizím jazyce.</p>
+ <div class="demo" aria-hidden="true">
+  <div class="cs">Kolik to stojí?</div>
+  <div class="dfield">How much is it?</div>
+  <div class="cs" style="margin-top:6px">Kde je nádraží?</div>
+  <div class="dfield b">Where is train station</div>
+ </div>
+ <ul class="how">
+  <li><i>✓</i><div><b>Zelená je správně, červená chyba</b><span>Hotová věta se sbalí do řádku. Klepnutím na ni uvidíš další varianty a poznámky.</span></div></li>
+  <li><i>☝</i><div><b>Podrž českou větu pro nápovědu</b><span>Ukáže se správný překlad. Taková odpověď se ale nepočítá.</span></div></li>
+  <li><i>3×</i><div><b>Každá nová věta 3× správně = další level</b><span>Pak přibudou 3 nové věty. Kola se míchají a starší věty se vracejí na opakování.</span></div></li>
+  <li><i>!</i><div><b>Chyby se vracejí častěji</b><span>Appka si pamatuje posledních 5 odpovědí na každou větu. Až to umíš, přestane ji tlačit.</span></div></li>
+  <li><i>A</i><div><b>5 kategorií po 20 levelech</b><span>Od začátečníka po rodilého mluvčího. Každá má svou barvu.</span><div class="pills" style="margin-top:8px"><span class="pill" style="background:#3566d6">A</span><span class="pill" style="background:#22844a">B</span><span class="pill" style="background:#c13b79">C</span><span class="pill" style="background:#b8651a">D</span><span class="pill" style="background:#6a4ecb">E</span></div></div></li>
+ </ul>
+ <button class="btn wide" id="toTiers">Vybrat úroveň</button>
+</div></section>
+
+<!-- ── VÝBĚR ÚROVNĚ ── -->
+<section id="tiers" class="screen"><div class="wrap">
+ <div class="tierhead"><h1>Vyber úroveň</h1><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div>
+ <p class="lead" style="margin-bottom:18px">Každá kategorie má 20 levelů a 60 vět. Můžeš začít kdekoli; nižší kategorie se dají kdykoli zopakovat.</p>
+ <div class="tlist" id="tlist"></div>
+ <div class="more" style="padding-top:18px"><button class="btn ghost" id="backApp" hidden>Zpět k procvičování</button></div>
+</div></section>
+
+<!-- ── APPKA ── -->
+<div id="app" class="screen">
 <header><div class="wrap">
  <div class="top">
-  <div class="langs" id="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button><button data-l="ja">JAP</button></div>
+  <div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div>
+  <button class="badge" id="badge" aria-label="Změnit kategorii"><span class="L" id="bL">A</span><span><b id="bName">Začátečník</b><span id="bSub">Level 1/20</span></span></button>
   <button class="ib" id="shuffle" title="Zamíchat a začít nové kolo" aria-label="Zamíchat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
   <button class="ib" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
  </div>
- <div class="sub"><div id="status"></div><label class="sw"><input type="checkbox" id="showAll"> Zobrazit vše</label></div>
- <div class="bar" title="Postup nejnovějších vět k dalšímu levelu"><div id="barFill"></div></div>
+ <div class="sub"><div id="status"></div>
+  <div class="tools"><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"><label class="sw"><input type="checkbox" id="showAll"> Zobrazit vše</label></div>
+ </div>
+ <div class="bar"><div id="barFill"></div></div>
 </div></header>
 <main class="wrap">
  <div id="list"></div>
- <div id="doneBox"></div>
  <div class="more"><button class="btn ghost" id="addMore">+3 věty</button></div>
  <p class="help">Podrž českou větu pro nápovědu · Enter = zkontrolovat</p>
 </main>
+</div>
+
 <div id="menu" hidden><div class="sheet">
- <h2>Jak to funguje</h2>
- <ul>
-  <li>Každá nová trojice vět musí mít každá 3× správnou odpověď, pak se odemkne další level.</li>
-  <li>Odpověď po nápovědě nebo se zapnutým „Zobrazit vše“ se nepočítá.</li>
-  <li>Od 9 odemčených vět se do kola vybírá 8 vět: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích. Jakmile je umíš, šance se zase sníží.</li>
-  <li>Velká písmena, čárky, tečky a apostrofy se ignorují. U otázek je potřeba otazník (kromě japonštiny).</li>
-  <li>Španělsky: první dvě odpovědi na větu projdou i bez diakritiky (s upozorněním), od třetí už musí být přesně.</li>
-  <li>Hotová věta se sbalí do řádku; klepnutím na něj zobrazíš varianty a poznámky.</li>
-  <li>Japonsky platí kanji, kana i romaji.</li>
- </ul>
+ <h2>Menu</h2>
+ <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <p id="progressAll"></p>
  <div id="stats"></div>
- <button class="btn danger" id="reset">Resetovat postup (ENG)</button>
+ <ul>
+  <li>Kolo má nejvýš 8 vět: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích.</li>
+  <li>Velká písmena, čárky, tečky, pomlčky a apostrofy se ignorují. U otázek je potřeba otazník.</li>
+  <li>Španělsky: první dvě odpovědi na větu projdou i bez diakritiky, od třetí už musí být přesně.</li>
+  <li>Pole „lvl“ nahoře (vývojář): napiš 1–100 a Enter pro skok na level (21 = B1, 41 = C1 …).</li>
+ </ul>
+ <button class="btn danger" id="reset">Resetovat postup</button>
  <button class="btn ghost" id="closeMenu">Zavřít</button>
 </div></div>
 <div id="toast"></div>
 
+<script src="data.js"></script>
 <script>
 {
-// ── FRÁZE ── cs: česky · en/es: správné varianty · ja: [kanji, kana (když se liší), romaji] · n: poznámky
-const P=[
-{cs:"Ahoj.",en:["Hello.","Hi."],es:["Hola."],ja:[["こんにちは","","konnichiwa"]],n:{en:"Hi je neformálnější.",ja:"Používá se přes den. Ráno おはよう, večer こんばんは."}},
-{cs:"Děkuji.",en:["Thank you.","Thanks."],es:["Gracias."],ja:[["ありがとうございます","","arigatou gozaimasu"],["ありがとう","","arigatou"]],n:{en:"Thanks je neformální.",ja:"ありがとう samotné je neformální (kamarádi)."}},
-{cs:"Na shledanou.",en:["Goodbye.","Bye.","See you."],es:["Adiós.","Hasta luego."],ja:[["さようなら","","sayounara"],["またね","","mata ne"],["じゃあね","","jaa ne"]],n:{en:"Bye a See you jsou neformální.",es:"Hasta luego = na viděnou, počítá se s dalším setkáním.",ja:"さようなら zní spíš definitivně. S přáteli またね nebo じゃあね."}},
-{cs:"Ano, prosím.",en:["Yes, please."],es:["Sí, por favor."],ja:[["はい、お願いします","はい、おねがいします","hai, onegaishimasu"]]},
-{cs:"Ne, děkuji.",en:["No, thank you.","No, thanks."],es:["No, gracias."],ja:[["いいえ、結構です","いいえ、けっこうです","iie, kekkou desu"],["大丈夫です","だいじょうぶです","daijoubu desu"]],n:{ja:"大丈夫です je dnes běžné zdvořilé odmítnutí („to je dobré“)."}},
-{cs:"Promiňte.",en:["Excuse me.","Sorry."],es:["Perdón.","Disculpe.","Lo siento."],ja:[["すみません","","sumimasen"]],n:{en:"Excuse me = upoutání pozornosti, průchod. Sorry = omluva.",es:"Disculpe = oslovení. Lo siento = omlouvám se, je mi líto.",ja:"Funguje na oslovení, omluvu i poděkování."}},
-{cs:"Dobré ráno.",en:["Good morning."],es:["Buenos días."],ja:[["おはようございます","","ohayou gozaimasu"],["おはよう","","ohayou"]],n:{es:"Buenos días se říká až do oběda.",ja:"おはよう samotné je neformální."}},
-{cs:"Dobrou noc.",en:["Good night."],es:["Buenas noches."],ja:[["おやすみなさい","","oyasuminasai"],["おやすみ","","oyasumi"]],n:{es:"Buenas noches znamená i „dobrý večer“."}},
-{cs:"Jak se máš?",en:["How are you?","How are you doing?","How's it going?"],es:["¿Cómo estás?","¿Qué tal?"],ja:[["元気ですか","げんきですか","genki desu ka"],["お元気ですか","おげんきですか","ogenki desu ka"]],n:{en:"How's it going? je hodně neformální.",es:"¿Cómo está? = vykání.",ja:"お元気ですか je zdvořilejší. Ptá se tak hlavně lidí, které jsi dlouho neviděl."}},
-{cs:"Mám se dobře, díky.",en:["I'm fine, thanks.","I'm good, thanks.","I'm doing well, thanks.","I am fine, thanks.","I'm fine, thank you."],es:["Estoy bien, gracias.","Bien, gracias."],ja:[["元気です、ありがとう","げんきです、ありがとう","genki desu, arigatou"]]},
-{cs:"Jak se jmenuješ?",en:["What's your name?","What is your name?"],es:["¿Cómo te llamas?","¿Cuál es tu nombre?"],ja:[["お名前は何ですか","おなまえはなんですか","onamae wa nan desu ka"],["お名前は","おなまえは","onamae wa"]],n:{es:"¿Cómo se llama? = vykání.",ja:"V hovoru stačí krátké お名前は."}},
-{cs:"Jmenuji se Jakub.",en:["My name is Jakub.","I'm Jakub.","I am Jakub."],es:["Me llamo Jakub.","Mi nombre es Jakub.","Soy Jakub."],ja:[["ヤクブです","","yakubu desu"],["私はヤクブです","わたしはヤクブです","watashi wa yakubu desu"],["ヤクブと申します","ヤクブともうします","yakubu to moushimasu"]],n:{ja:"Cizí jména se píšou katakanou. と申します je formální (práce)."}},
-{cs:"Těší mě.",en:["Nice to meet you.","Pleased to meet you."],es:["Mucho gusto.","Encantado.","Encantada."],ja:[["はじめまして","","hajimemashite"],["よろしくお願いします","よろしくおねがいします","yoroshiku onegaishimasu"]],n:{es:"Encantado říká muž, Encantada žena.",ja:"はじめまして na začátku představení, よろしくお願いします na konci."}},
-{cs:"Odkud jsi?",en:["Where are you from?"],es:["¿De dónde eres?"],ja:[["どこから来ましたか","どこからきましたか","doko kara kimashita ka"],["ご出身はどこですか","ごしゅっしんはどこですか","goshusshin wa doko desu ka"]],n:{es:"¿De dónde es? = vykání.",ja:"ご出身 = odkud pocházíš, zdvořilejší."}},
-{cs:"Jsem z České republiky.",en:["I'm from the Czech Republic.","I am from the Czech Republic.","I'm from Czechia.","I am from Czechia."],es:["Soy de la República Checa.","Soy de Chequia."],ja:[["チェコから来ました","チェコからきました","cheko kara kimashita"],["チェコ出身です","チェコしゅっしんです","cheko shusshin desu"]]},
-{cs:"Nerozumím.",en:["I don't understand.","I do not understand."],es:["No entiendo."],ja:[["わかりません","","wakarimasen"],["分かりません","わかりません","wakarimasen"]]},
-{cs:"Nevím.",en:["I don't know.","I do not know."],es:["No sé.","No lo sé."],ja:[["わかりません","","wakarimasen"],["知りません","しりません","shirimasen"]],n:{ja:"知りません = tu informaci nemám, zní příkřeji. わかりません je měkčí a běžnější."}},
-{cs:"Mluvíte anglicky?",en:["Do you speak English?"],es:["¿Habla inglés?","¿Hablas inglés?"],ja:[["英語を話せますか","えいごをはなせますか","eigo o hanasemasu ka"],["英語が話せますか","えいごがはなせますか","eigo ga hanasemasu ka"]],n:{es:"Habla = vykání, hablas = tykání."}},
-{cs:"Můžeš mluvit pomaleji?",en:["Can you speak more slowly?","Could you speak more slowly?","Can you speak slower?","Could you speak slower?"],es:["¿Puedes hablar más despacio?","¿Puede hablar más despacio?"],ja:[["もっとゆっくり話してください","もっとゆっくりはなしてください","motto yukkuri hanashite kudasai"],["ゆっくり話してください","ゆっくりはなしてください","yukkuri hanashite kudasai"]],n:{en:"Could je zdvořilejší.",es:"Puedes = tykání, puede = vykání.",ja:"Japonsky je to prosba, ne otázka."}},
-{cs:"Můžete to zopakovat?",en:["Can you repeat that?","Could you repeat that?","Can you say that again?","Could you say that again?"],es:["¿Puede repetirlo?","¿Puede repetir, por favor?"],ja:[["もう一度お願いします","もういちどおねがいします","mou ichido onegaishimasu"],["もう一度言ってください","もういちどいってください","mou ichido itte kudasai"]]},
-{cs:"Co to znamená?",en:["What does it mean?","What does this mean?","What does that mean?"],es:["¿Qué significa?","¿Qué significa eso?","¿Qué quiere decir?"],ja:[["どういう意味ですか","どういういみですか","dou iu imi desu ka"]]},
-{cs:"Kolik to stojí?",en:["How much is it?","How much is this?","How much does it cost?","How much does this cost?"],es:["¿Cuánto cuesta?","¿Cuánto es?"],ja:[["いくらですか","","ikura desu ka"]],n:{es:"¿Cuánto es? se hodí hlavně při placení celkové částky."}},
-{cs:"Kde je toaleta?",en:["Where is the toilet?","Where's the toilet?","Where is the bathroom?","Where's the bathroom?","Where is the restroom?","Where's the restroom?"],es:["¿Dónde está el baño?","¿Dónde están los servicios?"],ja:[["トイレはどこですか","","toire wa doko desu ka"]],n:{en:"Toilet = Británie, bathroom / restroom = USA.",es:"Baño funguje všude, servicios hlavně ve Španělsku."}},
-{cs:"Mám hlad.",en:["I'm hungry.","I am hungry."],es:["Tengo hambre."],ja:[["お腹が空きました","おなかがすきました","onaka ga sukimashita"],["お腹すいた","おなかすいた","onaka suita"]],n:{es:"Doslova „mám hlad“: tener, ne estar.",ja:"お腹すいた je neformální."}},
-{cs:"Stůl pro dva, prosím.",en:["A table for two, please.","Table for two, please."],es:["Una mesa para dos, por favor.","Mesa para dos, por favor."],ja:[["二人です","ふたりです","futari desu"],["二人お願いします","ふたりおねがいします","futari onegaishimasu"]],n:{ja:"V Japonsku se prostě řekne počet lidí."}},
-{cs:"Mám rezervaci.",en:["I have a reservation.","I've got a reservation.","I have a booking."],es:["Tengo una reserva.","Tengo una reservación."],ja:[["予約しています","よやくしています","yoyaku shite imasu"],["予約があります","よやくがあります","yoyaku ga arimasu"]],n:{en:"Booking je spíš britské.",es:"Reservación = Latinská Amerika."}},
-{cs:"Co doporučujete?",en:["What do you recommend?","What would you recommend?"],es:["¿Qué me recomienda?","¿Qué recomienda?"],ja:[["おすすめは何ですか","おすすめはなんですか","osusume wa nan desu ka"],["おすすめは","","osusume wa"]]},
-{cs:"Dám si kávu.",en:["I'll have a coffee.","I will have a coffee.","A coffee, please.","I'd like a coffee."],es:["Un café, por favor.","Quiero un café."],ja:[["コーヒーをください","","koohii o kudasai"],["コーヒーをお願いします","コーヒーをおねがいします","koohii o onegaishimasu"]]},
-{cs:"Vodu, prosím.",en:["Water, please.","Some water, please."],es:["Agua, por favor."],ja:[["お水をください","おみずをください","omizu o kudasai"],["お水お願いします","おみずおねがいします","omizu onegaishimasu"]]},
-{cs:"Je to pálivé?",en:["Is it spicy?","Is this spicy?"],es:["¿Es picante?","¿Pica?"],ja:[["辛いですか","からいですか","karai desu ka"]]},
-{cs:"Mám alergii na ořechy.",en:["I'm allergic to nuts.","I am allergic to nuts.","I have a nut allergy."],es:["Soy alérgico a los frutos secos.","Soy alérgica a los frutos secos.","Tengo alergia a los frutos secos."],ja:[["ナッツアレルギーがあります","","nattsu arerugii ga arimasu"]],n:{es:"Alérgico říká muž, alérgica žena."}},
-{cs:"Bylo to výborné.",en:["It was delicious.","That was delicious.","It was great."],es:["Estaba delicioso.","Estaba muy rico.","Estaba buenísimo."],ja:[["おいしかったです","","oishikatta desu"],["美味しかったです","おいしかったです","oishikatta desu"]],n:{ja:"Po jídle se navíc říká ごちそうさまでした."}},
-{cs:"Účet, prosím.",en:["The bill, please.","Bill, please.","The check, please.","Check, please."],es:["La cuenta, por favor."],ja:[["お会計お願いします","おかいけいおねがいします","okaikei onegaishimasu"],["お勘定お願いします","おかんじょうおねがいします","okanjou onegaishimasu"]],n:{en:"Bill = Británie, check = USA."}},
-{cs:"Můžu platit kartou?",en:["Can I pay by card?","Can I pay with a card?","Can I pay with card?","Can I pay by credit card?"],es:["¿Puedo pagar con tarjeta?"],ja:[["カードで払えますか","カードではらえますか","kaado de haraemasu ka"],["カードは使えますか","カードはつかえますか","kaado wa tsukaemasu ka"]]},
-{cs:"Kde je nádraží?",en:["Where is the train station?","Where's the train station?","Where is the station?","Where's the station?"],es:["¿Dónde está la estación de tren?","¿Dónde está la estación?"],ja:[["駅はどこですか","えきはどこですか","eki wa doko desu ka"]]},
-{cs:"Jednu jízdenku, prosím.",en:["One ticket, please.","A ticket, please."],es:["Un billete, por favor.","Un boleto, por favor."],ja:[["切符を一枚ください","きっぷをいちまいください","kippu o ichimai kudasai"]],n:{es:"Billete = Španělsko, boleto = Latinská Amerika."}},
-{cs:"Je to daleko?",en:["Is it far?","Is it far from here?"],es:["¿Está lejos?"],ja:[["遠いですか","とおいですか","tooi desu ka"]]},
-{cs:"Kolik je hodin?",en:["What time is it?","What's the time?"],es:["¿Qué hora es?"],ja:[["今何時ですか","いまなんじですか","ima nanji desu ka"],["何時ですか","なんじですか","nanji desu ka"]]},
-{cs:"Ztratil jsem se.",en:["I'm lost.","I am lost.","I got lost."],es:["Estoy perdido.","Estoy perdida.","Me he perdido."],ja:[["道に迷いました","みちにまよいました","michi ni mayoimashita"]],n:{es:"Perdido říká muž, perdida žena."}},
-{cs:"Můžete mi pomoct?",en:["Can you help me?","Could you help me?"],es:["¿Puede ayudarme?","¿Me puede ayudar?"],ja:[["手伝ってもらえますか","てつだってもらえますか","tetsudatte moraemasu ka"],["助けてもらえますか","たすけてもらえますか","tasukete moraemasu ka"]],n:{ja:"手伝う = pomoct s něčím, 助ける = pomoct z problému."}},
-{cs:"Počkejte chvíli, prosím.",en:["Wait a moment, please.","Just a moment, please.","One moment, please."],es:["Un momento, por favor.","Espere un momento, por favor."],ja:[["ちょっと待ってください","ちょっとまってください","chotto matte kudasai"],["少々お待ちください","しょうしょうおまちください","shoushou omachi kudasai"]],n:{ja:"少々お待ちください je velmi zdvořilé, říká to personál."}},
-{cs:"To je v pořádku.",en:["It's okay.","It's OK.","It's fine.","That's okay.","That's OK.","That's fine.","It's all right.","It's alright."],es:["Está bien.","No pasa nada."],ja:[["大丈夫です","だいじょうぶです","daijoubu desu"]],n:{es:"No pasa nada = nic se neděje (reakce na omluvu)."}},
-{cs:"Je mi zima.",en:["I'm cold.","I am cold.","I feel cold."],es:["Tengo frío."],ja:[["寒いです","さむいです","samui desu"]]},
-{cs:"Líbí se mi to tady.",en:["I like it here."],es:["Me gusta aquí.","Me gusta estar aquí."],ja:[["ここが好きです","ここがすきです","koko ga suki desu"]]},
-{cs:"Čím se živíš?",en:["What do you do?","What do you do for a living?","What is your job?","What's your job?"],es:["¿A qué te dedicas?","¿En qué trabajas?"],ja:[["お仕事は何ですか","おしごとはなんですか","oshigoto wa nan desu ka"],["お仕事は何をしていますか","おしごとはなにをしていますか","oshigoto wa nani o shite imasu ka"]]},
-{cs:"Uvidíme se zítra.",en:["See you tomorrow."],es:["Hasta mañana.","Nos vemos mañana."],ja:[["また明日","またあした","mata ashita"],["また明日ね","またあしたね","mata ashita ne"]]},
-{cs:"Kde je nejbližší lékárna?",en:["Where is the nearest pharmacy?","Where's the nearest pharmacy?","Where is the nearest drugstore?","Where's the nearest drugstore?"],es:["¿Dónde está la farmacia más cercana?"],ja:[["一番近い薬局はどこですか","いちばんちかいやっきょくはどこですか","ichiban chikai yakkyoku wa doko desu ka"]],n:{en:"Pharmacy funguje všude, drugstore je spíš americké."}},
-{cs:"Zavolejte sanitku!",en:["Call an ambulance!"],es:["¡Llame a una ambulancia!","¡Llamen a una ambulancia!"],ja:[["救急車を呼んでください","きゅうきゅうしゃをよんでください","kyuukyuusha o yonde kudasai"]],n:{es:"Llame = jednomu člověku (vykání), llamen = více lidem."}}
-];
-
-const LANG={en:{name:"ENG",tts:"en-US"},es:{name:"ESP",tts:"es-ES"},ja:{name:"JAP",tts:"ja-JP"}};
-const BATCH=3,ROUND=8,NEED=3,HOLD=450,KEY="frazovy-trener-v1";
+// ── data ──
+const P=window.FRAZE_A.concat(window.FRAZE_B.map(a=>({cs:a[0],en:a[1],es:a[2],n:a[3]})));
+const LANG={en:{name:"ENG",tts:"en-US"},es:{name:"ESP",tts:"es-ES"}};
+const TIERS=[
+ {k:"A",name:"Začátečník",desc:"Pozdravy, restaurace, cesta, základní otázky.",bg:"#eaf1ff",acc:"#3566d6"},
+ {k:"B",name:"Mírně pokročilý",desc:"Běžné situace, minulý a budoucí čas, hotel, nákupy.",bg:"#e6f6eb",acc:"#22844a"},
+ {k:"C",name:"Středně pokročilý",desc:"Názory, práce, podmínky, delší souvětí.",bg:"#fcebf3",acc:"#c13b79"},
+ {k:"D",name:"Pokročilý",desc:"Nereálné podmínky, nuance, složitější vazby.",bg:"#fff1df",acc:"#b8651a"},
+ {k:"E",name:"Rodilý mluvčí",desc:"Idiomy, přísloví a přirozená hovorová řeč.",bg:"#f1edff",acc:"#6a4ecb"}];
+const BATCH=3,PER=20,ROUND=8,NEED=3,HOLD=450,HIST=5,KEY="frazovy-trener-v1";
+const MAXLV=Math.ceil(P.length/BATCH);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const range=(a,b)=>Array.from({length:Math.max(0,b-a)},(_,k)=>a+k);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
 
 // ── stav ──
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.langs)S={lang:"en",langs:{}};
+if(!LANG[S.lang])S.lang="en";
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-const L=()=>S.langs[S.lang]||(S.langs[S.lang]={level:1,st:{}});
+const L=()=>{const l=S.langs[S.lang]||(S.langs[S.lang]={level:1,st:{}});if(l.view===undefined)l.view=null;if(l.level>MAXLV)l.level=MAXLV;return l};
 const stat=i=>{const s=L().st[i]||(L().st[i]={c:0,w:0,h:[]});if(!s.h)s.h=[];return s};
-// historie posledních HIST odpovědí na větu (1 = správně, 0 = chyba / nápověda); 1 záznam na větu za kolo
-const HIST=5;
 const errs=i=>stat(i).h.filter(x=>!x).length;
-function record(c,ok){if(c.logged||showAllOn())return;c.logged=true;const h=stat(c.i).h;h.push(ok?1:0);while(h.length>HIST)h.shift();save()}
+const tierOf=lv=>Math.min(TIERS.length-1,Math.floor((lv-1)/PER));
+const subOf=lv=>(lv-1)%PER+1;
+const curT=()=>tierOf(L().level);
+const activeT=()=>L().view!=null?L().view:curT();
+const isReview=()=>L().view!=null&&L().view<curT();
 const unlocked=()=>Math.min(L().level*BATCH,P.length);
-const newest=()=>range((L().level-1)*BATCH,unlocked());
+const newest=()=>isReview()?[]:range((L().level-1)*BATCH,unlocked());
+const tierRange=t=>range(t*PER*BATCH,Math.min((t+1)*PER*BATCH,P.length));
 
 // ── porovnávání ──
-const kata2hira=s=>s.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
 const noAcc=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"");
-function norm(s,lang){
+function norm(s){
  s=(s||"").normalize("NFC").trim();
  const q=/[?？]/.test(s);
- let t=s.toLowerCase().replace(/['’‘`´"“”„«»]/g,"").replace(/[?？¿¡.,!;:。、！：；「」・…~～]/g," ").replace(/[\s　]+/g," ").trim();
- if(lang==="ja"){
-  t=kata2hira(t);
-  if(/^[a-zÀ-ɏḀ-ỿ ]+$/.test(t)){ // romaji
-   t=noAcc(t).split(" ").map(w=>w==="wo"?"o":w).join("").replace(/ou/g,"o").replace(/([aeiou])\1+/g,"$1");
-  } else t=t.replace(/ /g,"");
- }
+ const t=s.toLowerCase().replace(/['’‘`´"“”„«»\-‐–—]/g,"").replace(/[?？¿¡.,!;:…]/g," ").replace(/\s+/g," ").trim();
  return {t,q};
 }
-const accepted=(p,lang)=>lang==="ja"?p.ja.flatMap(v=>[v[0],v[1]||v[0],v[2]]):p[lang];
 function check(raw,p,lang){
- const inp=norm(raw,lang); if(!inp.t)return{s:"empty"};
+ const inp=norm(raw); if(!inp.t)return{s:"empty"};
  let best=null;
- for(const a of accepted(p,lang)){
-  const t=norm(a,lang), needQ=lang!=="ja"&&t.q&&!inp.q;
-  if(inp.t===t.t){ if(needQ){best=best||{s:"noq"};continue} return{s:"ok",a}; }
-  if(lang==="es"&&noAcc(inp.t)===noAcc(t.t)){ if(needQ){best=best||{s:"noq"};continue} best={s:"accent",a}; }
+ for(const a of p[lang]){
+  const t=norm(a),needQ=t.q&&!inp.q;
+  if(inp.t===t.t){if(needQ){best=best||{s:"noq"};continue}return{s:"ok",a}}
+  if(lang==="es"&&noAcc(inp.t)===noAcc(t.t)){if(needQ){best=best||{s:"noq"};continue}best={s:"accent",a}}
  }
  return best||{s:"bad"};
 }
+const strictAcc=c=>S.lang==="es"&&stat(c.i).c>=2;
+const markAcc=s=>[...s].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("");
+function record(c,ok){if(c.logged||showAllOn())return;c.logged=true;const h=stat(c.i).h;h.push(ok?1:0);while(h.length>HIST)h.shift();save()}
 
 // ── karty ──
-let round=[],composing=false;
-const firstText=(p,lang)=>lang==="ja"?p.ja[0][0]:p[lang][0];
-const revealText=(p,lang)=>lang==="ja"?p.ja[0][0]+"  ·  "+p.ja[0][2]:p[lang][0];
-function variantCount(p,lang){return lang==="ja"?p.ja.length:p[lang].length}
+const SPK=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`;
+let round=[],nextT=null;
+const plural=n=>n>=5?"variant":"varianty";
 function infoHTML(p,lang,warn){
  let h=warn?`<div class="warn">Pozor na diakritiku: ${esc(warn)}</div>`:"";
- if(lang==="ja")h+=p.ja.map(v=>`<div class="ja"><b>${esc(v[0])}</b>${v[1]&&v[1]!==v[0]?`<span>${esc(v[1])}</span>`:""}<em>${esc(v[2])}</em></div>`).join("");
- else if(p[lang].length>1)h+=`<div class="vars">Dá se říct i: ${p[lang].map(v=>`<b>${esc(v)}</b>`).join(" / ")}</div>`;
+ if(p[lang].length>1)h+=`<div class="vars">Dá se říct i: ${p[lang].map(v=>`<b>${esc(v)}</b>`).join(" / ")}</div>`;
  const n=p.n&&p.n[lang]; if(n)h+=`<div>💡 ${esc(n)}</div>`;
  return h;
 }
+const fit=t=>{t.style.height="auto";t.style.height=t.scrollHeight+"px"};
 function makeCard(i){
- const p=P[i],lang=S.lang,c={i,done:false,peeked:false,wrong:false,el:document.createElement("div")};
- const vc=variantCount(p,lang);
+ const p=P[i],lang=S.lang,c={i,done:false,peeked:false,wrong:false,logged:false,el:document.createElement("div")};
  c.el.className="card";
- c.el.innerHTML=`<div class="head"><div class="cs">${esc(p.cs)}</div><div class="meta">${vc>1?`<span class="tag">${vc} varianty</span>`:""}<span class="dots"></span></div></div>
- <div class="field"><input type="text" lang="${lang}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-label="Překlad"><div class="reveal">${esc(revealText(p,lang))}</div><button class="say" aria-label="Přehrát výslovnost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button></div>
+ c.el.innerHTML=`<div class="cs">${esc(p.cs)}</div><div class="meta"></div>
+ <div class="field"><textarea rows="1" lang="${lang}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-label="Překlad"></textarea><div class="reveal">${esc(p[lang][0])}</div><button class="say" aria-label="Přehrát výslovnost">${SPK}</button></div>
  <div class="msg"></div><div class="mini"></div><div class="info"></div>`;
- c.el.querySelector(".mini").addEventListener("click",e=>{if(e.target.closest(".say"))say(c.said);else c.el.classList.toggle("open")});
- const cs=c.el.querySelector(".cs"),inp=c.el.querySelector("input");
+ const cs=c.el.querySelector(".cs"),inp=c.el.querySelector("textarea");
  c.inp=inp;
  let t;
  const end=()=>{clearTimeout(t);cs.classList.remove("holding");c.el.classList.remove("peek")};
  cs.addEventListener("pointerdown",()=>{if(c.done)return;cs.classList.add("holding");t=setTimeout(()=>{c.el.classList.add("peek");if(!c.peeked&&!showAllOn()){c.peeked=true;record(c,false);markTags(c)}},HOLD)});
  ["pointerup","pointerleave","pointercancel"].forEach(ev=>cs.addEventListener(ev,end));
  cs.addEventListener("contextmenu",e=>e.preventDefault());
- inp.addEventListener("compositionstart",()=>composing=true);
- inp.addEventListener("compositionend",()=>{composing=false;live(c)});
- inp.addEventListener("input",e=>{if(composing||e.isComposing)return;live(c)});
- inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();judge(c)}});
- inp.addEventListener("blur",()=>{if(!composing)judge(c)});
- c.el.querySelector(".say").addEventListener("click",()=>say(c.said||firstText(p,lang)));
+ inp.addEventListener("input",()=>{if(/\n/.test(inp.value))inp.value=inp.value.replace(/\s*\n\s*/g," ");fit(inp);live(c)});
+ inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();judge(c)}});
+ inp.addEventListener("blur",()=>judge(c));
+ c.el.querySelector(".say").addEventListener("click",()=>say(c.said||p[lang][0]));
+ c.el.querySelector(".mini").addEventListener("click",e=>{if(e.target.closest(".say"))say(c.said);else c.el.classList.toggle("open")});
  markTags(c);
  return c;
 }
 function markTags(c){
- const s=stat(c.i),isNew=newest().includes(c.i),meta=c.el.querySelector(".meta");
- meta.querySelectorAll(".tag.new,.tag.pk,.tag.st,.tag.st").forEach(x=>x.remove());
- if(strictAcc(c)&&!c.done)meta.insertAdjacentHTML("afterbegin",`<span class="tag st">přesně s diakritikou</span>`);
- if(errs(c.i)>=2&&!c.done)meta.insertAdjacentHTML("afterbegin",`<span class="tag st">častá chyba</span>`);
- if(c.peeked)meta.insertAdjacentHTML("afterbegin",`<span class="tag pk">nápověda</span>`);
- if(isNew)meta.insertAdjacentHTML("afterbegin",`<span class="tag new">nová</span>`);
- c.el.querySelector(".dots").innerHTML=range(0,NEED).map(k=>`<i class="${k<s.c?"on":""}"></i>`).join("");
+ const s=stat(c.i),p=P[c.i],vc=p[S.lang].length,tags=[];
+ if(newest().includes(c.i))tags.push(`<span class="tag new">nová</span>`);
+ if(!c.done&&strictAcc(c))tags.push(`<span class="tag st">přesně s diakritikou</span>`);
+ if(!c.done&&errs(c.i)>=2)tags.push(`<span class="tag st">častá chyba</span>`);
+ if(c.peeked)tags.push(`<span class="tag">nápověda</span>`);
+ if(vc>1)tags.push(`<span class="tag">${vc} ${plural(vc)}</span>`);
+ c.el.querySelector(".meta").innerHTML=`<span class="dots" title="Správně ${Math.min(s.c,NEED)} z ${NEED}">${range(0,NEED).map(k=>`<i class="${k<s.c?"on":""}"></i>`).join("")}</span>`+tags.join("");
 }
 function live(c){
  if(c.done)return;
@@ -300,9 +332,6 @@ function live(c){
  const r=check(c.inp.value,P[c.i],S.lang);
  if(r.s==="ok"||(r.s==="accent"&&!strictAcc(c)))correct(c,r);
 }
-// od 3. odpovědi na větu (2 už správně) se ve španělštině vyžaduje přesná diakritika
-const strictAcc=c=>S.lang==="es"&&stat(c.i).c>=2;
-const markAcc=s=>[...s].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("");
 function judge(c){
  if(c.done||showAllOn())return;
  const r=check(c.inp.value,P[c.i],S.lang);
@@ -310,8 +339,7 @@ function judge(c){
  const strict=r.s==="accent"&&strictAcc(c);
  if(r.s==="ok"||(r.s==="accent"&&!strict))return correct(c,r);
  c.el.classList.remove("bad");void c.el.offsetWidth;c.el.classList.add("bad");
- const m=c.el.querySelector(".msg");
- m.classList.toggle("strict",strict);
+ const m=c.el.querySelector(".msg");m.classList.toggle("strict",strict);
  if(strict)m.innerHTML=`Oprav diakritiku: ${markAcc(r.a)}`;
  else m.textContent=r.s==="noq"?"Chybí otazník.":"";
  if(!c.wrong){c.wrong=true;stat(c.i).w++;record(c,false)}
@@ -323,9 +351,7 @@ function correct(c,r){
  c.el.querySelector(".info").innerHTML=infoHTML(P[c.i],S.lang,r.s==="accent"?r.a:"");
  if(!c.peeked&&!showAllOn()){stat(c.i).c++;record(c,true);save()}
  markTags(c);
- const p=P[c.i];let shown=r.a;
- if(S.lang==="ja"){const v=p.ja.find(v=>v.includes(r.a))||p.ja[0];shown=v[0]+" · "+v[2];c.said=v[0]}
- c.el.querySelector(".mini").innerHTML=`<span class="mcs">${esc(p.cs)}</span><span class="man">${esc(shown)}</span>${r.s==="accent"?`<span class="mw" title="Chyběla diakritika">⚠</span>`:""}<button class="say" aria-label="Přehrát výslovnost">${c.el.querySelector(".say").innerHTML}</button>`;
+ c.el.querySelector(".mini").innerHTML=`<span class="mcs">${esc(P[c.i].cs)}</span><span class="man">${esc(r.a)}${r.s==="accent"?`<span class="mw" title="Chyběla diakritika">⚠</span>`:""}</span><button class="say" aria-label="Přehrát výslovnost">${SPK}</button>`;
  const next=round.find(x=>!x.done&&x!==c),hadFocus=document.activeElement===c.inp;
  if(next&&hadFocus)next.inp.focus({preventScroll:true});
  setTimeout(()=>{c.el.classList.add("compact");if(next&&hadFocus)next.inp.scrollIntoView({block:"center",behavior:"smooth"})},r.s==="accent"?1400:600);
@@ -334,20 +360,100 @@ function correct(c,r){
 
 // ── levely a kola ──
 function checkLevel(){
+ if(isReview())return;
  const nb=newest();
- if(!nb.every(i=>stat(i).c>=NEED))return;
- if(unlocked()>=P.length){if(!L().allDone){L().allDone=true;save();celebrate("★",true)}return}
+ if(!nb.length||!nb.every(i=>stat(i).c>=NEED))return;
+ if(unlocked()>=P.length){if(!L().allDone){L().allDone=true;save();celebrate("final")}return}
  levelUp(true);
 }
 function levelUp(auto){
+ if(isReview())return toast("V režimu opakování se nové věty nepřidávají");
  if(unlocked()>=P.length)return toast("Všechny věty už jsou odemčené");
+ const before=curT();
  L().level++;save();
  const fresh=newest().map(makeCard);
  round.forEach(markTags);
  round=fresh.concat(round);
- render();
- if(auto)celebrate(L().level);else toast("Přidány 3 nové věty");
+ applyTier();render();
+ if(auto)celebrate(curT()!==before?"tier":"level");else toast("Přidány 3 nové věty");
 }
+function weightedPick(pool,n){
+ const t=activeT(),out=[],items=pool.map((i,k)=>{const s=stat(i);
+  return{i,w:.6+2.4*(k+1)/pool.length+(tierOf(Math.floor(i/BATCH)+1)===t?1.5:0)+(s.c<NEED?1:0)+errs(i)*.8}});
+ while(out.length<n&&items.length){
+  let sum=items.reduce((a,b)=>a+b.w,0),r=Math.random()*sum,k=0;
+  while((r-=items[k].w)>0&&k<items.length-1)k++;
+  out.push(items.splice(k,1)[0].i);
+ }
+ return out;
+}
+const shuffle=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
+function buildRound(){
+ clearTimeout(nextT);nextT=null;
+ let pick;
+ if(isReview())pick=weightedPick(tierRange(activeT()),ROUND);
+ else{
+  const u=unlocked(),nb=newest(),all=range(0,u);
+  pick=u<=ROUND?all:nb.concat(weightedPick(all.filter(i=>!nb.includes(i)),ROUND-nb.length));
+ }
+ round=shuffle(pick).map(makeCard);
+ render();window.scrollTo({top:0});
+}
+function render(){
+ const list=$("#list");list.textContent="";
+ round.forEach(c=>list.appendChild(c.el));
+ round.forEach(c=>fit(c.inp));
+ applyShowAll();update();
+}
+function update(){
+ const lv=L().level,done=round.filter(c=>c.done).length,nb=newest(),T=TIERS[activeT()];
+ $("#bL").textContent=T.k;$("#bName").textContent=T.name;
+ $("#bSub").textContent=isReview()?"Opak.":L().allDone?"Hotovo":`${subOf(lv)}/${PER}`;
+ $("#status").innerHTML=isReview()?`<b>${T.k} · opakování</b> · kolo ${done}/${round.length}`:`<b>${T.k} · level ${subOf(lv)}</b>/${PER} · kolo ${done}/${round.length}`;
+ $("#barFill").style.width=(nb.length?nb.reduce((a,i)=>a+Math.min(stat(i).c,NEED),0)/(NEED*nb.length):round.length?done/round.length:0)*100+"%";
+ $("#addMore").hidden=isReview()||unlocked()>=P.length;
+ $("#reset").textContent=`Resetovat postup (${LANG[S.lang].name})`;
+ if(round.length&&done===round.length&&!nextT){
+  nextT=setTimeout(function go(){
+   if($("#lvl")){nextT=setTimeout(go,300);return}
+   nextT=null;buildRound();toast("Nové kolo");
+   const f=round[0];if(f)f.inp.focus({preventScroll:true});
+  },1500);
+ }
+}
+function applyTier(){
+ const T=TIERS[activeT()];document.body.dataset.tier=T.k;
+ const m=document.querySelector('meta[name=theme-color]');if(m)m.content=T.bg;
+}
+
+// ── zobrazit vše ──
+const showAllOn=()=>$("#showAll").checked;
+function applyShowAll(){
+ const on=showAllOn();document.body.classList.toggle("all",on);
+ round.forEach(c=>{if(c.done)return;c.inp.disabled=on;c.el.classList.remove("bad");c.el.querySelector(".info").innerHTML=on?infoHTML(P[c.i],S.lang,""):""});
+}
+$("#showAll").addEventListener("change",applyShowAll);
+
+// ── výběr úrovně ──
+function renderTiers(){
+ const cur=curT(),lv=L().level,act=activeT();
+ $("#tlist").innerHTML=TIERS.map((T,t)=>{
+  let st,prog;
+  if(t<cur){st="Hotovo ✓ · opakovat";prog=1}
+  else if(t===cur){st=L().allDone?"Hotovo ✓":`Level ${subOf(lv)}/${PER} · pokračovat`;prog=L().allDone?1:(subOf(lv)-1)/PER}
+  else{st="Začít zde";prog=0}
+  return `<button class="tcard${t===act?" cur":""}" data-t="${t}" style="--tbg:${T.bg};--tacc:${T.acc}"><span class="L">${T.k}</span><span><b>${T.name}</b><span>${T.desc}</span><div class="tbar"><div style="width:${prog*100}%"></div></div></span><em>${st}</em></button>`;
+ }).join("");
+ $("#backApp").hidden=!S.started;
+}
+$("#tlist").addEventListener("click",e=>{
+ const b=e.target.closest(".tcard");if(!b)return;
+ const t=+b.dataset.t,cur=curT(),l=L();
+ if(t===cur)l.view=null;
+ else if(t<cur){l.view=t;toast(`Opakování kategorie ${TIERS[t].k}`)}
+ else{l.level=t*PER+1;l.view=null;toast(`Začínáš ${TIERS[t].k} · level 1`)}
+ S.started=true;save();applyTier();show("app");buildRound();
+});
 
 // ── level up animace ──
 const ARM=(c,l,r)=>`<path class="arm l" d="${l}" stroke="${c}" stroke-width="15" stroke-linecap="round" fill="none"/><path class="arm r" d="${r}" stroke="${c}" stroke-width="15" stroke-linecap="round" fill="none"/>`;
@@ -379,68 +485,26 @@ const CRIT=[
  <path d="M89 120 L111 120 L100 112z" fill="#f08a1c"/><path d="M91 122 L109 122 L100 134z" fill="#d86a10"/>
  <circle cx="70" cy="124" r="8" fill="#f77" opacity=".4"/><circle cx="130" cy="124" r="8" fill="#f77" opacity=".4"/></svg>`
 ];
-const EXCL={en:["Nice!","Boom!","Level up!","Awesome!"],es:["¡Olé!","¡Bravo!","¡Vamos!","¡Genial!"],ja:["やった！","すごい！","よし！","最高！"]};
+const EXCL={en:["Nice!","Boom!","Level up!","Awesome!"],es:["¡Olé!","¡Bravo!","¡Vamos!","¡Genial!"]};
 const QUIP=["Jazykový stroj!","Mozek jede na plný výkon.","Ani ses nezapotil.","Takhle se to dělá.","Další tři do sbírky.","Zvířátka jásají.","Učitelka by byla pyšná."];
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-function celebrate(lv,final){
+function celebrate(kind){
  const old=$("#lvl");if(old)old.remove();
+ const lv=L().level,T=TIERS[curT()];
  const col=["#ff5c8a","#ffd23f","#4cc26a","#2b5bd7","#ff8a3d","#9b5cff"];
- const conf=range(0,40).map(()=>{const a=Math.random()*Math.PI*2,d=120+Math.random()*140;
+ const n=kind==="level"?40:70;
+ const conf=range(0,n).map(()=>{const a=Math.random()*Math.PI*2,d=120+Math.random()*(kind==="level"?140:220);
   return `<i class="cf" style="--x:${(Math.cos(a)*d).toFixed(0)}px;--y:${(Math.sin(a)*d-50).toFixed(0)}px;--r:${(Math.random()*720-360).toFixed(0)}deg;background:${pick(col)};animation-delay:${(Math.random()*.2).toFixed(2)}s"></i>`}).join("");
+ let label,num,sub;
+ if(kind==="final"){label="VŠECHNO ZVLÁDNUTO";num="★";sub=`Všech ${P.length} vět je tvých. Jsi rodilý mluvčí!`}
+ else if(kind==="tier"){label="NOVÁ KATEGORIE";num=`<span class="L">${T.k}</span>`;sub=`${T.name} · začínáš level 1. ${T.desc}`}
+ else{label="LEVEL";num=`<span class="L">${T.k}</span>${subOf(lv)}`;sub=`${pick(QUIP)} Přibyly 3 nové věty.`}
  const o=document.createElement("div");o.id="lvl";
- o.innerHTML=`<div class="lv-box">${conf}<div class="lv-say">${esc(pick(EXCL[S.lang]))}</div><div class="lv-crit">${CRIT[(typeof lv==="number"?lv:Math.floor(Math.random()*3))%CRIT.length]}</div><div class="lv-shadow"></div>
-  <div class="lv-label">${final?"VŠECHNO ZVLÁDNUTO":"LEVEL"}</div><div class="lv-num">${esc(lv)}</div>
-  <div class="lv-sub">${final?`Všech ${P.length} vět je tvých.`:`${esc(pick(QUIP))} Přibyly 3 nové věty.`}</div></div>`;
+ o.innerHTML=`<div class="lv-box">${conf}<div class="lv-say">${esc(pick(EXCL[S.lang]))}</div><div class="lv-crit">${CRIT[lv%CRIT.length]}</div><div class="lv-shadow"></div>
+  <div class="lv-label">${label}</div><div class="lv-num">${num}</div><div class="lv-sub">${esc(sub)}</div></div>`;
  document.body.appendChild(o);
  const close=()=>{if(!o.isConnected||o.classList.contains("out"))return;o.classList.add("out");setTimeout(()=>o.remove(),350)};
- o.addEventListener("pointerdown",close);setTimeout(close,3400);
+ o.addEventListener("pointerdown",close);setTimeout(close,kind==="level"?3400:4500);
 }
-function weightedPick(pool,n){
- const out=[],items=pool.map((i,k)=>{const s=stat(i);return{i,w:.6+2.4*(k+1)/pool.length+(s.c<NEED?1:0)+errs(i)*.8}});
- while(out.length<n&&items.length){
-  let sum=items.reduce((a,b)=>a+b.w,0),r=Math.random()*sum,k=0;
-  while((r-=items[k].w)>0&&k<items.length-1)k++;
-  out.push(items.splice(k,1)[0].i);
- }
- return out;
-}
-const shuffle=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
-let nextT=null;
-function buildRound(){
- clearTimeout(nextT);nextT=null;
- const u=unlocked(),nb=newest(),all=range(0,u);
- const pick=u<=ROUND?all:nb.concat(weightedPick(all.filter(i=>!nb.includes(i)),ROUND-nb.length));
- round=shuffle(pick).map(makeCard);
- render();window.scrollTo({top:0});
-}
-function render(){
- const list=$("#list");list.textContent="";
- round.forEach(c=>list.appendChild(c.el));
- applyShowAll();update();
-}
-function update(){
- const lv=L(),u=unlocked(),done=round.filter(c=>c.done).length,nb=newest();
- $("#status").innerHTML=`<b>Level ${lv.level}</b> · odemčeno ${u}/${P.length} · kolo ${done}/${round.length}`;
- $("#barFill").style.width=(nb.reduce((a,i)=>a+Math.min(stat(i).c,NEED),0)/(NEED*nb.length)*100)+"%";
- $("#addMore").hidden=u>=P.length;
- if(round.length&&done===round.length&&!nextT){
-  // kolo hotové → po krátké pauze (a po zavření level-up animace) automaticky další kolo
-  nextT=setTimeout(function go(){
-   if($("#lvl")){nextT=setTimeout(go,300);return}
-   nextT=null;buildRound();toast("Nové kolo");
-   const f=round[0];if(f)f.inp.focus({preventScroll:true});
-  },1500);
- }
- $("#reset").textContent=`Resetovat postup (${LANG[S.lang].name})`;
-}
-
-// ── zobrazit vše ──
-const showAllOn=()=>$("#showAll").checked;
-function applyShowAll(){
- const on=showAllOn();document.body.classList.toggle("all",on);
- round.forEach(c=>{if(c.done)return;c.inp.disabled=on;c.el.classList.remove("bad");c.el.querySelector(".info").innerHTML=on?infoHTML(P[c.i],S.lang,""):""});
-}
-$("#showAll").addEventListener("change",applyShowAll);
 
 // ── ostatní ──
 function say(text){
@@ -448,30 +512,47 @@ function say(text){
   const u=new SpeechSynthesisUtterance(text);u.lang=LANG[S.lang].tts;u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
 }
 let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2200)}
+function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers()}
 function setLang(l){
- S.lang=l;save();document.body.dataset.lang=l;
- document.querySelectorAll("#langs button").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
- buildRound();
+ S.lang=l;save();
+ document.querySelectorAll(".langs button").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
+ applyTier();
+ if(document.body.dataset.screen==="app")buildRound();else renderTiers();
 }
-$("#langs").addEventListener("click",e=>{const b=e.target.closest("button");if(b&&b.dataset.l!==S.lang)setLang(b.dataset.l)});
+document.addEventListener("click",e=>{const b=e.target.closest(".langs button");if(b&&b.dataset.l!==S.lang)setLang(b.dataset.l)});
+$("#toTiers").addEventListener("click",()=>{S.seen=true;save();show("tiers")});
+$("#backApp").addEventListener("click",()=>{show("app");if(!round.length)buildRound()});
+$("#badge").addEventListener("click",()=>show("tiers"));
 $("#shuffle").addEventListener("click",()=>{buildRound();toast("Zamícháno, nové kolo")});
 $("#addMore").addEventListener("click",()=>levelUp(false));
+$("#dev").addEventListener("keydown",e=>{
+ if(e.key!=="Enter")return;
+ const n=Math.round(+e.target.value);
+ if(!(n>=1&&n<=MAXLV))return toast(`Zadej číslo 1–${MAXLV}`);
+ const l=L();l.level=n;l.view=null;l.allDone=false;save();e.target.value="";e.target.blur();
+ applyTier();buildRound();toast(`Skok na ${TIERS[curT()].k} · level ${subOf(n)}`);
+});
 let armed=false;
 $("#menuBtn").addEventListener("click",()=>{
  armed=false;update();
+ $("#progressAll").textContent="Postup: "+Object.keys(LANG).map(k=>{const lv=(S.langs[k]||{level:1}).level;return `${LANG[k].name} ${TIERS[tierOf(lv)].k} · level ${subOf(lv)}`}).join("  ·  ");
  const bad=range(0,unlocked()).filter(i=>errs(i)>0).sort((a,b)=>errs(b)-errs(a)||stat(b).w-stat(a).w).slice(0,6);
  $("#stats").innerHTML=`<p style="margin-bottom:6px"><b>Nejčastější chyby (${LANG[S.lang].name}, posledních ${HIST} odpovědí)</b></p>`+(bad.length?`<ul>${bad.map(i=>`<li>${esc(P[i].cs)} · ${errs(i)}/${stat(i).h.length} chyb</li>`).join("")}</ul>`:`<p>Zatím žádné, jen tak dál.</p>`);
- $("#progressAll").textContent="Postup: "+Object.keys(LANG).map(k=>`${LANG[k].name} level ${(S.langs[k]||{level:1}).level}`).join(" · ");
  $("#menu").hidden=false;
 });
 $("#closeMenu").addEventListener("click",()=>$("#menu").hidden=true);
 $("#menu").addEventListener("click",e=>{if(e.target.id==="menu")$("#menu").hidden=true});
+$("#mTiers").addEventListener("click",()=>{$("#menu").hidden=true;show("tiers")});
+$("#mIntro").addEventListener("click",()=>{$("#menu").hidden=true;show("intro")});
 $("#reset").addEventListener("click",e=>{
  if(!armed){armed=true;e.target.textContent="Opravdu? Klepni znovu";return}
- delete S.langs[S.lang];save();$("#menu").hidden=true;buildRound();toast("Postup resetován");
+ delete S.langs[S.lang];save();$("#menu").hidden=true;applyTier();buildRound();toast("Postup resetován");
 });
 
-setLang(LANG[S.lang]?S.lang:"en");
+// ── start ──
+document.querySelectorAll(".langs button").forEach(b=>b.classList.toggle("on",b.dataset.l===S.lang));
+applyTier();
+if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
 </body>
