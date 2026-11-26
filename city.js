@@ -233,8 +233,8 @@ function mapSVG(pick){
  }
  out.push(`<g pointer-events="none">${todLayer(t)}</g>`);
  if(pick)freeSlots().forEach(k=>{const[x,y]=sp(k);out.push(`<g class="tap" data-act="slot-${k}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><rect x="-40" y="-32" width="80" height="64" rx="10" fill="rgba(255,255,255,.28)" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/><g class="pulse">${badge("+","g",14)}</g></g>`)});
- if(c.lv<=2||c.unfog){
-  out.push(`<defs><mask id="fm"><rect width="400" height="400" fill="#fff"/><ellipse cx="200" cy="175" rx="84" ry="78" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)"><rect width="400" height="400" fill="#eef2f7" opacity=".96"/>${[[90,80],[300,70],[80,290],[320,300],[200,360],[200,30],[40,180],[360,180]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
+ if(!pick&&(c.lv<=2||c.unfog)){
+  out.push(`<defs><mask id="fm"><rect width="400" height="400" fill="#fff"/><ellipse cx="200" cy="175" rx="84" ry="78" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)" pointer-events="none"><rect width="400" height="400" fill="#eef2f7" opacity=".96"/>${[[90,80],[300,70],[80,290],[320,300],[200,360],[200,30],[40,180],[360,180]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
  }
  return `<svg class="map tod-${t}" viewBox="0 0 400 400" role="img" aria-label="Map">${out.join("")}</svg>`;
 }
@@ -308,7 +308,7 @@ function renderStart(){
 function storyModal(n){if(n>LV.length)return;const lv=LV[n-1];info(`${ui("level")} ${n}: ${bi(lv.t)}`,bi(lv.story),"start")}
 function renderMap(){
  const c=C(),cards=[],pend=pending(),pk=pendingPick();
- if(pk&&P().g)return renderPick(pk);
+ if(pk&&P().g){if(c.unfog){c.unfog=false;save()}return renderPick(pk)}
  if(c.walkPend){delete c.walkPend;c.walkNow=Math.random()<.6;save()}else if(c.walkNow){c.walkNow=false;save()}
  if(pend==="avatar")cards.push(`<div class="ccard act"><div><b>${bi(LV[0].done)}</b></div><button class="btn" data-go="avatar">${ui("next")}</button></div>`);
  if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi(LV[3].done)}</b><span>${COST.pet} 🪙</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
