@@ -176,7 +176,6 @@ function pic(p){
  if(p==="dog"||p==="cat")return `<svg viewBox="0 0 90 84">${PETSVG(p)}</svg>`;
  return `<span class="emo">${p}</span>`;
 }
-const pos=i=>{const a=(-90+i*45)*Math.PI/180;return[200+132*Math.cos(a),214+126*Math.sin(a)]};
 function zooArt(){
  const f=[];for(let a=0;a<360;a+=20){const r=a*Math.PI/180;f.push([Math.cos(r)*36,Math.sin(r)*16-8])}
  return `<ellipse cx="0" cy="-6" rx="42" ry="20" fill="rgba(40,60,20,.2)"/><ellipse cx="0" cy="-8" rx="38" ry="17" fill="#b5dd84"/><ellipse cx="-14" cy="-12" rx="12" ry="5" fill="url(#gWater)"/>`+
@@ -190,47 +189,28 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
+// pozemky na podkladu img/map.webp (souřadnice v px obrázku 1024)
+const PPOS={shop:[512,222],market:[795,342],cafe:[800,597],zoo:[512,717],school:[220,597],doctor:[225,347],bus:[700,900],station:[118,112]};
+const pos=i=>{const p=PPOS[PLOTS[i].id];return[p[0]*400/1024,p[1]*400/1024]};
 function mapSVG(){
- const c=C(),p=P(),Lg=L(),out=[DEFS],R=rnd(7),cx=200,cy=210;
- out.push(`<rect width="400" height="420" fill="#8cc25e"/>`);
- // pole a řeka mimo hradby
- out.push(`<path d="M0 0H70L40 40L0 60Z" fill="url(#gField)"/><path d="M8 8H52M4 22H40M2 36H26" stroke="#c9a03a" stroke-width="1.5" opacity=".6"/><path d="M330 0H400V50L360 30Z" fill="url(#gField)"/><path d="M345 6H394M365 20H396" stroke="#c9a03a" stroke-width="1.5" opacity=".6"/>`);
- out.push(`<path d="M0 300 Q30 330 22 370 T40 420 H0Z" fill="url(#gWater)"/><path d="M6 320 q8 10 6 22 M14 376 q6 8 4 18" stroke="#fff" stroke-width="1.6" opacity=".6" fill="none"/><path d="M400 330 Q372 360 380 420 H400Z" fill="url(#gWater)"/>`);
- // hradby
- out.push(`<ellipse cx="${cx}" cy="${cy+4}" rx="190" ry="196" fill="rgba(40,60,20,.25)"/><ellipse cx="${cx}" cy="${cy}" rx="186" ry="192" fill="url(#gGrass)"/>`);
- for(let k=0;k<140;k++){const a=R()*Math.PI*2,r=Math.sqrt(R())*170,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*1.03;out.push(`<path d="M${x.toFixed(1)} ${y.toFixed(1)}l-1.5 -3.5M${x.toFixed(1)} ${y.toFixed(1)}l1.5 -3.5" stroke="${R()>.5?"#7fb655":"#c8e8a0"}" stroke-width="1" opacity=".7"/>`)}
- // cesty
- const road=(d,w)=>`<path d="${d}" stroke="#c9a96c" stroke-width="${w+5}" fill="none" stroke-linecap="round"/><path d="${d}" stroke="#ead6a4" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
- const rds=PLOTS.map((_,i)=>{const[x,y]=pos(i),a=(-90+i*45+18)*Math.PI/180;return `M${cx} ${cy} Q${(cx+Math.cos(a)*70).toFixed(1)} ${(cy+Math.sin(a)*68).toFixed(1)} ${x.toFixed(1)} ${(y+4).toFixed(1)}`});
- rds.forEach(d=>out.push(`<path d="${d}" stroke="#c9a96c" stroke-width="19" fill="none" stroke-linecap="round"/>`));
- [0,2,4,6].forEach(i=>{const a=(-90+i*45)*Math.PI/180;out.push(road(`M${(cx+Math.cos(a)*120).toFixed(1)} ${(cy+Math.sin(a)*118).toFixed(1)}L${(cx+Math.cos(a)*215).toFixed(1)} ${(cy+Math.sin(a)*215).toFixed(1)}`,12))});
- rds.forEach(d=>out.push(`<path d="${d}" stroke="#ead6a4" stroke-width="14" fill="none" stroke-linecap="round"/>`));
- out.push(`<ellipse cx="${cx}" cy="${cy+8}" rx="64" ry="44" fill="#c9a96c"/><ellipse cx="${cx}" cy="${cy+8}" rx="61" ry="41" fill="url(#gDirt)"/>`);
- // zeď
- out.push(`<ellipse cx="${cx}" cy="${cy+3}" rx="186" ry="192" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="13"/><ellipse cx="${cx}" cy="${cy}" rx="186" ry="192" fill="none" stroke="#d9c39a" stroke-width="11"/><ellipse cx="${cx}" cy="${cy-2}" rx="186" ry="192" fill="none" stroke="#f6ead2" stroke-width="5"/><ellipse cx="${cx}" cy="${cy-4}" rx="186" ry="192" fill="none" stroke="#b5533a" stroke-width="3" stroke-dasharray="4 3"/>`);
- [0,2,4,6].forEach(i=>{const a=(-90+i*45)*Math.PI/180,x=cx+Math.cos(a)*186,y=cy+Math.sin(a)*192;out.push(`<g transform="translate(${x.toFixed(1)},${(y+6).toFixed(1)})"><rect x="-17" y="-20" width="9" height="22" fill="url(#gStone)" stroke="#b79a6c" stroke-width=".8"/><rect x="8" y="-20" width="9" height="22" fill="url(#gStone)" stroke="#b79a6c" stroke-width=".8"/><path d="M-19 -20h40l-4 -6h-32z" fill="#c24a2c"/><rect x="-8" y="-20" width="16" height="5" fill="#e8d6b2"/></g>`)});
- // stromy
- const TR=[[118,124],[284,124],[112,300],[290,300],[150,96],[252,96],[64,140],[338,142],[66,276],[336,278],[200,120],[200,312],[150,330],[252,330]];
- TR.forEach(([x,y],k)=>out.push(tree(x,y,.8+(k%3)*.1,k)));
- [[18,120],[30,190],[382,110],[372,200],[384,270],[20,250],[60,404],[340,404],[150,410],[256,410],[110,16],[290,16]].forEach(([x,y],k)=>out.push(tree(x,y,.9,k)));
- out.push(`<g transform="translate(232,252)"><ellipse cx="2" cy="3" rx="11" ry="5" fill="rgba(40,60,20,.25)"/><circle r="9" fill="url(#gStone)" stroke="#b79a6c"/><circle r="6" fill="url(#gWater)"/><path d="M-8 -2v-12M8 -2v-12" stroke="#8a5a2b" stroke-width="2"/><path d="M-11 -14l11 -7l11 7z" fill="#c24a2c"/></g>`);
- // pozemky
+ const c=C(),p=P(),Lg=L(),out=[DEFS];
+ out.push(`<image href="img/map.webp" width="400" height="400"/>`);
  PLOTS.forEach((pl,i)=>{
-  const[x,y]=pos(i),built=c.b[pl.id],can=c.lv>pl.lv,T=`transform="translate(${x.toFixed(1)},${(y+14).toFixed(1)})"`;
-  if(pl.id==="zoo"&&c.lv>=3)out.push(`<g class="tap" data-act="zoo" ${T}><g transform="scale(1.25)">${zooArt()}</g>${banner("Zoo",20)}</g>`);
-  else if(built)out.push(`<g class="tap" data-act="${pl.id}" ${T}><g transform="scale(.9)">${SHOP(shopLbl())}</g>${c.lv<=7?banner(Lg==="es"?"VACÍA":"EMPTY",12):banner(pl[Lg],12)}</g>`);
-  else if(can)out.push(`<g class="tap" data-act="build-${pl.id}" ${T}>${siteArt()}${banner(pl[Lg],24)}<g class="pulse" transform="translate(2,-22)">${badge("+","g",12)}</g></g>`);
-  else out.push(`<g class="tap" data-act="locked-${i}" ${T}>${lotArt()}<g transform="translate(2,-2)">${badge(pl.lv,"l",11)}</g>${banner(`${pl[Lg]} 🔒`,24)}</g>`);
+  const[x,y]=pos(i),built=c.b[pl.id],can=c.lv>pl.lv,T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`,out_=pl.id==="bus"||pl.id==="station";
+  if(pl.id==="zoo"&&c.lv>=3)out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}</g>`);
+  else if(built)out.push(`<g class="tap" data-act="${pl.id}" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
+  else if(can)out.push(`<g class="tap" data-act="build-${pl.id}" ${T}><rect x="-38" y="-30" width="76" height="60" fill="transparent"/>${out_?siteArt():""}<g class="pulse">${badge("+","g",13)}</g>${banner(pl[Lg],24)}</g>`);
+  else out.push(`<g class="tap" data-act="locked-${i}" ${T}><rect x="-38" y="-30" width="76" height="60" fill="transparent"/>${badge(pl.lv,"l",11)}${banner(`${pl[Lg]} 🔒`,22)}</g>`);
  });
- out.push(`<g class="tap" data-act="house" transform="translate(196,214)">${HOUSE}${banner(p.name||(Lg==="es"?"Casa":"Home"),14)}</g>`);
- if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(240,196) scale(.4)"><ellipse cx="50" cy="132" rx="30" ry="8" fill="rgba(40,60,20,.25)"/>${AV(p.g)}</g>`);
- if(c.own&&c.own.home)out.push(`<g transform="translate(118,256)">${c.pet&&c.pet.kind==="cat"?`<ellipse cy="10" rx="20" ry="8" fill="#e86f9a"/><ellipse cy="7" rx="14" ry="5" fill="#f7d3e4"/>`:`<g transform="scale(.5)">${bld({w:30,h:20,dx:10,dy:7,rh:10,wall:"#c98b4f",side:"#a86f3a",front:`<path d="M-6 0v-9a6 6 0 0 1 12 0v9z" fill="#3a2a1a"/>`})}</g>`}</g>`);
- if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(134,214) scale(.56)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`);
-  if(c.lv>5)out.push(`<g transform="translate(150,262)"><ellipse rx="12" ry="4.5" fill="#5b8fd6"/><ellipse cy="-2" rx="9" ry="2.6" fill="${c.food?"#b8864a":"#cfe0f5"}"/></g>`)}
+ out.push(`<g class="tap" data-act="house" transform="translate(200,168)"><rect x="-42" y="-50" width="84" height="80" fill="transparent"/>${banner(p.name||(Lg==="es"?"Casa":"Home"),48)}</g>`);
+ if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(236,166) scale(.36)"><ellipse cx="50" cy="132" rx="30" ry="8" fill="rgba(40,60,20,.25)"/>${AV(p.g)}</g>`);
+ if(c.own&&c.own.home)out.push(`<g transform="translate(128,210)">${c.pet&&c.pet.kind==="cat"?`<ellipse cy="10" rx="18" ry="7" fill="#e86f9a"/><ellipse cy="7" rx="12" ry="4.5" fill="#f7d3e4"/>`:`<g transform="scale(.45)">${bld({w:30,h:20,dx:10,dy:7,rh:10,wall:"#c98b4f",side:"#a86f3a",front:`<path d="M-6 0v-9a6 6 0 0 1 12 0v9z" fill="#3a2a1a"/>`})}</g>`}</g>`);
+ if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(126,166) scale(.5)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`);
+  if(c.lv>5)out.push(`<g transform="translate(150,214)"><ellipse rx="10" ry="4" fill="#5b8fd6"/><ellipse cy="-2" rx="7.5" ry="2.3" fill="${c.food?"#b8864a":"#cfe0f5"}"/></g>`)}
  if(c.lv<=2||c.unfog){
-  out.push(`<defs><mask id="fm"><rect width="400" height="420" fill="#fff"/><ellipse cx="200" cy="200" rx="88" ry="84" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)"><rect width="400" height="420" fill="#eef2f7" opacity=".97"/>${[[90,90],[300,80],[80,300],[320,320],[200,370],[200,40],[40,190],[360,200]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
+  out.push(`<defs><mask id="fm"><rect width="400" height="400" fill="#fff"/><ellipse cx="200" cy="175" rx="84" ry="78" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)"><rect width="400" height="400" fill="#eef2f7" opacity=".96"/>${[[90,80],[300,70],[80,290],[320,300],[200,360],[200,30],[40,180],[360,180]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
  }
- return `<svg class="map" viewBox="0 0 400 420" role="img" aria-label="Map">${out.join("")}</svg>`;
+ return `<svg class="map" viewBox="0 0 400 400" role="img" aria-label="Map">${out.join("")}</svg>`;
 }
 
 // ── modální okno ──
@@ -749,10 +729,10 @@ Object.keys(FURN).forEach(k=>FURN[k].id=k);
 const RDEFS=`<defs>
 <linearGradient id="rShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient>
 <linearGradient id="rVig" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".14"/><stop offset=".12" stop-color="#000" stop-opacity="0"/><stop offset=".88" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient>
-<linearGradient id="rFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9ad7c"/><stop offset="1" stop-color="#a8754a"/></linearGradient>
+<linearGradient id="rFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98652"/><stop offset="1" stop-color="#9c5f33"/></linearGradient><linearGradient id="rCurt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6e9cf"/><stop offset=".5" stop-color="#fff8e8"/><stop offset="1" stop-color="#e9d6b0"/></linearGradient><linearGradient id="rOut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6fb"/><stop offset=".55" stop-color="#dff3ff"/><stop offset=".56" stop-color="#7cc45a"/><stop offset="1" stop-color="#4f9a3a"/></linearGradient>
 <linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4f0"/><stop offset="1" stop-color="#d4efff"/></linearGradient>
 <linearGradient id="rDoor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3fae5a"/><stop offset="1" stop-color="#2c8a45"/></linearGradient>
-<linearGradient id="rTable" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a5a64"/><stop offset="1" stop-color="#2b2b30"/></linearGradient>
+<linearGradient id="rTable" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4e2e"/><stop offset="1" stop-color="#4a2c18"/></linearGradient>
 <linearGradient id="rRed" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ef7a62"/><stop offset="1" stop-color="#c2412f"/></linearGradient>
 <linearGradient id="rSofa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d97e6"/><stop offset="1" stop-color="#2f5cc4"/></linearGradient>
 <linearGradient id="rGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#c99a2a"/></linearGradient>
@@ -771,18 +751,20 @@ const FART={
  lamp:`<circle cx="164" cy="140" r="34" fill="url(#rGlow)"/>`+sh(164,243,14,3.5,.25)+`<rect x="162" y="150" width="4" height="90" fill="#4a4a52"/><rect x="162" y="150" width="1.4" height="90" fill="rgba(255,255,255,.35)"/><path d="M151 150 h26 l-6 -22 h-14z" fill="#ffd23f"/><path d="M157 128 h4 l-4 22 h-6z" fill="rgba(255,255,255,.45)"/><ellipse cx="164" cy="241" rx="10" ry="3" fill="#4a4a52"/>`,
  plant:`<path d="M206 186 h20 l-2 14 h-16z" fill="url(#rPot)"/><rect x="204" y="183" width="24" height="5" rx="1.5" fill="#c96a3a"/>`+leaf(216,184,-35,18)+leaf(216,184,30,17,"#4fbf68")+leaf(216,184,-5,22,"#2f8a47")+leaf(216,184,60,13)+leaf(216,184,-65,13,"#4fbf68")};
 const PAINT=[["#f6efe3","white"],["#d6e6fb","blue"],["#dff2e3","green"],["#f8dcd6","red"]];
-function chairArt(x){return sh(x+16,252,18,3.5,.22)+`<rect x="${x+24}" y="180" width="7" height="45" rx="2" fill="url(#rRed)"/><rect x="${x+24}" y="180" width="2" height="45" fill="rgba(255,255,255,.35)"/><rect x="${x}" y="218" width="31" height="7" rx="2" fill="#e0614f"/><rect x="${x}" y="218" width="31" height="2" rx="1" fill="rgba(255,255,255,.4)"/><rect x="${x+2}" y="225" width="4" height="27" fill="#b23a2a"/><rect x="${x+26}" y="225" width="4" height="27" fill="#b23a2a"/>`}
+function chairArt(x){return sh(x+16,252,20,3.5,.22)+`<path d="M${x+2} 196 q0 -16 14 -16 q14 0 14 16 v28 h-28z" fill="url(#rRed)"/><path d="M${x+6} 194 q1 -9 10 -10" stroke="rgba(255,255,255,.45)" stroke-width="2" fill="none" stroke-linecap="round"/><rect x="${x-3}" y="214" width="38" height="14" rx="6" fill="#e0614f"/><rect x="${x-3}" y="214" width="38" height="4" rx="2" fill="rgba(255,255,255,.35)"/><rect x="${x-5}" y="206" width="8" height="24" rx="4" fill="#c94a37"/><rect x="${x+29}" y="206" width="8" height="24" rx="4" fill="#c94a37"/><path d="M${x+1} 228 l-2 24 M${x+31} 228 l2 24" stroke="#6a3a1e" stroke-width="3.5" stroke-linecap="round"/>`}
 function roomSVG(own,ghost,wall,li=0){
  const o=[RDEFS,`<rect width="400" height="190" fill="${wall||"#f6efe3"}"/><rect width="400" height="190" fill="url(#rShade)"/><rect width="400" height="300" fill="url(#rVig)"/><rect width="400" height="7" fill="rgba(255,255,255,.6)"/><rect y="7" width="400" height="2" fill="rgba(0,0,0,.06)"/>`,
-  `<rect y="190" width="400" height="110" fill="url(#rFloor)"/>${[0,1,2,3,4,5,6,7,8].map(k=>`<line x1="${k*55}" y1="190" x2="${k*55-30}" y2="300" stroke="rgba(90,50,20,.22)" stroke-width="2"/>`).join("")}${[214,244,278].map((y,k)=>`<line x1="0" y1="${y}" x2="400" y2="${y}" stroke="rgba(90,50,20,.08)" stroke-width="1.5"/>`).join("")}`,
+  `<rect y="190" width="400" height="110" fill="url(#rFloor)"/>${[203,218,235,254,276].map(y=>`<line x1="0" y1="${y}" x2="400" y2="${y}" stroke="rgba(70,35,10,.22)" stroke-width="1.4"/>`).join("")}${[[60,190,203],[190,190,203],[320,190,203],[120,203,218],[260,203,218],[30,218,235],[175,218,235],[340,218,235],[95,235,254],[245,235,254],[150,254,276],[300,254,276],[60,276,300],[220,276,300],[370,276,300]].map(([x,a,b])=>`<line x1="${x}" y1="${a}" x2="${x}" y2="${b}" stroke="rgba(70,35,10,.2)" stroke-width="1.2"/>`).join("")}<rect y="190" width="400" height="110" fill="url(#rShade)" opacity=".5"/>`,
+
   `<polygon points="110,58 110,130 262,300 150,300 30,130 30,130" fill="rgba(255,250,220,.13)"/>`,
   `<rect y="176" width="400" height="14" fill="#fbf6ec"/><rect y="176" width="400" height="3" fill="#fff"/><rect y="188" width="400" height="3" fill="rgba(0,0,0,.12)"/>`,
   // okno
-  `<rect x="22" y="44" width="96" height="94" rx="3" fill="rgba(0,0,0,.08)" transform="translate(3,3)"/><rect x="22" y="44" width="96" height="94" rx="3" fill="#fff"/><rect x="30" y="50" width="80" height="80" fill="url(#rSky)"/><g fill="#fff" opacity=".9"><ellipse cx="52" cy="70" rx="12" ry="5"/><ellipse cx="60" cy="66" rx="8" ry="5"/><ellipse cx="92" cy="104" rx="10" ry="4"/></g><path d="M30 130 L60 50 H74 L44 130Z M80 130 L96 88 V102 L90 130Z" fill="rgba(255,255,255,.25)"/><rect x="30" y="50" width="80" height="4" fill="rgba(0,0,0,.08)"/><rect x="67" y="50" width="6" height="80" fill="#fff"/><rect x="30" y="87" width="80" height="6" fill="#fff"/><rect x="16" y="132" width="108" height="8" rx="2" fill="#fff"/><rect x="16" y="140" width="108" height="3" fill="rgba(0,0,0,.1)"/>`,
+  `<rect x="22" y="44" width="96" height="94" rx="3" fill="rgba(0,0,0,.08)" transform="translate(3,3)"/><rect x="22" y="44" width="96" height="94" rx="3" fill="#fff"/><rect x="30" y="50" width="80" height="80" fill="url(#rOut)"/><g fill="#5fae45"><circle cx="44" cy="96" r="14"/><circle cx="60" cy="90" r="11"/><circle cx="96" cy="94" r="15"/><circle cx="82" cy="100" r="10"/></g><g fill="#7cc45a"><circle cx="40" cy="92" r="7"/><circle cx="92" cy="89" r="7"/></g><g fill="#fff" opacity=".9"><ellipse cx="54" cy="64" rx="10" ry="4"/><ellipse cx="90" cy="60" rx="8" ry="3"/></g><path d="M30 130 L60 50 H74 L44 130Z" fill="rgba(255,255,255,.18)"/><rect x="67" y="50" width="6" height="80" fill="#fff"/><rect x="30" y="87" width="80" height="6" fill="#fff"/><rect x="16" y="132" width="108" height="8" rx="2" fill="#fff"/><rect x="16" y="140" width="108" height="3" fill="rgba(0,0,0,.1)"/>`,
+  `<rect x="6" y="34" width="128" height="4" rx="2" fill="#8a5a2b"/><circle cx="7" cy="36" r="3.5" fill="#8a5a2b"/><circle cx="133" cy="36" r="3.5" fill="#8a5a2b"/><path d="M8 37 h22 q-4 50 2 112 h-24 q4 -60 0 -112z" fill="url(#rCurt)"/><path d="M14 40 q-2 50 2 108 M22 40 q-2 50 2 108" stroke="rgba(160,120,60,.25)" stroke-width="1.5" fill="none"/><path d="M110 37 h22 q-4 52 0 112 h-24 q6 -60 2 -112z" fill="url(#rCurt)"/><path d="M118 40 q-2 50 2 108 M126 40 q-2 50 2 108" stroke="rgba(160,120,60,.25)" stroke-width="1.5" fill="none"/>`,
   // dveře
   `<rect x="313" y="63" width="74" height="127" rx="2" fill="#fff"/><rect x="313" y="63" width="74" height="3" fill="rgba(0,0,0,.06)"/><rect x="320" y="70" width="60" height="120" rx="2" fill="url(#rDoor)"/><rect x="326" y="78" width="48" height="44" rx="2" fill="rgba(0,0,0,.1)"/><rect x="327" y="79" width="47" height="43" rx="2" fill="#3a9e53"/><rect x="326" y="130" width="48" height="52" rx="2" fill="rgba(0,0,0,.1)"/><rect x="327" y="131" width="47" height="51" rx="2" fill="#3a9e53"/><path d="M327 79h47M327 131h47" stroke="rgba(255,255,255,.3)" stroke-width="1.5"/><circle cx="370" cy="132" r="5" fill="rgba(0,0,0,.2)" transform="translate(1,1.5)"/><circle cx="370" cy="132" r="5" fill="url(#rGold)"/><circle cx="368.5" cy="130.5" r="1.6" fill="#fff" opacity=".8"/>`];
  if(own.rug)o.push(FART.rug);
- o.push(sh(215,247,52,4,.2)+`<rect x="176" y="209" width="6" height="36" fill="#2b2b30"/><rect x="248" y="209" width="6" height="36" fill="#2b2b30"/><rect x="176" y="209" width="2" height="36" fill="rgba(255,255,255,.18)"/><rect x="170" y="200" width="90" height="10" rx="2.5" fill="url(#rTable)"/><rect x="171" y="200" width="88" height="2" rx="1" fill="rgba(255,255,255,.35)"/>`,chairArt(272));
+ o.push(sh(215,247,52,4,.2)+`<path d="M176 209 h7 l-2 36 h-3z" fill="#4a2c18"/><path d="M247 209 h7 l-1 36 h-3z" fill="#4a2c18"/><rect x="176" y="209" width="2" height="36" fill="rgba(255,255,255,.18)"/><rect x="170" y="200" width="90" height="10" rx="2.5" fill="url(#rTable)"/><rect x="171" y="200" width="88" height="2" rx="1" fill="rgba(255,255,255,.35)"/>`,chairArt(272));
  ["sofa","tv","picture","lamp","plant"].forEach(k=>{if(own[k])o.push(FART[k])});
  if(li>=2||tDone("living",2))o.push(`<g><circle cx="266" cy="54" r="15" fill="rgba(0,0,0,.15)"/><circle cx="265" cy="52" r="15" fill="#fff" stroke="#2a1d14" stroke-width="3"/><circle cx="265" cy="52" r="11" fill="#fdfaf2"/><path d="M265 52 V42 M265 52 H273" stroke="#2a1d14" stroke-width="2.5" stroke-linecap="round"/><path d="M254 46 a12 12 0 0 1 8 -6" stroke="rgba(255,255,255,.9)" stroke-width="2" fill="none"/></g>`,
   li>=3?`<rect x="176" y="190" width="28" height="7" rx="1" fill="#3b6fd8"/><rect x="178" y="183" width="26" height="7" rx="1" fill="#e0614f"/><rect x="175" y="176" width="28" height="7" rx="1" fill="#3fae5a"/><path d="M176 191h28M178 184h26M175 177h28" stroke="rgba(255,255,255,.45)" stroke-width="1"/>`:`<rect x="178" y="189" width="26" height="9" rx="1" fill="#3b6fd8"/><rect x="178" y="189" width="4" height="9" fill="#2a4fa8"/><rect x="182" y="190" width="22" height="2" fill="rgba(255,255,255,.4)"/>`,
@@ -790,7 +772,7 @@ function roomSVG(own,ghost,wall,li=0){
   sh(101,261,18,3,.22)+`<path d="M88 238 h26 l3 22 h-32z" fill="#2b2b30"/><path d="M89 240 h6 l-2 18 h-5z" fill="rgba(255,255,255,.15)"/><path d="M94 238 q7 -10 14 0" stroke="#2b2b30" stroke-width="3" fill="none"/>`,
   sh(357,272,10,2.5,.25)+`<circle cx="355" cy="262" r="10" fill="url(#rBall)"/><path d="M346 258 q9 6 18 0" stroke="#fff" stroke-width="2" fill="none"/><ellipse cx="351" cy="257" rx="3" ry="2" fill="rgba(255,255,255,.6)"/>`);
  if(li>=3)o.push(chairArt(140),
-  `<rect x="194" y="209" width="5" height="32" fill="#3a3a40"/><rect x="232" y="209" width="5" height="32" fill="#3a3a40"/>`,
+  `<path d="M194 209 h6 l-1.5 32 h-3z" fill="#5a3820"/><path d="M231 209 h6 l-1.5 32 h-3z" fill="#5a3820"/>`,
   `<path d="M58 126 h24 l-2 12 h-20z" fill="url(#rPot)"/>${[52,61,70,79,88].map((x,j)=>`<line x1="70" y1="126" x2="${x}" y2="${108+(j%2)*4}" stroke="#3fae5a" stroke-width="2"/><circle cx="${x}" cy="${108+(j%2)*4}" r="4.5" fill="${["#e0614f","#ffd23f","#e86f9a","#ffd23f","#e0614f"][j]}"/><circle cx="${x-1.3}" cy="${106.7+(j%2)*4}" r="1.4" fill="rgba(255,255,255,.7)"/>`).join("")}`);
  if(ghost)Object.values(FURN).forEach(f=>{if(own[f.id])return;const[x,y,w,h]=f.g;o.push(`<g class="tap ghost" data-act="fbuy-${f.id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="rgba(255,255,255,.45)" stroke="#2f9e6a" stroke-width="2" stroke-dasharray="5 4"/><text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#25805a">+${f.price}</text></g>`)});
  return o.join("");
