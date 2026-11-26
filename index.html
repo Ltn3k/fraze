@@ -262,6 +262,35 @@ h2 .bi small,.lv-label .bi small,.lv-sub .bi small{font-size:.65em}
 @keyframes pop{from{transform:scale(0);opacity:0}}
 @keyframes fadein{from{opacity:0}}@keyframes fadeout{to{opacity:0}}
 @media(prefers-reduced-motion:reduce){.cf{display:none}*{animation:none!important;transition:none!important}}
+
+/* ── 3D dlaždice: stíny a odlesky ── */
+:root{--sh:light-dark(rgba(40,50,80,.10),rgba(0,0,0,.45));--rim:light-dark(rgba(255,255,255,.95),rgba(255,255,255,.07));--edge:light-dark(rgba(30,40,70,.13),rgba(0,0,0,.55))}
+.btn{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 72%,#fff) 0%,var(--acc) 52%,color-mix(in srgb,var(--acc) 86%,#000) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 0 rgba(0,0,0,.12),0 3px 0 color-mix(in srgb,var(--acc) 60%,#000),0 6px 14px color-mix(in srgb,var(--acc) 35%,transparent);text-shadow:0 1px 1px rgba(0,0,0,.25);transition:transform .08s,box-shadow .08s;position:relative}
+.btn:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 1px 0 color-mix(in srgb,var(--acc) 60%,#000),0 2px 6px rgba(0,0,0,.15)}
+.btn.ghost{background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 92%,var(--ink)));box-shadow:inset 0 1px 0 var(--rim),0 3px 0 var(--edge),0 5px 12px var(--sh);text-shadow:none}
+.card,.ccard{background:linear-gradient(180deg,var(--card) 0%,color-mix(in srgb,var(--card) 94%,var(--acc)) 100%);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);box-shadow:inset 0 1px 0 var(--rim),0 3px 0 var(--edge),0 10px 22px var(--sh)}
+.ccard.main{background:linear-gradient(160deg,color-mix(in srgb,var(--soft) 70%,#fff) 0%,var(--soft) 55%,color-mix(in srgb,var(--soft) 85%,var(--acc)) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 0 color-mix(in srgb,var(--acc) 30%,transparent),0 10px 22px var(--sh)}
+.ccard.act{box-shadow:inset 0 1px 0 var(--rim),0 3px 0 color-mix(in srgb,var(--acc) 50%,#000),0 10px 24px color-mix(in srgb,var(--acc) 30%,transparent)}
+.card.ok,.card.compact{box-shadow:inset 0 1px 0 var(--rim),0 2px 0 color-mix(in srgb,var(--ok) 35%,transparent),0 6px 14px var(--sh)}
+.chip,.pchip,.sw2,.chipl,.tcard,.avc{box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 4px 10px var(--sh);transition:transform .08s,box-shadow .08s}
+.chip,.sw2{background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 93%,var(--ink)))}
+.chip:active,.pchip:active,.sw2:active{transform:translateY(1px);box-shadow:inset 0 1px 0 var(--rim),0 1px 0 var(--edge)}
+.chip.on{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 72%,#fff),var(--acc));box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 0 color-mix(in srgb,var(--acc) 60%,#000),0 4px 10px color-mix(in srgb,var(--acc) 30%,transparent)}
+.pchip{background:linear-gradient(180deg,#fff,#f1f3f8);border:1px solid rgba(0,0,0,.06)}
+@media(prefers-color-scheme:dark){.pchip{background:linear-gradient(180deg,#262a34,#1c1f27);border-color:#30343d}}
+.cpic{background:radial-gradient(circle at 35% 25%,#fff 0%,var(--soft) 70%);box-shadow:inset 0 -3px 6px rgba(0,0,0,.08),inset 0 2px 0 rgba(255,255,255,.8),0 2px 4px var(--sh)}
+.chipl{background:linear-gradient(180deg,#fff,#eef1f8);color:#15181d;box-shadow:inset 0 1px 0 #fff,0 3px 0 color-mix(in srgb,var(--acc) 55%,#000),0 6px 12px var(--sh)}
+.chipl.sel{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 72%,#fff),var(--acc));color:#fff}
+.frame{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(240,243,250,.88));box-shadow:0 3px 8px rgba(0,0,0,.18),inset 0 1px 0 #fff}
+.frame.ok{background:linear-gradient(180deg,#fff,#e8f7ee);box-shadow:0 3px 0 #1d8a4c,0 6px 12px rgba(0,0,0,.18)}
+.scene svg,.map{box-shadow:0 4px 0 var(--edge),0 14px 30px var(--sh)}
+#cRes span{background:linear-gradient(180deg,#fffdf4,#f6ead0);color:#5a3d12;border-color:#e2c98f;box-shadow:inset 0 1px 0 #fff,0 2px 0 #d2b06a,0 3px 8px rgba(0,0,0,.12)}
+.tcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 3px 0 rgba(0,0,0,.08),0 10px 20px var(--sh)}
+.tcard .L{background:linear-gradient(160deg,color-mix(in srgb,var(--tacc) 65%,#fff),var(--tacc));box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 3px 0 color-mix(in srgb,var(--tacc) 60%,#000);text-shadow:0 2px 2px rgba(0,0,0,.25)}
+.steps span{background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 93%,var(--ink)));box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 4px 8px var(--sh)}
+.steps span.on{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 72%,#fff),var(--acc));box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 0 color-mix(in srgb,var(--acc) 60%,#000),0 4px 10px color-mix(in srgb,var(--acc) 30%,transparent)}
+.steps span.ok{background:linear-gradient(180deg,#fff,#e8f7ee)}
+textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
