@@ -375,6 +375,7 @@ header,.chead{position:static}
 .unl{font-size:12px;font-weight:700;color:var(--mute);padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}.unl i{font-style:normal;color:var(--acc);margin-left:2px}
 .pickh{display:flex;gap:12px;align-items:center;margin:0 0 10px;padding:10px 12px;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--soft) 60%,var(--card)),var(--soft));box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 8px 18px var(--sh)}
 .pickh .pbig{font-size:34px}.pickh b{display:block;font-size:16px}
+.reveal span{display:inline-block}.reveal span+span::before{content:"·";margin:0 8px;opacity:.45}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -392,7 +393,7 @@ header,.chead{position:static}
  <ul class="how">
   <li><i>✓</i><div><b>Zelená je správně, červená chyba</b><span>Hotová věta se sbalí do řádku. Klepnutím na ni uvidíš další varianty a poznámky.</span></div></li>
   <li><i>☝</i><div><b>Podrž českou větu pro nápovědu</b><span>Ukáže se správný překlad. Taková odpověď se ale nepočítá.</span></div></li>
-  <li><i>3×</i><div><b>Každá nová věta 3× správně = další level</b><span>Pak přibudou 3 nové věty. Kola se míchají a starší věty se vracejí na opakování.</span></div></li>
+  <li><i>2×</i><div><b>Každá nová věta 2× správně = další level</b><span>Pak přibudou 3 nové věty. Kola se míchají a starší věty se vracejí na opakování.</span></div></li>
   <li><i>!</i><div><b>Chyby se vracejí častěji</b><span>Appka si pamatuje posledních 5 odpovědí na každou větu. Až to umíš, přestane ji tlačit.</span></div></li>
   <li><i>Aa</i><div><b>Fráze, nebo slovník</b><span>Přepínačem „Slovník“ přejdeš z celých vět na jednotlivá slova. Princip je stejný, postup se počítá zvlášť.</span></div></li>
   <li><i>A</i><div><b>5 kategorií po 20 levelech</b><span>Od začátečníka po rodilého mluvčího. Každá má svou barvu.</span><div class="pills" style="margin-top:8px"><span class="pill" style="background:#3566d6">A</span><span class="pill" style="background:#22844a">B</span><span class="pill" style="background:#c13b79">C</span><span class="pill" style="background:#b8651a">D</span><span class="pill" style="background:#6a4ecb">E</span></div></div></li>
@@ -435,7 +436,7 @@ header,.chead{position:static}
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
 
 <div id="menu" hidden><div class="sheet">
- <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11262214</small></h2>
+ <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11262229</small></h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
@@ -444,8 +445,8 @@ header,.chead{position:static}
  <ul>
   <li>Ve slovníku je člen (the, a, to / el, la…) na začátku nepovinný.</li>
   <li>Kolo má nejvýš 8 položek: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích.</li>
-  <li>Velká písmena, čárky, tečky, pomlčky a apostrofy se ignorují. U otázek je potřeba otazník.</li>
-  <li>Španělsky: první dvě odpovědi na větu projdou i bez diakritiky, od třetí už musí být přesně.</li>
+  <li>Velká písmena, čárky, tečky, pomlčky a apostrofy se ignorují. Napoprvé projde odpověď i bez otazníku, podruhé už musí být u otázky otazník.</li>
+  <li>Španělsky: první odpověď projde i bez diakritiky, druhá už musí být přesně.</li>
   <li>Pole „lvl“ v menu (vývojář): napiš 1–100 a Enter pro skok na level (21 = B1, 41 = C1 …).</li>
  </ul>
  <button class="btn danger" id="reset">Resetovat postup</button>
@@ -453,8 +454,8 @@ header,.chead{position:static}
 </div></div>
 <div id="toast"></div>
 
-<script src="data.js?v=11262214"></script>
-<script src="words.js?v=11262214"></script>
+<script src="data.js?v=11262229"></script>
+<script src="words.js?v=11262229"></script>
 <script>
 {
 // ── data ──
@@ -469,7 +470,7 @@ const TIERS=[
  {k:"C",name:"Středně pokročilý",desc:"Názory, práce, podmínky, delší souvětí.",bg:"#fcebf3",acc:"#c13b79"},
  {k:"D",name:"Pokročilý",desc:"Nereálné podmínky, nuance, složitější vazby.",bg:"#fff1df",acc:"#b8651a"},
  {k:"E",name:"Rodilý mluvčí",desc:"Idiomy, přísloví a přirozená hovorová řeč.",bg:"#f1edff",acc:"#6a4ecb"}];
-const BATCH=3,PER=20,ROUND=8,NEED=3,HOLD=450,HIST=5,KEY="frazovy-trener-v1";
+const BATCH=3,PER=20,ROUND=8,NEED=2,HOLD=450,HIST=5,KEY="frazovy-trener-v1";
 const MAXLV=Math.ceil(P.length/BATCH);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -509,17 +510,20 @@ function norm(s){
 }
 const ART={en:/^(the|a|an|to) /,es:/^(el|la|los|las|un|una|unos|unas|lo) /};
 const normW=(s,lang)=>{const n=norm(s);if(isW())n.t=n.t.replace(ART[lang],"");return n};
-function check(raw,p,lang){
+function check(raw,p,lang,sq=true){
  const inp=normW(raw,lang); if(!inp.t)return{s:"empty"};
  let best=null;
  for(const a of p[lang]){
-  const t=normW(a,lang),needQ=t.q&&!inp.q;
+  const t=normW(a,lang),needQ=sq&&t.q&&!inp.q;
   if(inp.t===t.t){if(needQ){best=best||{s:"noq"};continue}return{s:"ok",a}}
   if(lang==="es"&&noAcc(inp.t)===noAcc(t.t)){if(needQ){best=best||{s:"noq"};continue}best={s:"accent",a}}
  }
  return best||{s:"bad"};
 }
-const strictAcc=c=>S.lang==="es"&&stat(c.i).c>=2;
+const strictAcc=c=>S.lang==="es"&&stat(c.i).c>=1;
+const strictQ=c=>stat(c.i).c>=1;
+const revHTML=arr=>arr.slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("");
+function okFlash(){const f=document.createElement("div");f.className="okflash";f.textContent="✓";document.body.appendChild(f);setTimeout(()=>f.remove(),650)}
 const markAcc=s=>[...s].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("");
 function record(c,ok){if(c.logged||showAllOn())return;c.logged=true;const h=stat(c.i).h;h.push(ok?1:0);while(h.length>HIST)h.shift();save()}
 
@@ -538,7 +542,7 @@ function makeCard(i){
  const p=P[i],lang=S.lang,c={i,done:false,peeked:false,wrong:false,logged:false,el:document.createElement("div")};
  c.el.className="card";
  c.el.innerHTML=`<div class="cs">${esc(p.cs)}</div><div class="meta"></div>
- <div class="field"><textarea rows="1" lang="${lang}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-label="Překlad"></textarea><div class="reveal">${esc(p[lang][0])}</div><button class="say" aria-label="Přehrát výslovnost">${SPK}</button></div>
+ <div class="field"><textarea rows="1" lang="${lang}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next" aria-label="Překlad"></textarea><div class="reveal">${revHTML(p[lang])}</div><button class="say" aria-label="Přehrát výslovnost">${SPK}</button></div>
  <div class="msg"></div><div class="mini"></div><div class="info"></div>`;
  const cs=c.el.querySelector(".cs"),inp=c.el.querySelector("textarea");
  c.inp=inp;
@@ -558,7 +562,7 @@ function makeCard(i){
 function markTags(c){
  const s=stat(c.i),p=P[c.i],vc=p[S.lang].length,tags=[];
  if(newest().includes(c.i))tags.push(`<span class="tag new">nová</span>`);
- if(!c.done&&strictAcc(c))tags.push(`<span class="tag st">přesně s diakritikou</span>`);
+ if(!c.done&&strictQ(c)){const hq=P[c.i][S.lang].some(a=>/[?？]/.test(a));if(S.lang==="es")tags.push(`<span class="tag st">přesně${hq?" s ?":""} a s diakritikou</span>`);else if(hq)tags.push(`<span class="tag st">s otazníkem</span>`)}
  if(!c.done&&errs(c.i)>=2)tags.push(`<span class="tag st">častá chyba</span>`);
  if(c.peeked)tags.push(`<span class="tag">nápověda</span>`);
  if(vc>1)tags.push(`<span class="tag">${vc} ${plural(vc)}</span>`);
@@ -567,12 +571,12 @@ function markTags(c){
 function live(c){
  if(c.done)return;
  c.el.classList.remove("bad");const m=c.el.querySelector(".msg");m.textContent="";m.classList.remove("strict");
- const r=check(c.inp.value,P[c.i],S.lang);
+ const r=check(c.inp.value,P[c.i],S.lang,strictQ(c));
  if(r.s==="ok"||(r.s==="accent"&&!strictAcc(c)))correct(c,r);
 }
 function judge(c){
  if(c.done||showAllOn())return;
- const r=check(c.inp.value,P[c.i],S.lang);
+ const r=check(c.inp.value,P[c.i],S.lang,strictQ(c));
  if(r.s==="empty")return;
  const strict=r.s==="accent"&&strictAcc(c);
  if(r.s==="ok"||(r.s==="accent"&&!strict))return correct(c,r);
@@ -583,7 +587,7 @@ function judge(c){
  if(!c.wrong){c.wrong=true;stat(c.i).w++;record(c,false)}
 }
 function correct(c,r){
- c.done=true;c.said=r.a;c.inp.readOnly=true;
+ okFlash();c.done=true;c.said=r.a;c.inp.readOnly=true;
  c.el.classList.remove("bad","peek");c.el.classList.add("ok");
  c.el.querySelector(".msg").textContent="";
  c.el.querySelector(".info").innerHTML=infoHTML(P[c.i],S.lang,r.s==="accent"?r.a:"");
@@ -810,7 +814,7 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
-<script src="city.js?v=11262214"></script>
-<script src="dict.js?v=11262214"></script>
+<script src="city.js?v=11262229"></script>
+<script src="dict.js?v=11262229"></script>
 </body>
 </html>

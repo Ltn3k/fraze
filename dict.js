@@ -40,7 +40,7 @@ function bind(){
    const nx=el.querySelector(".din");if(nx)nx.focus({preventScroll:false});else A().toast("Strana hotová! 🎉")}
   else inp.classList.toggle("acc",r==="acc");
  }));
- el.querySelectorAll(".hold").forEach(h=>{let t;const i=+h.dataset.i,show=()=>{h.dataset.cz=h.textContent;h.textContent=tr(WORDS()[i])[0];h.classList.add("peek")},hide=()=>{clearTimeout(t);if(h.dataset.cz){h.textContent=h.dataset.cz;delete h.dataset.cz;h.classList.remove("peek")}};
+ el.querySelectorAll(".hold").forEach(h=>{let t;const i=+h.dataset.i,show=()=>{h.dataset.cz=h.textContent;h.textContent=tr(WORDS()[i]).slice(0,3).join("  ·  ");h.classList.add("peek")},hide=()=>{clearTimeout(t);if(h.dataset.cz){h.textContent=h.dataset.cz;delete h.dataset.cz;h.classList.remove("peek")}};
   h.addEventListener("pointerdown",e=>{e.preventDefault();t=setTimeout(show,350)});["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,hide));h.addEventListener("contextmenu",e=>e.preventDefault())});
  const again=$("#dAgain");if(again)again.onclick=()=>{solved=new Set();order=[];render()};
  // přiřazování

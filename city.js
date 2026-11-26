@@ -1,5 +1,5 @@
 // Moje město – hra (levely 1–7)
-// Každý level: 1) 3 nová slova, každé 3× správně  2) 3 věty se stejnými slovy, každá 3× správně.
+// Každý level: 1) 3 nová slova, každé 2× správně  2) 3 věty se stejnými slovy, každá 2× správně.
 // Kolo = max 6 karet (3 nové + až 3 starší na opakování). Po levelu se ve městě odemkne to, co ses naučil.
 // Texty hry jsou v cizím jazyce; česká nápověda zmizí, jakmile dané slovo umíš.
 (function(){
@@ -7,7 +7,7 @@ const A=window.APP;
 const $=s=>document.querySelector(s);
 const esc=A.esc,norm=A.norm,noAcc=A.noAcc;
 const S=()=>A.S,L=()=>S().lang;
-const NEED=3,REVIEW=3,BONUS=5,RW={w:1,s:2},COST={pet:50,shop:150},DECAY=4;
+const NEED=2,REVIEW=3,BONUS=5,RW={w:1,s:2},COST={pet:50,shop:150},DECAY=4;
 const ART={en:/^(the|a|an|to|some) /,es:/^(el|la|los|las|un|una|unos|unas) /};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
@@ -102,12 +102,13 @@ function hunger(){const p=C().pet;if(!p||!p.ts)return 100;return Math.max(0,Math
 function pending(){const c=C();if(c.lv>1&&!P().g)return"avatar";if(c.lv>4&&!c.pet)return"pet";if(c.lv>6&&!c.b.shop)return"shop";return null}
 
 // ── kontrola ──
-function check(raw,answers,strip){
+function check(raw,answers,strip,needQ){
  const n=s=>{let t=norm(s).t;if(strip)t=t.replace(ART[L()],"");return t};
- const i=n(raw);if(!i)return{s:"empty"};let best=null;
- for(const a of answers){const t=n(a);if(i===t)return{s:"ok",a};if(noAcc(i)===noAcc(t))best={s:"accent",a}}
+ const i=n(raw);if(!i)return{s:"empty"};let best=null;const iq=norm(raw).q;
+ for(const a of answers){const t=n(a),nq=needQ&&norm(a).q&&!iq;if(i===t){if(nq){best=best||{s:"noq",a};continue}return{s:"ok",a}}if(noAcc(i)===noAcc(t)){if(nq){best=best||{s:"noq",a};continue}best={s:"accent",a}}}
  return best||{s:"bad"};
 }
+const revHTML=arr=>arr.slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("");
 
 // ── grafika ──
 function AV(g,look){
@@ -189,7 +190,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11262214 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11262229 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -216,7 +217,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11262214" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11262229" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -377,8 +378,8 @@ function renderLesson(){
  LS.items.forEach(it=>{
   const isNew=!LS.practice&&it.lv===c.lv,ans=tx(it,Lg),rew=RW[it.t],el=document.createElement("div"),s0=st(it.id);
   el.className="card cc";
-  el.innerHTML=`<div class="crow"><div class="cpic">${pic(it.pic)}</div><div class="cs">${esc(tx(it,"cs"))}</div></div><div class="meta"><span class="dots">${[0,1,2].map(k=>`<i class="${k<s0.c?"on":""}"></i>`).join("")}</span>${isNew?`<span class="tag new">${ui("new")}</span>`:""}${L()==="es"&&s0.c>=2?`<span class="tag st">přesně s diakritikou</span>`:""}${ans.length>1?`<span class="tag">${ans.length} ${ans.length>=5?"variant":"varianty"}</span>`:""}</div>
-  <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${esc(ans[0])}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
+  el.innerHTML=`<div class="crow"><div class="cpic">${pic(it.pic)}</div><div class="cs">${esc(tx(it,"cs"))}</div></div><div class="meta"><span class="dots">${[...Array(NEED).keys()].map(k=>`<i class="${k<s0.c?"on":""}"></i>`).join("")}</span>${isNew?`<span class="tag new">${ui("new")}</span>`:""}${L()==="es"&&s0.c>=2?`<span class="tag st">přesně s diakritikou</span>`:""}${ans.length>1?`<span class="tag">${ans.length} ${ans.length>=5?"variant":"varianty"}</span>`:""}</div>
+  <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${revHTML(ans)}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
   list.appendChild(el);
   const inp=el.querySelector("textarea"),cs=el.querySelector(".crow"),stt={done:false,peek:false,wrong:false};cards.push({el,inp,stt});
   let tm;const end=()=>{clearTimeout(tm);el.classList.remove("peek")};
@@ -386,12 +387,12 @@ function renderLesson(){
   ["pointerup","pointerleave","pointercancel"].forEach(ev=>cs.addEventListener(ev,end));
   cs.addEventListener("contextmenu",e=>e.preventDefault());
   const fit=()=>{inp.style.height="auto";inp.style.height=inp.scrollHeight+"px"};
-  const win=r=>{
+  const win=r=>{okFlash();
    stt.done=true;inp.readOnly=true;el.classList.remove("bad");el.classList.add("ok");
    const s=st(it.id);
    if(!stt.peek){s.c++;const v=pay(rew,LS.practice?"practice":"L"+c.lv);if(wallet())fly(el,`+${fmt(v)} 🪙`);$("#cRes").innerHTML=resHTML()}
    save();
-   el.querySelector(".dots").innerHTML=[0,1,2].map(k=>`<i class="${k<s.c?"on":""}"></i>`).join("");
+   el.querySelector(".dots").innerHTML=[...Array(NEED).keys()].map(k=>`<i class="${k<s.c?"on":""}"></i>`).join("");
    const n=it.n&&it.n[Lg];
    el.querySelector(".info").innerHTML=(r.s==="accent"?`<div class="warn">Pozor na diakritiku: ${esc(r.a)}</div>`:"")+(ans.length>1?`<div class="vars">Dá se říct i: ${ans.map(v=>`<b>${esc(v)}</b>`).join(" / ")}</div>`:"")+(n?`<div>💡 ${esc(n)}</div>`:"");
    el.querySelector(".mini").innerHTML=`<span class="mcs">${esc(tx(it,"cs"))}</span><span class="man">${esc(r.a)}</span><button class="say" aria-label="Play">${A.SPK}</button>`;
@@ -401,9 +402,9 @@ function renderLesson(){
    setTimeout(()=>{el.classList.add("compact");if(next)next.inp.scrollIntoView({block:"center",behavior:"smooth"})},600);
    if(cards.every(x=>x.stt.done))nextT=setTimeout(roundDone,900);
   };
-  const strict=()=>L()==="es"&&st(it.id).c>=2,msg=el.querySelector(".msg");
-  inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");fit();if(stt.done)return;el.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,it.t==="w");if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
-  const judge=()=>{if(stt.done)return;const r=check(inp.value,ans,it.t==="w");if(r.s==="empty")return;const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);el.classList.remove("bad");void el.offsetWidth;el.classList.add("bad");msg.classList.toggle("strict",sa);if(sa)msg.innerHTML=`Oprav diakritiku: ${[...r.a].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("")}`;if(!stt.wrong){stt.wrong=true;st(it.id).w++;save()}};
+  const strict=()=>L()==="es"&&st(it.id).c>=1,sq=()=>st(it.id).c>=1,msg=el.querySelector(".msg");
+  inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");fit();if(stt.done)return;el.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,it.t==="w",sq());if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
+  const judge=()=>{if(stt.done)return;const r=check(inp.value,ans,it.t==="w",sq());if(r.s==="empty")return;const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);el.classList.remove("bad");void el.offsetWidth;el.classList.add("bad");msg.classList.toggle("strict",sa);if(r.s==="noq")msg.textContent="Chybí otazník.";if(sa)msg.innerHTML=`Oprav diakritiku: ${[...r.a].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("")}`;if(!stt.wrong){stt.wrong=true;st(it.id).w++;save()}};
   inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();judge()}});
   inp.addEventListener("blur",judge);
   el.querySelector(".say").onclick=()=>A.say(ans[0]);
@@ -570,34 +571,34 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
   const paint=()=>{
    const s=order[k],g=typeof s.g[Lg]==="function"?s.g[Lg](ctx()):s.g[Lg],[pre,post]=g[0].split("_");
    el.innerHTML=bar()+scene(false,(t,i)=>i===s.ti?["cur",lab(t)]:["ok",lab(t)]);
-   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs hold" data-alt="${esc(tx(s,Lg)[0])}">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
+   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs hold" data-alt="${esc(tx(s,Lg).slice(0,3).join("  ·  "))}">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
   };
   paint();
  }
  function sentences(){
-  el.innerHTML=bar()+scene(false,t=>["ok",lab(t)])+`<p class="small" style="text-align:center;margin-top:10px">${bi({en:"Now write the whole sentence. Each one 3× correct.",es:"Ahora escribe la frase entera. Cada una 3× bien.",cs:"Teď napiš celou větu. Každou 3× správně."})}</p><div id="sl"></div>`;
+  el.innerHTML=bar()+scene(false,t=>["ok",lab(t)])+`<p class="small" style="text-align:center;margin-top:10px">${bi({en:"Now write the whole sentence. Each one 2× correct.",es:"Ahora escribe la frase entera. Cada una 2× bien.",cs:"Teď napiš celou větu. Každou 2× správně."})}</p><div id="sl"></div>`;
   const list=el.querySelector("#sl"),cards=[];
   shuffle(sents.slice()).forEach(it=>{
    const ans=tx(it,Lg),s0=st(it.id),cel=document.createElement("div");cel.className="card cc";
-   cel.innerHTML=`<div class="cs">${esc(tx(it,"cs"))}</div><div class="meta"><span class="dots">${[0,1,2].map(j=>`<i class="${j<s0.c?"on":""}"></i>`).join("")}</span>${Lg==="es"&&s0.c>=2?`<span class="tag st">přesně s diakritikou</span>`:""}</div>
-    <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${esc(ans[0])}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
+   cel.innerHTML=`<div class="cs">${esc(tx(it,"cs"))}</div><div class="meta"><span class="dots">${[...Array(NEED).keys()].map(j=>`<i class="${j<s0.c?"on":""}"></i>`).join("")}</span>${s0.c>=1&&(Lg==="es"||ans.some(a=>/[?？]/.test(a)))?`<span class="tag st">${Lg==="es"?"přesně s diakritikou":"s otazníkem"}</span>`:""}</div>
+    <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${revHTML(ans)}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
    list.appendChild(cel);
    const inp=cel.querySelector("textarea"),cs=cel.querySelector(".cs"),msg=cel.querySelector(".msg"),S2={done:false,peek:false,wrong:false};cards.push({inp,S2});
    let tm;const end=()=>{clearTimeout(tm);cel.classList.remove("peek")};
    cs.addEventListener("pointerdown",()=>{if(S2.done)return;tm=setTimeout(()=>{cel.classList.add("peek");S2.peek=true},450)});
    ["pointerup","pointerleave","pointercancel"].forEach(ev=>cs.addEventListener(ev,end));cs.addEventListener("contextmenu",e=>e.preventDefault());
-   const strict=()=>Lg==="es"&&st(it.id).c>=2;
-   const win=r=>{S2.done=true;inp.readOnly=true;cel.classList.remove("bad");cel.classList.add("ok");
+   const strict=()=>Lg==="es"&&st(it.id).c>=1,sq=()=>st(it.id).c>=1;
+   const win=r=>{okFlash();S2.done=true;inp.readOnly=true;cel.classList.remove("bad");cel.classList.add("ok");
     const s=st(it.id);if(!S2.peek){s.c++;fly(cel,`+${fmt(pay(RW.s,key))} 🪙`);$("#cRes").innerHTML=resHTML()}save();
-    cel.querySelector(".dots").innerHTML=[0,1,2].map(j=>`<i class="${j<s.c?"on":""}"></i>`).join("");
+    cel.querySelector(".dots").innerHTML=[...Array(NEED).keys()].map(j=>`<i class="${j<s.c?"on":""}"></i>`).join("");
     const nn=it.n&&it.n[Lg];cel.querySelector(".info").innerHTML=(r.s==="accent"?`<div class="warn">Pozor na diakritiku: ${esc(r.a)}</div>`:"")+(ans.length>1?`<div class="vars">Dá se říct i: ${ans.map(v=>`<b>${esc(v)}</b>`).join(" / ")}</div>`:"")+(nn?`<div>💡 ${esc(nn)}</div>`:"");
     cel.querySelector(".mini").innerHTML=`<span class="mcs">${esc(tx(it,"cs"))}</span><span class="man">${esc(r.a)}</span><button class="say" aria-label="Play">${A.SPK}</button>`;
     cel.querySelector(".mini").onclick=e=>{if(e.target.closest(".say"))A.say(r.a);else cel.classList.toggle("open")};
     const next=cards.find(x=>!x.S2.done);if(next&&document.activeElement===inp)next.inp.focus({preventScroll:true});
     setTimeout(()=>{cel.classList.add("compact");if(next)next.inp.scrollIntoView({block:"center",behavior:"smooth"})},600);
     if(cards.every(x=>x.S2.done))setTimeout(()=>{if(sents.every(x=>st(x.id).c>=NEED)){delete qs[key];save();onDone(true)}else{A.toast(Lg==="es"?"Otra ronda":"Next round");sentences();window.scrollTo({top:el.offsetTop})}},900)};
-   inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");inp.style.height="auto";inp.style.height=inp.scrollHeight+"px";if(S2.done)return;cel.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,false);if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
-   const judge=()=>{if(S2.done)return;const r=check(inp.value,ans,false);if(r.s==="empty")return;const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);
+   inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");inp.style.height="auto";inp.style.height=inp.scrollHeight+"px";if(S2.done)return;cel.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,false,sq());if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
+   const judge=()=>{if(S2.done)return;const r=check(inp.value,ans,false,sq());if(r.s==="empty")return;if(r.s==="noq")msg.textContent="Chybí otazník.";const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);
     cel.classList.remove("bad");void cel.offsetWidth;cel.classList.add("bad");msg.classList.toggle("strict",sa);if(sa)msg.innerHTML=`Oprav diakritiku: ${[...r.a].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("")}`;if(!S2.wrong){S2.wrong=true;st(it.id).w++;save()}};
    inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();judge()}});inp.addEventListener("blur",judge);
    cel.querySelector(".say").onclick=()=>A.say(ans[0]);
@@ -610,7 +611,7 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
    const it=order[k],q=typeof it.q==="function"?it.q(ctx()):it.q,ans=typeof it.a[Lg]==="function"?it.a[Lg](ctx()):it.a[Lg];
    const t=it.ti!=null?targets[it.ti]:null;
    el.innerHTML=`<div class="scene" style="aspect-ratio:${w}/${h}"><svg viewBox="${vb.join(" ")}">${svg(false)}${t?`<line x1="${t.ax}" y1="${t.ay}" x2="${t.lx}" y2="${t.ly}" stroke="#2a1d14" stroke-width="${1.3*sw}" stroke-dasharray="${4*sw} ${3*sw}" opacity=".6"/><circle cx="${t.ax}" cy="${t.ay}" r="${3.6*sw}" fill="#fff" stroke="#2a1d14" stroke-width="${1.2*sw}"/>`:""}</svg>${t?`<div class="frame cur" style="left:${(t.lx-x0)/w*100}%;top:${(t.ly-y0)/h*100}%">?</div>`:""}</div>
-    <div class="wbox"><p class="small">${bi({en:"Answer the question.",es:"Responde a la pregunta.",cs:"Odpověz na otázku."})} · ${k+1}/${order.length} · <span class="dots">${[0,1,2].map(j=>`<i class="${j<st(it.id).c?"on":""}"></i>`).join("")}</span></p>
+    <div class="wbox"><p class="small">${bi({en:"Answer the question.",es:"Responde a la pregunta.",cs:"Odpověz na otázku."})} · ${k+1}/${order.length} · <span class="dots">${[...Array(NEED).keys()].map(j=>`<i class="${j<st(it.id).c?"on":""}"></i>`).join("")}</span></p>
      <p class="qq">${esc(q[Lg])} <button class="say" id="qSay" aria-label="Play">${A.SPK}</button></p><p class="small" id="qcs"><a href="#" id="qShow">💡 Co to znamená?</a></p>
      <textarea rows="1" class="ain" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea><p class="amsg"></p>${btn("qOk","wide",ui("ok"))}</div>`;
    const inp=el.querySelector(".ain"),msg=el.querySelector(".amsg");
