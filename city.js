@@ -278,6 +278,7 @@ function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins /
 function render(){
  $("#cBack").innerHTML="✕";$("#cBack").setAttribute("aria-label","Zavřít hru");
  $("#cRes").innerHTML=P().name?resHTML():"";
+ $("#city").dataset.v=P().name?(view==="lesson"&&!LS?"map":view):"start";
  if(!P().name)return renderStart();
  if(view==="lesson"&&LS)return renderLesson();
  if(view==="house")return renderHouse();
@@ -356,7 +357,7 @@ function startLesson(practice){
 function renderLesson(){
  const c=C(),Lg=L(),lv=LV[Math.min(c.lv,LV.length)-1];
  const head=LS.practice?ui("practice"):`${ui("level")} ${c.lv} · ${ui(c.part==="w"?"words":"sents")}`;
- body().innerHTML=`<div class="lhead"><button class="btn ghost sm" id="lBack">← ${ui("map")}</button><div><span class="kap">${head}</span>${LS.practice?"":`<b>${bi(lv.t)}</b>`}</div></div><div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
+ body().innerHTML=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${LS.practice?esc(Lg==="es"?"Práctica":"Practice"):esc(lv.t[Lg])}</b><small>${LS.practice?"procvičování":`${esc(lv.t.cs)} · ${c.part==="w"?"slova":"věty"}`}</small></div></div><div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
  $("#lBack").onclick=()=>{clearTimeout(nextT);view="map";LS=null;render()};
  const list=$("#lList"),cards=[];
  LS.items.forEach(it=>{
@@ -733,6 +734,7 @@ function tCur(k){const c=C();c.tsel=c.tsel||{};const first=TOPIC[k].findIndex((_
 function tChips(k){const cur=tCur(k),first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),Lg=L();
  return `<div class="chips tchips">${TOPIC[k].map((t,i)=>{const open=first<0||i<=first;return `<button class="chip${i===cur?" on":""}" ${open?`data-act="tsel-${k}-${i}"`:"disabled"}>${tDone(k,i)?"✓":open?"":"🔒"} ${i+1}. ${esc(t.t[Lg])}</button>`}).join("")}</div>`}
 
+const coinPill=()=>`<span class="coin">🪙 ${C().coins}</span>`;
 function topHead(title,cs,extra=""){return `<div class="thead"><button class="ib" data-go="tomap" aria-label="Mapa">←</button><div class="tt"><b>${esc(title)}</b>${cs?`<small>${esc(cs)}</small>`:""}</div>${extra}</div>`}
 function lvNav(k){const cur=tCur(k),N=TOPIC[k].length,first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),lim=first<0?N-1:first,T=TOPIC[k][cur],Lg=L(),d=tDone(k,cur);
  return `<div class="lvnav"><button class="ib" ${cur>0?`data-act="tsel-${k}-${cur-1}"`:"disabled"} aria-label="Předchozí level">‹</button><div class="lvc"><div class="lvt"><span class="lvn">${Lg==="es"?"Nivel":"Level"} ${cur+1}<i>/${N}</i></span><b>${esc(T.t[Lg])}</b><small>${esc(T.t.cs)}</small></div><div class="lvd">${TOPIC[k].map((_,i)=>`<i class="${tDone(k,i)?"ok":""}${i===cur?" cur":""}${i>lim?" lk":""}"></i>`).join("")}<span class="rw">${d?"✓ hotovo":"🎁 20 🪙"}</span></div></div><button class="ib" ${cur<lim?`data-act="tsel-${k}-${cur+1}"`:"disabled"} aria-label="Další level">${cur<lim||cur+1>=N?"›":"🔒"}</button></div>`}
@@ -797,7 +799,7 @@ const colName=k=>{const cl=WD[k];return `${esc(L()==="es"?cl[2]:cl[1])}<small>${
 function topicDone(k,i,title,sub,art){const c=C(),q=c.quiz||(c.quiz={});q[tKey(k,i)]=true;finishRun(tKey(k,i));c.coins+=20;c.tsel=c.tsel||{};delete c.tsel[k];save();render();party(title,"+20 🪙",sub,art,3600)}
 function renderHouse(){
  const c=C(),own=c.own||(c.own={}),Lg=L(),i=tCur("living"),T=TOPIC.living[i];
- body().innerHTML=`${topHead(ROOMS[0][Lg],ROOMS[0].cs)}${lvNav("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
+ body().innerHTML=`${topHead(ROOMS[0][Lg],ROOMS[0].cs,tDone("living",0)?coinPill():"")}${lvNav("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
  topicGame($("#game"),{key:tKey("living",i),sents:T.sents,qa:T.qa,vb:[0,0,400,300],targets:withLabel(T.targets),svg:g=>roomSVG(own,g&&i===0,g?c.paint:null,g?0:i),
   onDone:()=>topicDone("living",i,`${ui("level")} ${i+1} ✓`,bi([{en:"Now you can buy furniture! Tap a + in the room.",es:"¡Ya puedes comprar muebles! Toca un + en la sala.",cs:"Teď můžeš kupovat nábytek! Klepni na + v pokoji."},{en:"Now you can paint the walls!",es:"¡Ya puedes pintar las paredes!",cs:"Teď můžeš malovat zdi!"},{en:"Your room has new things!",es:"¡Tu sala tiene cosas nuevas!",cs:"V pokoji přibyly nové věci!"},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),A.CRIT[2])});
  const cards=[];
@@ -829,7 +831,7 @@ function petItem(id){const k=C().pet&&C().pet.kind;
 function renderPetV(){
  const c=C(),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
  const i=tCur("pet"),T=TOPIC.pet[i];
- body().innerHTML=`${topHead(p.name,"",c.lv>5?`<button class="ib wide" data-act="feed">🍽️</button>`:"")}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
+ body().innerHTML=`${topHead(p.name,"",(tDone("pet",0)?coinPill():"")+(c.lv>5?`<button class="ib wide" data-act="feed">🍽️ ${c.food}</button>`:""))}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
  topicGame($("#game"),{key:tKey("pet",i),sents:T.sents,qa:T.qa,vb:T.vb||[-60,-5,210,90],targets:withLabel(T.targets(p.kind)),svg:()=>PETSVG(p.kind,own.collar||T.collar,T.pal||FURC[c.fur],T.ex),
   onDone:()=>topicDone("pet",i,`${ui("level")} ${i+1} ✓`,bi([{en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`},{en:`Now you can choose ${p.name}'s color!`,es:`¡Ya puedes elegir el color de ${p.name}!`,cs:`Teď můžeš vybrat barvu srsti!`},{en:`${p.name} loves the new ball!`,es:`¡A ${p.name} le encanta la pelota!`,cs:`${p.name} má radost z míče!`},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar,FURC[c.fur])}</svg>`)});
  const items=["collar","home"].map(petItem),cards=[];
@@ -977,7 +979,7 @@ function converse(item,onBought){
   if(stage<=1){const opts=shuffle([[u.t,u.cs,1]].concat(shuffle(u.d.slice()).slice(0,stage===0?2:3)));inp=`<div class="opts">${opts.map(o=>`<button class="opt" data-ok="${o[2]||0}">${esc(o[0])}${stage===0?`<small>${esc(o[1])}</small>`:""}</button>`).join("")}</div>`}
   else if(stage===2)inp=`<div class="fill">${esc(u.pre)}<input class="bl ain" autocomplete="off" autocapitalize="off" spellcheck="false" lang="${Lg}">${esc(u.post)}</div><button class="btn wide" id="cOk">${ui("ok")}</button>`;
   else inp=`${stage===3?`<p class="small">Nápověda: <b>${esc(u.t.split(" ").map(w=>w.replace(/^([¡¿]?.).*?([.!?]?)$/,"$1…$2")).join(" "))}</b> · ${esc(u.cs)}</p>`:`<p class="small" id="cHint">💡 <a href="#" id="cShow">Ukázat, co mám říct česky</a></p>`}<textarea rows="1" class="ain" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><button class="btn wide" id="cOk">${ui("ok")}</button>`;
-  openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="skh"><b>${bi({en:"Shopping",es:"De compras",cs:"Nákup"})}</b><span class="small">Nákup č. ${(c.buys||0)+1} · ${STAGES[stage]} · ${esc(nm[0])} ${item.price} 🪙</span></div></div>
+  openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="skh"><b>${bi({en:"Shopping",es:"De compras",cs:"Nákup"})}</b><span class="small">Nákup č. ${(c.buys||0)+1} · ${STAGES[stage]} · ${esc(nm[0])} ${item.price} 🪙 · máš ${c.coins} 🪙</span></div></div>
    <div class="chat">${log.join("")}</div><p class="amsg"></p>${inp}<button class="btn ghost wide" data-close style="margin-top:8px">${ui("close")}</button>`,b=>{
    const msg=b.querySelector(".amsg");
    const good=text=>{log.push(`<div class="cb u">${esc(text)}</div>`);step++;tries=0;

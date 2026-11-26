@@ -320,6 +320,20 @@ textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
 .ccard.slim .pre>*,.ccard.slim .swatches>*{flex:none}
 .help,.gbtns+p.small{font-size:12px}
 #cBack{min-width:40px;width:40px;height:40px;min-height:40px;padding:0;font-size:18px}
+
+/* minimální lišty – klávesnice nesmí zakrýt obsah */
+header,.chead{position:static}
+#city:not([data-v=map]) .chead{display:none}
+#city:not([data-v=map]) #cityBody{padding-top:10px}
+.chead .wrap{padding-top:8px;padding-bottom:8px}
+#cRes span{padding:3px 8px;font-size:13px}
+.thead{margin:0 0 8px;gap:8px}.thead .ib{width:36px;height:36px;font-size:18px;border-radius:10px}.thead .tt b{font-size:18px}
+.thead .coin{font-weight:700;font-size:13px;padding:5px 10px;border-radius:999px;white-space:nowrap;background:linear-gradient(180deg,#fffdf4,#f6ead0);color:#5a3d12;border:1px solid #e2c98f;box-shadow:inset 0 1px 0 #fff,0 2px 0 #d2b06a}
+.lvnav{padding:4px;margin-bottom:8px;border-radius:14px}.lvnav .ib{width:34px;height:34px}.lvd i{height:4px}
+.top{padding-top:8px;padding-bottom:6px}
+.badge #bName{display:none}.badge #status{font-size:14px;color:var(--mute)}.badge #status b{display:inline;color:var(--ink)}
+.badge{min-height:40px}.top .ib{width:40px;height:40px}
+.mtools{justify-content:space-between;margin:10px 0}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -358,13 +372,9 @@ textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
 <div id="app" class="screen">
 <header><div class="wrap">
  <div class="top">
-  <div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div>
-  <button class="badge" id="badge" aria-label="Změnit kategorii"><span class="L" id="bL">A</span><span><b id="bName">Začátečník</b><span id="bSub">Level 1/20</span></span></button>
+  <button class="badge" id="badge" aria-label="Změnit kategorii"><span class="L" id="bL">A</span><span><b id="bName">Začátečník</b><span id="bSub" hidden>Level 1/20</span><span id="status"></span></span></button>
   <button class="ib" id="shuffle" title="Zamíchat a začít nové kolo" aria-label="Zamíchat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
   <button class="ib" id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
- </div>
- <div class="sub"><div id="status"></div>
-  <div class="tools"><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"><label class="sw"><input type="checkbox" id="dict"> Slovník</label></div>
  </div>
  <div class="bar"><div id="barFill"></div></div>
 </div></header>
@@ -377,7 +387,7 @@ textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
 
 <!-- ── MĚSTO ── -->
 <section id="city" class="screen">
- <div class="chead"><div class="wrap"><button class="btn ghost sm" id="cBack">←</button><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div><div id="cRes"></div></div></div>
+ <div class="chead"><div class="wrap"><button class="ib" id="cBack">←</button><div id="cRes"></div></div></div>
  <div class="wrap" id="cityBody"></div>
 </section>
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
@@ -385,6 +395,7 @@ textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
 <div id="menu" hidden><div class="sheet">
  <h2>Menu</h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
+ <div class="tools mtools"><label class="sw"><input type="checkbox" id="dict"> Slovník</label><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
  <p id="progressAll"></p>
  <div id="stats"></div>
@@ -393,7 +404,7 @@ textarea,.tin,.ain{box-shadow:inset 0 2px 4px rgba(0,0,0,.07)}
   <li>Kolo má nejvýš 8 položek: nejnovější vždy, starší náhodně. Častěji padají novější věty a ty, kde jsi chyboval v posledních 5 odpovědích.</li>
   <li>Velká písmena, čárky, tečky, pomlčky a apostrofy se ignorují. U otázek je potřeba otazník.</li>
   <li>Španělsky: první dvě odpovědi na větu projdou i bez diakritiky, od třetí už musí být přesně.</li>
-  <li>Pole „lvl“ nahoře (vývojář): napiš 1–100 a Enter pro skok na level (21 = B1, 41 = C1 …).</li>
+  <li>Pole „lvl“ v menu (vývojář): napiš 1–100 a Enter pro skok na level (21 = B1, 41 = C1 …).</li>
  </ul>
  <button class="btn danger" id="reset">Resetovat postup</button>
  <button class="btn ghost" id="closeMenu">Zavřít</button>
