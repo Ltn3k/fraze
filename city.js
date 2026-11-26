@@ -69,7 +69,7 @@ const LV=[
 LV.forEach((lv,i)=>{lv.w.forEach(it=>{it.lv=i+1});lv.s.forEach((it,k)=>{it.lv=i+1;it.id=`l${i+1}s${k}`})});
 const ALL=LV.flatMap(l=>l.w.concat(l.s)),BYID=Object.fromEntries(ALL.map(i=>[i.id,i]));
 const GOODS={bread:{price:5,feed:25,pic:"🍞"},milk:{price:5,feed:35,pic:"🥛"},petfood:{price:10,feed:100,pic:"🦴"}};
-const PLOTS=[{id:"shop",en:"Shop",es:"Tienda",lv:6},{id:"market",en:"Market",es:"Mercado",lv:8},{id:"bus",en:"Bus stop",es:"Parada",lv:9},{id:"cafe",en:"Café",es:"Café",lv:10},{id:"park",en:"Park",es:"Parque",lv:11},{id:"school",en:"School",es:"Escuela",lv:12},{id:"doctor",en:"Doctor",es:"Médico",lv:13},{id:"station",en:"Station",es:"Estación",lv:14}];
+const PLOTS=[{id:"shop",en:"Shop",es:"Tienda",lv:6},{id:"market",en:"Market",es:"Mercado",lv:8},{id:"bus",en:"Bus stop",es:"Parada",lv:9},{id:"cafe",en:"Café",es:"Café",lv:10},{id:"zoo",en:"Zoo",es:"Zoo",lv:3},{id:"school",en:"School",es:"Escuela",lv:12},{id:"doctor",en:"Doctor",es:"Médico",lv:13},{id:"station",en:"Station",es:"Estación",lv:14}];
 
 // ── texty rozhraní (cizí jazyk + česky, dokud slovo neumíš) ──
 const UI={back:["Back","Atrás","Zpět","back"],map:["Map","Mapa","Mapa","map"],level:["Level","Nivel","Level"],words:["Words","Palabras","Slova"],sents:["Sentences","Frases","Věty"],
@@ -136,7 +136,8 @@ function mapSVG(){
  PLOTS.forEach((_,i)=>{const[x,y]=pos(i);out.push(`<line x1="200" y1="205" x2="${x}" y2="${y}" stroke="#eedfbb" stroke-width="16" stroke-linecap="round"/>`)});
  PLOTS.forEach((pl,i)=>{
   const[x,y]=pos(i),built=c.b[pl.id],can=c.lv>pl.lv;
-  if(built)out.push(`<g class="tap" data-act="${pl.id}" transform="translate(${x},${y})">${SHOP(shopLbl())}${c.lv<=7?`<g transform="translate(24,16)"><rect x="-17" y="-8" width="34" height="14" rx="3" fill="#fff" stroke="#c9a46a"/><text y="3" text-anchor="middle" font-size="8" font-weight="700" fill="#b8473a">${Lg==="es"?"VACÍA":"EMPTY"}</text></g>`:""}</g>`);
+  if(pl.id==="zoo"&&c.lv>=3)out.push(`<g class="tap" data-act="zoo" transform="translate(${x},${y})"><ellipse cy="28" rx="40" ry="6" fill="rgba(0,0,0,.12)"/><rect x="-36" y="-14" width="72" height="42" rx="8" fill="#8fc77a" stroke="#4c9a5a" stroke-width="2"/><path d="M-30 -14 q30 -26 60 0" fill="#ffd23f" stroke="#c9a46a" stroke-width="2"/><text y="-12" text-anchor="middle" font-size="12" font-weight="800" fill="#7a4b24">ZOO</text><text y="12" text-anchor="middle" font-size="18" dominant-baseline="central">🦁🐘</text></g>`);
+  else if(built)out.push(`<g class="tap" data-act="${pl.id}" transform="translate(${x},${y})">${SHOP(shopLbl())}${c.lv<=7?`<g transform="translate(24,16)"><rect x="-17" y="-8" width="34" height="14" rx="3" fill="#fff" stroke="#c9a46a"/><text y="3" text-anchor="middle" font-size="8" font-weight="700" fill="#b8473a">${Lg==="es"?"VACÍA":"EMPTY"}</text></g>`:""}</g>`);
   else if(can)out.push(`<g class="tap pulse" data-act="build-${pl.id}" transform="translate(${x},${y})"><rect x="-38" y="-30" width="76" height="60" rx="12" fill="#f6ebcb" stroke="#c9a46a" stroke-width="2.5" stroke-dasharray="6 5"/><text y="4" text-anchor="middle" font-size="26" font-weight="700" fill="#b08a4e">+</text><text y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#8a6a36">${pl[Lg]}</text></g>`);
   else out.push(`<g class="tap" data-act="locked-${i}" transform="translate(${x},${y})"><rect x="-38" y="-30" width="76" height="60" rx="12" fill="rgba(255,255,255,.45)" stroke="#9fc08c" stroke-width="2" stroke-dasharray="4 4"/><g transform="translate(0,-6)">${LOCK}</g><text y="21" text-anchor="middle" font-size="12" font-weight="700" fill="#5f7d54">${Lg==="es"?"Nivel":"Level"} ${pl.lv}</text></g>`);
  });
@@ -201,6 +202,7 @@ function render(){
  if(view==="house")return renderHouse();
  if(view==="me")return renderMe();
  if(view==="petv")return renderPetV();
+ if(view==="zoo")return renderZoo();
  renderMap();
 }
 function renderStart(){
@@ -241,6 +243,7 @@ document.addEventListener("click",e=>{
  if(a.startsWith("room-")){const r=ROOMS[+a.slice(5)];return A.toast(`${r[L()]} · ${L()==="es"?"nivel":"level"} ${r.lv}`)}
  if(a==="house"){view="house";return render()}
  if(a==="me"){view="me";return render()}
+ if(a==="zoo"){view="zoo";return render()}
  if(a==="feed")return petModal();
  if(a==="tomap"){view="map";return render()}
  if(a.startsWith("fbuy-")){const id=a.slice(5);return converse(FURN[id],()=>{C().own[id]=true})}
@@ -698,6 +701,73 @@ function renderPetV(){
  if(tDone("pet",1))cards.push(`<div class="ccard"><div><b>${bi({en:"Fur color",es:"Color del pelo",cs:"Barva srsti"})}</b><div class="swatches">${Object.keys(FURC).map(k=>`<button class="sw2${(c.fur||"brown")===k?" on":""}" data-act="fur-${k}"><i style="background:${k==="brown"?(p.kind==="cat"?"#f0a050":"#c98b4f"):FURC[k].fur}"></i>${colName(k)}</button>`).join("")}</div></div></div>`);
  cards.push(`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>1. štítky · 2. přetáhni · 3. napiš slovo · 4. doplň do věty · 5. celá věta 3×. ${tDone("pet",i)?"Hotovo ✓":`Odměna: 20 🪙${[` a obojek a ${p.kind==="cat"?"pelíšek":"bouda"}`," a výběr barvy srsti","",""][i]}.`}</span></div></div>`);
  $("#pinfo").innerHTML=cards.join("");
+}
+
+// ── zoo ──
+const ZP=[[80,100],[200,92],[320,100],[80,200],[200,200],[320,200]];
+const ZT=(i,k,cs,en,es,emo,n=1)=>({...T3(k,cs,en,es,ZP[i][0],ZP[i][1]+22,ZP[i][0],ZP[i][1]+54),emo,n});
+const ZBG={farm:["#c9e9a8","#9fd17d"],safari:["#f6e3a1","#e2c46a"],water:["#bfe3f7","#6fb6e6"],insects:["#d9f2c4","#a6d690"],reptiles:["#efe2c6","#cdb68a"],birds:["#dcefff","#bfe3a5"]};
+TOPIC.zoo=[
+ {t:{en:"Farm",es:"Granja",cs:"Farma"},bg:"farm",targets:[ZT(0,"cow","kráva","cow","la vaca","🐄"),ZT(1,"horse","kůň","horse","el caballo","🐎"),ZT(2,"pig","prase","pig","el cerdo","🐖"),ZT(3,"sheep","ovce","sheep","la oveja","🐑"),ZT(4,"chicken","slepice","chicken","la gallina","🐔"),ZT(5,"rabbit","králík","rabbit","el conejo","🐇")],
+  sents:[SX("z1_0",0,"Toto je kráva.",E("This is a cow."),["Esta es una vaca.","Es una vaca."],["This is a _.",["cow"]],["Esta es una _.",["vaca"]]),
+   SX("z1_1",1,"Vidím koně.",E("I see a horse."),["Veo un caballo."],["I see a _.",["horse"]],["Veo un _.",["caballo"]]),
+   SX("z1_2",2,"Tady je prase.",E("Here is the pig.","Here is a pig."),["Aquí está el cerdo."],["Here is the _.",["pig"]],["Aquí está el _.",["cerdo"]]),
+   SX("z1_3",3,"To je ovce.",E("That is a sheep."),["Esa es una oveja.","Es una oveja."],["That is a _.",["sheep"]],["Esa es una _.",["oveja"]],{en:"Sheep má stejný tvar i v množném čísle: one sheep, two sheep."}),
+   SX("z1_4",4,"Kde je slepice?",E("Where is the chicken?","Where is the hen?"),["¿Dónde está la gallina?"],["Where is the _?",["chicken","hen"]],["¿Dónde está la _?",["gallina"]]),
+   SX("z1_5",5,"Máme králíka.",E("We have a rabbit."),["Tenemos un conejo."],["We have a _.",["rabbit"]],["Tenemos un _.",["conejo"]])]},
+ {t:{en:"Safari",es:"Safari",cs:"Safari"},bg:"safari",targets:[ZT(0,"lion","lev","lion","el león","🦁"),ZT(1,"elephant","slon","elephant","el elefante","🐘"),ZT(2,"giraffe","žirafa","giraffe","la jirafa","🦒"),ZT(3,"zebra","zebra","zebra","la cebra","🦓"),ZT(4,"monkey","opice","monkey","el mono","🐒"),ZT(5,"hippo","hroch","hippo","el hipopótamo","🦛")],
+  sents:[SX("z2_0",0,"Vidím velkého lva.",E("I see a big lion."),["Veo un león grande."],["I see a big _.",["lion"]],["Veo un _ grande.",["león"]]),
+   SX("z2_1",1,"Slon je šedý.",E("The elephant is grey.","The elephant is gray."),["El elefante es gris."],["The _ is grey.",["elephant"]],["El _ es gris.",["elefante"]],{en:"Grey = Británie, gray = USA. Před samohláskou: an elephant."}),
+   SX("z2_2",2,"Žirafa je vysoká.",E("The giraffe is tall."),["La jirafa es alta."],["The _ is tall.",["giraffe"]],["La _ es alta.",["jirafa"]],{en:"Tall = vysoký (lidé, zvířata, stromy)."}),
+   SX("z2_3",3,"Zebra je černobílá.",E("The zebra is black and white."),["La cebra es blanca y negra.","La cebra es negra y blanca."],["The _ is black and white.",["zebra"]],["La _ es blanca y negra.",["cebra"]],{en:"And = a."}),
+   SX("z2_4",4,"Opice je malá.",E("The monkey is small."),["El mono es pequeño."],["The _ is small.",["monkey"]],["El _ es pequeño.",["mono"]]),
+   SX("z2_5",5,"To je velký hroch.",E("That is a big hippo."),["Ese es un hipopótamo grande.","Es un hipopótamo grande."],["That is a big _.",["hippo"]],["Ese es un _ grande.",["hipopótamo"]])]},
+ {t:{en:"Water",es:"Agua",cs:"Voda"},bg:"water",targets:[ZT(0,"fish","ryba","fish","el pez","🐟"),ZT(1,"dolphin","delfín","dolphin","el delfín","🐬"),ZT(2,"shark","žralok","shark","el tiburón","🦈"),ZT(3,"whale","velryba","whale","la ballena","🐋"),ZT(4,"octopus","chobotnice","octopus","el pulpo","🐙"),ZT(5,"crab","krab","crab","el cangrejo","🦀")],
+  sents:[SX("z3_0",0,"Mám malou rybu.",E("I have a small fish."),["Tengo un pez pequeño."],["I have a small _.",["fish"]],["Tengo un _ pequeño.",["pez"]]),
+   SX("z3_1",1,"Delfín má dlouhý nos.",E("The dolphin has a long nose."),["El delfín tiene una nariz larga."],["The _ has a long nose.",["dolphin"]],["El _ tiene una nariz larga.",["delfín"]]),
+   SX("z3_2",2,"Žralok má velké zuby.",E("The shark has big teeth."),["El tiburón tiene dientes grandes."],["The _ has big teeth.",["shark"]],["El _ tiene dientes grandes.",["tiburón"]],{en:"Tooth = zub, teeth = zuby (nepravidelné množné číslo)."}),
+   SX("z3_3",3,"Velryba má velký ocas.",E("The whale has a big tail."),["La ballena tiene una cola grande."],["The _ has a big tail.",["whale"]],["La _ tiene una cola grande.",["ballena"]]),
+   SX("z3_4",4,"Chobotnice je červená.",E("The octopus is red."),["El pulpo es rojo."],["The _ is red.",["octopus"]],["El _ es rojo.",["pulpo"]]),
+   SX("z3_5",5,"Vidím červeného kraba.",E("I see a red crab."),["Veo un cangrejo rojo."],["I see a red _.",["crab"]],["Veo un _ rojo.",["cangrejo"]])]},
+ {t:{en:"Insects",es:"Insectos",cs:"Hmyz"},bg:"insects",targets:[ZT(0,"bee","včela","bee","la abeja","🐝",2),ZT(1,"ant","mravenec","ant","la hormiga","🐜",3),ZT(2,"spider","pavouk","spider","la araña","🕷️"),ZT(3,"butterfly","motýl","butterfly","la mariposa","🦋"),ZT(4,"ladybird","beruška","ladybird","la mariquita","🐞",4),ZT(5,"fly","moucha","fly","la mosca","🪰")],
+  sents:[SX("z4_0",0,"Vidím dvě včely.",E("I see two bees."),["Veo dos abejas."],["I see two _.",["bees"]],["Veo dos _.",["abejas"]],{en:"Množné číslo: bee → bees."}),
+   SX("z4_1",1,"Jsou tu tři mravenci.",E("There are three ants."),["Hay tres hormigas."],["There are three _.",["ants"]],["Hay tres _.",["hormigas"]],{en:"There is = je tu (jeden), there are = jsou tu (více)."}),
+   SX("z4_2",2,"Pavouk má osm nohou.",E("The spider has eight legs.","A spider has eight legs."),["La araña tiene ocho patas."],["The _ has eight legs.",["spider"]],["La _ tiene ocho patas.",["araña"]],{en:"Eight = osm."}),
+   SX("z4_3",3,"Motýl má čtyři křídla.",E("The butterfly has four wings.","A butterfly has four wings."),["La mariposa tiene cuatro alas."],["The _ has four wings.",["butterfly"]],["La _ tiene cuatro alas.",["mariposa"]],{en:"Wing = křídlo."}),
+   SX("z4_4",4,"Vidím čtyři berušky.",E("I see four ladybirds.","I see four ladybugs."),["Veo cuatro mariquitas."],["I see four _.",["ladybirds","ladybugs"]],["Veo cuatro _.",["mariquitas"]],{en:"Ladybird = Británie, ladybug = USA. Y → ies? Ne, jen + s."}),
+   SX("z4_5",5,"Je tu jedna moucha.",E("There is one fly.","There is a fly."),["Hay una mosca."],["There is one _.",["fly"]],["Hay una _.",["mosca"]])]},
+ {t:{en:"Reptiles",es:"Reptiles",cs:"Plazi"},bg:"reptiles",targets:[ZT(0,"snake","had","snake","la serpiente","🐍"),ZT(1,"crocodile","krokodýl","crocodile","el cocodrilo","🐊"),ZT(2,"lizard","ještěrka","lizard","el lagarto","🦎"),ZT(3,"turtle","želva","turtle","la tortuga","🐢"),ZT(4,"frog","žába","frog","la rana","🐸"),ZT(5,"dinosaur","dinosaurus","dinosaur","el dinosaurio","🦖")],
+  sents:[SX("z5_0",0,"Je had dlouhý?",E("Is the snake long?"),["¿Es larga la serpiente?","¿La serpiente es larga?"],["Is the _ long?",["snake"]],["¿Es larga la _?",["serpiente"]],{en:"Otázka: sloveso jde dopředu: The snake is long. → Is the snake long?"}),
+   SX("z5_1",1,"Krokodýl není malý.",E("The crocodile is not small.","The crocodile isn't small."),["El cocodrilo no es pequeño."],["The _ is not small.",["crocodile"]],["El _ no es pequeño.",["cocodrilo"]],{en:"Zápor: is not = isn't.",es:"Zápor: no před slovesem."}),
+   SX("z5_2",2,"Je ještěrka zelená?",E("Is the lizard green?"),["¿Es verde el lagarto?","¿El lagarto es verde?"],["Is the _ green?",["lizard"]],["¿Es verde el _?",["lagarto"]]),
+   SX("z5_3",3,"Želva není rychlá.",E("The turtle is not fast.","The turtle isn't fast."),["La tortuga no es rápida."],["The _ is not fast.",["turtle"]],["La _ no es rápida.",["tortuga"]],{en:"Fast = rychlý."}),
+   SX("z5_4",4,"Žába není velká.",E("The frog is not big.","The frog isn't big."),["La rana no es grande."],["The _ is not big.",["frog"]],["La _ no es grande.",["rana"]]),
+   SX("z5_5",5,"Je to dinosaurus?",E("Is it a dinosaur?"),["¿Es un dinosaurio?"],["Is it a _?",["dinosaur"]],["¿Es un _?",["dinosaurio"]])]},
+ {t:{en:"Birds",es:"Aves",cs:"Ptáci"},bg:"birds",targets:[ZT(0,"bird","pták","bird","el pájaro","🐦"),ZT(1,"penguin","tučňák","penguin","el pingüino","🐧"),ZT(2,"duck","kachna","duck","el pato","🦆"),ZT(3,"parrot","papoušek","parrot","el loro","🦜"),ZT(4,"owl","sova","owl","el búho","🦉"),ZT(5,"eagle","orel","eagle","el águila","🦅")],
+  sents:[SX("z6_0",0,"Pták umí létat.",E("A bird can fly.","The bird can fly.","Birds can fly."),["Un pájaro puede volar.","El pájaro puede volar."],["A _ can fly.",["bird"]],["El _ puede volar.",["pájaro"]],{en:"Can = umí / může. Za can je sloveso bez to.",es:"Puede = může / umí."}),
+   SX("z6_1",1,"Tučňák neumí létat.",E("A penguin can't fly.","A penguin cannot fly.","The penguin can't fly.","The penguin cannot fly.","Penguins can't fly."),["El pingüino no puede volar.","Un pingüino no puede volar."],["A _ can't fly.",["penguin"]],["El _ no puede volar.",["pingüino"]],{en:"Can't = cannot = neumí."}),
+   SX("z6_2",2,"Kachna umí plavat.",E("A duck can swim.","The duck can swim.","Ducks can swim."),["El pato puede nadar.","Un pato puede nadar."],["A _ can swim.",["duck"]],["El _ puede nadar.",["pato"]],{en:"Swim = plavat."}),
+   SX("z6_3",3,"Papoušek umí mluvit.",E("A parrot can talk.","A parrot can speak.","The parrot can talk.","The parrot can speak."),["El loro puede hablar.","Un loro puede hablar."],["A _ can talk.",["parrot"]],["El _ puede hablar.",["loro"]]),
+   SX("z6_4",4,"Sova neumí plavat.",E("An owl can't swim.","An owl cannot swim.","The owl can't swim.","The owl cannot swim."),["El búho no puede nadar.","Un búho no puede nadar."],["An _ can't swim.",["owl"]],["El _ no puede nadar.",["búho"]]),
+   SX("z6_5",5,"Umí orel létat?",E("Can an eagle fly?","Can the eagle fly?"),["¿Puede volar el águila?","¿El águila puede volar?"],["Can an _ fly?",["eagle"]],["¿Puede volar el _?",["águila"]],{en:"Otázka s can: Can + kdo + sloveso?",es:"Águila má člen el, i když je ženského rodu."})]}];
+function zooSVG(i){
+ const T=TOPIC.zoo[i],b=ZBG[T.bg];
+ const deco={farm:`<path d="M0 160 h400" stroke="#c49a70" stroke-width="4"/>${[20,60,100,140,180,220,260,300,340,380].map(x=>`<rect x="${x-3}" y="146" width="6" height="22" fill="#c49a70"/>`).join("")}`,
+  safari:`<circle cx="360" cy="40" r="22" fill="#ffd23f"/><path d="M20 150 q20 -30 40 0" fill="#7fae5a"/>`,
+  water:[30,120,220,330].map(x=>`<path d="M${x} 150 q15 -8 30 0 t30 0" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>`).join(""),
+  insects:[40,140,250,360].map(x=>`<g transform="translate(${x},280)"><circle r="7" fill="#ffd23f"/>${[0,72,144,216,288].map(a=>`<ellipse cx="${10*Math.cos(a*Math.PI/180)}" cy="${10*Math.sin(a*Math.PI/180)}" rx="5" ry="3" transform="rotate(${a} ${10*Math.cos(a*Math.PI/180)} ${10*Math.sin(a*Math.PI/180)})" fill="#fff"/>`).join("")}</g>`).join(""),
+  reptiles:`<ellipse cx="60" cy="280" rx="40" ry="12" fill="#b8a073"/><ellipse cx="330" cy="285" rx="50" ry="10" fill="#b8a073"/>`,
+  birds:`<ellipse cx="80" cy="40" rx="34" ry="12" fill="#fff"/><ellipse cx="310" cy="56" rx="40" ry="13" fill="#fff"/>`}[T.bg];
+ return `<rect width="400" height="300" fill="${b[0]}"/><rect y="150" width="400" height="150" fill="${b[1]}" opacity=".55"/>${deco}`+T.targets.map(t=>{
+  const n=t.n||1,offs=n===1?[[0,0]]:n===2?[[-16,0],[16,4]]:n===3?[[-20,4],[0,-6],[20,4]]:[[-18,-10],[14,-10],[-14,10],[18,10]];
+  return offs.map(([dx,dy])=>`<text x="${t.ax+dx}" y="${t.ay-22+dy}" font-size="${n===1?46:28}" text-anchor="middle" dominant-baseline="central">${t.emo}</text>`).join("")}).join("");
+}
+function renderZoo(){
+ const c=C(),Lg=L(),i=tCur("zoo"),T=TOPIC.zoo[i];
+ body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">ZOO</span><b>${bi(T.t)}</b></div></div>${tChips("zoo")}<div id="game"></div><div class="cards" id="zinfo"></div>`;
+ topicGame($("#game"),{key:tKey("zoo",i),sents:T.sents,vb:[0,0,400,300],targets:withLabel(T.targets),svg:()=>zooSVG(i),
+  onDone:()=>topicDone("zoo",i,`${ui("level")} ${i+1} ✓`,i<TOPIC.zoo.length-1?bi({en:`Next: ${TOPIC.zoo[i+1].t.en}!`,es:`Ahora: ${TOPIC.zoo[i+1].t.es}!`,cs:`Další výběh: ${TOPIC.zoo[i+1].t.cs}!`}):bi({en:"You know all the animals!",es:"¡Conoces todos los animales!",cs:"Znáš všechna zvířata!"}),`<svg viewBox="0 0 100 100" style="width:100%;height:100%"><text x="50" y="55" font-size="70" text-anchor="middle" dominant-baseline="central">${T.targets[0].emo}</text></svg>`)});
+ $("#zinfo").innerHTML=`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>1. štítky · 2. přetáhni · 3. napiš slovo · 4. doplň do věty · 5. celá věta 3×. ${tDone("zoo",i)?"Hotovo ✓":"Odměna: 20 🪙 a další výběh."}</span></div></div>`;
 }
 
 // ── nákup jako rozhovor ──
