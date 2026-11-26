@@ -397,38 +397,105 @@ function petModal(){
 // ── štítková hra (přetahování) ──
 const UI2={hide:["Hide labels","Ocultar","Schovat štítky"],show:["Show labels","Mostrar","Ukázat štítky"],hair:["Hair","Pelo","Vlasy"],shirt:["T-shirt","Camiseta","Tričko"],feedB:["Food","Comida","Jídlo","food"]};
 Object.assign(UI,UI2);
-function labelGame(el,{svg,vb,targets,onDone,locked}){
- const[x0,y0,w,h]=vb;let mode="study",placed=0,mistakes=0,sel=null;
+function topicGame(el,{key,svg,vb,targets,sents,onDone}){
+ const c=C(),qs=c.qs||(c.qs={}),stt=qs[key]||(qs[key]={step:1}),q=c.quiz||(c.quiz={}),Lg=L();
+ const done=!!q[key],[x0,y0,w,h]=vb,sw=w/400;
+ let step=done?0:stt.step,practice=false;
  const lab=t=>`<b>${esc(t.label)}</b><small>${esc(t.cs)}</small>`;
+ const SN=[{en:"Learn",es:"Aprende",cs:"Uč se"},{en:"Drag",es:"Arrastra",cs:"Přetáhni"},{en:"Write",es:"Escribe",cs:"Napiš"},{en:"Sentences",es:"Frases",cs:"Věty"}];
+ const bar=()=>done?"":`<div class="steps">${SN.map((s,i)=>`<span class="${i+1<step?"ok":i+1===step?"on":""}">${i+1<step?"✓ ":`${i+1}. `}${esc(s[Lg])}<small>${esc(s.cs)}</small></span>`).join("")}</div>`;
+ const lines=targets.map(t=>`<line x1="${t.ax}" y1="${t.ay}" x2="${t.lx}" y2="${t.ly}" stroke="#2a1d14" stroke-width="${1.3*sw}" stroke-dasharray="${4*sw} ${3*sw}" opacity=".5"/><circle cx="${t.ax}" cy="${t.ay}" r="${3.4*sw}" fill="#fff" stroke="#2a1d14" stroke-width="${1.2*sw}"/>`).join("");
+ const scene=(ghost,frame)=>`<div class="scene" style="aspect-ratio:${w}/${h}"><svg viewBox="${vb.join(" ")}">${svg(ghost)}${lines}</svg>${targets.map((t,i)=>`<div class="frame ${frame(t,i)[0]}" data-i="${i}" style="left:${(t.lx-x0)/w*100}%;top:${(t.ly-y0)/h*100}%">${frame(t,i)[1]}</div>`).join("")}</div>`;
+ const go=n=>{step=n;if(!done){stt.step=n;save()}practice=false;draw()};
+ const btn=(id,cls,html)=>`<button class="btn ${cls}" id="${id}">${html}</button>`;
  function draw(){
-  placed=0;mistakes=0;sel=null;
-  const sw=w/400;
-  const lines=targets.map(t=>`<line x1="${t.ax}" y1="${t.ay}" x2="${t.lx}" y2="${t.ly}" stroke="#2a1d14" stroke-width="${1.3*sw}" stroke-dasharray="${4*sw} ${3*sw}" opacity=".5"/><circle cx="${t.ax}" cy="${t.ay}" r="${3.4*sw}" fill="#fff" stroke="#2a1d14" stroke-width="${1.2*sw}"/>`).join("");
-  el.innerHTML=`<div class="scene" style="aspect-ratio:${w}/${h}"><svg viewBox="${vb.join(" ")}">${svg(mode)}${lines}</svg>${targets.map((t,i)=>`<div class="frame${mode==="study"?" ok":""}" data-i="${i}" style="left:${(t.lx-x0)/w*100}%;top:${(t.ly-y0)/h*100}%">${mode==="study"?lab(t):"&nbsp;"}</div>`).join("")}</div>
-   ${mode==="test"?`<div class="tray">${shuffle(targets.map((_,i)=>i)).map(i=>`<button class="chipl" data-i="${i}">${esc(targets[i].label)}</button>`).join("")}</div><p class="small" style="text-align:center">Přetáhni štítek na správné místo (nebo klepni na štítek a pak na rámeček).</p>`:""}
-   <div class="gbtns">${mode==="study"?`<button class="btn" id="gTest">🙈 ${ui("hide")}</button>`:`<button class="btn ghost" id="gStudy">🏷️ ${ui("show")}</button>`}</div>`;
-  const t1=el.querySelector("#gTest"),t2=el.querySelector("#gStudy");
-  if(t1)t1.onclick=()=>{if(locked&&locked())return;mode="test";draw()};
-  if(t2)t2.onclick=()=>{mode="study";draw()};
-  el.querySelectorAll(".frame").forEach(f=>f.onclick=()=>{const t=targets[+f.dataset.i];if(mode==="study"||f.classList.contains("ok"))return A.say(t.label);if(sel)attempt(+sel.dataset.i,f,sel)});
+  if(step<=1)return study();
+  if(step===2)return drag();
+  if(step===3)return write();
+  return sentences();
+ }
+ function study(){
+  el.innerHTML=bar()+scene(done,()=>["ok",""]).replace(/<div class="frame ok" data-i="(\d+)"([^>]*)><\/div>/g,(m,i,rest)=>`<div class="frame ok" data-i="${i}"${rest}>${lab(targets[+i])} <span class="spk">🔊</span></div>`)
+   +`<p class="small" style="text-align:center">${done?"Hotovo ✓ · procvičuj přetahováním za 3 🪙.":"Klepni na štítek a poslechni si výslovnost. Pak pokračuj."}</p><div class="gbtns">${done?btn("gP","ghost",`🙈 ${ui("practice")}`):btn("gN","",`${ui("next")} →`)}</div>`;
+  el.querySelectorAll(".frame").forEach(f=>f.onclick=()=>A.say(targets[+f.dataset.i].label));
+  const n=el.querySelector("#gN");if(n)n.onclick=()=>go(2);
+  const p=el.querySelector("#gP");if(p)p.onclick=()=>{practice=true;step=2;draw()};
+ }
+ function drag(){
+  let placed=0,sel=null;
+  el.innerHTML=bar()+scene(false,()=>["","&nbsp;"])+`<div class="tray">${shuffle(targets.map((_,i)=>i)).map(i=>`<button class="chipl" data-i="${i}">${esc(targets[i].label)}</button>`).join("")}</div><p class="small" style="text-align:center">Přetáhni štítek na správné místo (nebo klepni na štítek a pak na rámeček).</p>`;
+  const attempt=(i,fr,ch)=>{sel=null;el.querySelectorAll(".chipl").forEach(x=>x.classList.remove("sel"));
+   if(+fr.dataset.i===i){fr.classList.add("ok");fr.innerHTML=lab(targets[i]);ch.remove();A.say(targets[i].label);if(++placed===targets.length)setTimeout(()=>{if(practice){c.coins+=3;save();A.toast("+3 🪙");step=0;render()}else go(3)},700)}
+   else{fr.classList.remove("no");void fr.offsetWidth;fr.classList.add("no");A.toast("Tam to nepatří")}};
+  el.querySelectorAll(".frame").forEach(f=>f.onclick=()=>{if(sel&&!f.classList.contains("ok"))attempt(+sel.dataset.i,f,sel)});
   el.querySelectorAll(".chipl").forEach(ch=>ch.addEventListener("pointerdown",e=>{
    e.preventDefault();const i=+ch.dataset.i,g=ch.cloneNode(true);g.classList.add("drag");document.body.appendChild(g);
    const sx=e.clientX,sy=e.clientY;let moved=false;
    const mv=ev=>{if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true;g.style.left=ev.clientX+"px";g.style.top=ev.clientY+"px"};mv(e);
    const up=ev=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("pointercancel",up);g.remove();
-    if(!moved){el.querySelectorAll(".chipl").forEach(x=>x.classList.toggle("sel",x===ch&&!x.classList.contains("sel")));sel=ch.classList.contains("sel")?ch:null;return}
+    if(!moved){const was=ch.classList.contains("sel");el.querySelectorAll(".chipl").forEach(x=>x.classList.remove("sel"));if(!was){ch.classList.add("sel");sel=ch}else sel=null;return}
     const fr=[...el.querySelectorAll(".frame:not(.ok)")].find(f=>{const r=f.getBoundingClientRect();return ev.clientX>=r.left-10&&ev.clientX<=r.right+10&&ev.clientY>=r.top-10&&ev.clientY<=r.bottom+10});
     if(fr)attempt(i,fr,ch)};
    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);
   }));
  }
- function attempt(i,fr,ch){
-  sel=null;el.querySelectorAll(".chipl").forEach(x=>x.classList.remove("sel"));
-  if(+fr.dataset.i===i){fr.classList.add("ok");fr.innerHTML=lab(targets[i]);ch.remove();A.say(targets[i].label);placed++;if(placed===targets.length)setTimeout(()=>onDone(mistakes),600)}
-  else{mistakes++;fr.classList.remove("no");void fr.offsetWidth;fr.classList.add("no");A.toast("Tam to nepatří")}
+ function write(){
+  const order=shuffle(targets.map((_,i)=>i)),filled={};let k=0,tries=0;
+  const paint=()=>{
+   const cur=order[k];
+   el.innerHTML=bar()+scene(false,(t,i)=>filled[i]?["ok",lab(t)]:i===cur?["cur","?"]:["","&nbsp;"])
+    +`<div class="wbox"><p>${bi({en:"What is it? Write it.",es:"¿Qué es? Escríbelo.",cs:"Co to je? Napiš to."})} <span class="small">(${k+1}/${targets.length})</span></p>
+     <textarea rows="1" class="ain" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea><p class="amsg"></p>${btn("wOk","wide",ui("ok"))}</div>`;
+   const inp=el.querySelector(".ain"),msg=el.querySelector(".amsg"),t=targets[cur];
+   const ok=()=>{const r=check(inp.value,[t.label],true);if(r.s==="empty")return;
+    if(r.s==="ok"||r.s==="accent"){filled[cur]=1;A.say(t.label);if(r.s==="accent")A.toast(`Pozor na diakritiku: ${t.label}`);k++;tries=0;if(k===targets.length)setTimeout(()=>go(4),600);else paint()}
+    else{tries++;inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");msg.innerHTML=tries>=2?`Správně: <b>${esc(t.label)}</b> (${esc(t.cs)})`:"Zkus to znovu."}};
+   el.querySelector("#wOk").onclick=ok;inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok()}});
+   setTimeout(()=>inp.focus({preventScroll:true}),50);
+  };
+  paint();
+ }
+ function sentences(){
+  el.innerHTML=bar()+scene(false,t=>["ok",lab(t)])+`<p class="small" style="text-align:center;margin-top:10px">${bi({en:"Now in sentences. Each one 3× correct.",es:"Ahora en frases. Cada una 3× bien.",cs:"Teď ve větách. Každou 3× správně."})}</p><div id="sl"></div>`;
+  const list=el.querySelector("#sl"),cards=[];
+  shuffle(sents.slice()).forEach(it=>{
+   const ans=tx(it,Lg),s0=st(it.id),cel=document.createElement("div");cel.className="card cc";
+   cel.innerHTML=`<div class="cs">${esc(tx(it,"cs"))}</div><div class="meta"><span class="dots">${[0,1,2].map(j=>`<i class="${j<s0.c?"on":""}"></i>`).join("")}</span>${Lg==="es"&&s0.c>=2?`<span class="tag st">přesně s diakritikou</span>`:""}${ans.length>1?`<span class="tag">${ans.length} ${ans.length>=5?"variant":"varianty"}</span>`:""}</div>
+    <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${esc(ans[0])}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
+   list.appendChild(cel);
+   const inp=cel.querySelector("textarea"),cs=cel.querySelector(".cs"),msg=cel.querySelector(".msg"),S2={done:false,peek:false,wrong:false};cards.push({inp,S2});
+   let tm;const end=()=>{clearTimeout(tm);cel.classList.remove("peek")};
+   cs.addEventListener("pointerdown",()=>{if(S2.done)return;tm=setTimeout(()=>{cel.classList.add("peek");S2.peek=true},450)});
+   ["pointerup","pointerleave","pointercancel"].forEach(ev=>cs.addEventListener(ev,end));cs.addEventListener("contextmenu",e=>e.preventDefault());
+   const strict=()=>Lg==="es"&&st(it.id).c>=2;
+   const win=r=>{S2.done=true;inp.readOnly=true;cel.classList.remove("bad");cel.classList.add("ok");
+    const s=st(it.id);if(!S2.peek){s.c++;c.coins+=RW.s;fly(cel,`+${RW.s} 🪙`);$("#cRes").innerHTML=resHTML()}save();
+    cel.querySelector(".dots").innerHTML=[0,1,2].map(j=>`<i class="${j<s.c?"on":""}"></i>`).join("");
+    const nn=it.n&&it.n[Lg];cel.querySelector(".info").innerHTML=(r.s==="accent"?`<div class="warn">Pozor na diakritiku: ${esc(r.a)}</div>`:"")+(ans.length>1?`<div class="vars">Dá se říct i: ${ans.map(v=>`<b>${esc(v)}</b>`).join(" / ")}</div>`:"")+(nn?`<div>💡 ${esc(nn)}</div>`:"");
+    cel.querySelector(".mini").innerHTML=`<span class="mcs">${esc(tx(it,"cs"))}</span><span class="man">${esc(r.a)}</span><button class="say" aria-label="Play">${A.SPK}</button>`;
+    cel.querySelector(".mini").onclick=e=>{if(e.target.closest(".say"))A.say(r.a);else cel.classList.toggle("open")};
+    const next=cards.find(x=>!x.S2.done);if(next&&document.activeElement===inp)next.inp.focus({preventScroll:true});
+    setTimeout(()=>{cel.classList.add("compact");if(next)next.inp.scrollIntoView({block:"center",behavior:"smooth"})},600);
+    if(cards.every(x=>x.S2.done))setTimeout(()=>{if(sents.every(x=>st(x.id).c>=NEED)){delete qs[key];save();onDone(true)}else{A.toast(Lg==="es"?"Otra ronda":"Next round");sentences();window.scrollTo({top:el.offsetTop})}},900)};
+   inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");inp.style.height="auto";inp.style.height=inp.scrollHeight+"px";if(S2.done)return;cel.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,false);if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
+   const judge=()=>{if(S2.done)return;const r=check(inp.value,ans,false);if(r.s==="empty")return;const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);
+    cel.classList.remove("bad");void cel.offsetWidth;cel.classList.add("bad");msg.classList.toggle("strict",sa);if(sa)msg.innerHTML=`Oprav diakritiku: ${[...r.a].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("")}`;if(!S2.wrong){S2.wrong=true;st(it.id).w++;save()}};
+   inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();judge()}});inp.addEventListener("blur",judge);
+   cel.querySelector(".say").onclick=()=>A.say(ans[0]);
+  });
  }
  draw();
 }
+const SN3=(id,cs,en,es,n)=>({id,cs,en,es,n});
+const ROOM_S=[SN3("q_living_0","Stůl a židle jsou na podlaze.",["The table and the chair are on the floor.","The table and chair are on the floor."],["La mesa y la silla están en el suelo."]),
+ SN3("q_living_1","Okno je ve zdi.",["The window is in the wall."],["La ventana está en la pared."]),
+ SN3("q_living_2","Kde jsou dveře?",["Where is the door?","Where's the door?"],["¿Dónde está la puerta?"],{en:"Dveře jsou anglicky jednotné číslo: the door.",es:"Puerta je jednotné číslo."})];
+const BODY_S=[SN3("q_body_0","Moje vlasy jsou na hlavě.",["My hair is on my head."],["Mi pelo está en mi cabeza.","Mi pelo está en la cabeza."],{en:"Hair je nepočitatelné: my hair is."}),
+ SN3("q_body_1","Mám dvě oči a jednu pusu.",["I have two eyes and one mouth.","I have two eyes and a mouth.","I've got two eyes and one mouth.","I've got two eyes and a mouth."],["Tengo dos ojos y una boca."]),
+ SN3("q_body_2","Bolí mě ruka a noha.",["My hand and my leg hurt.","My hand and leg hurt."],["Me duelen la mano y la pierna.","Me duele la mano y la pierna."],{es:"Me duele(n) = bolí mě."})];
+const PET_S=[SN3("q_pet_0",c=>c.pet==="cat"?"Moje kočka má ocas.":"Můj pes má ocas.",c=>[c.pet==="cat"?"My cat has a tail.":"My dog has a tail."],c=>c.pet==="cat"?["Mi gato tiene cola.","Mi gato tiene una cola.","Mi gata tiene cola.","Mi gata tiene una cola."]:["Mi perro tiene cola.","Mi perro tiene una cola."]),
+ SN3("q_pet_1","Má dvě uši a čtyři tlapky.",["It has two ears and four paws.","He has two ears and four paws.","She has two ears and four paws.","It's got two ears and four paws."],["Tiene dos orejas y cuatro patas."]),
+ SN3("q_pet_2","Kde má nos?",["Where is its nose?","Where's its nose?","Where is his nose?","Where is her nose?"],["¿Dónde está su nariz?","¿Dónde tiene la nariz?"])];
 const T3=(k,cs,en,es,ax,ay,lx,ly)=>({k,cs,en,es,ax,ay,lx,ly});
 const withLabel=arr=>arr.map(t=>({...t,label:t[L()]}));
 
@@ -467,12 +534,12 @@ function renderHouse(){
  body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("house")}</span><b>${bi(ROOMS[0])}</b></div></div>
   <div class="chips" style="margin-bottom:12px">${ROOMS.map((r,i)=>`<button class="chip${i?"":" on"}" ${i?`data-act="room-${i}"`:""}>${i&&c.lv<=r.lv?"🔒 ":""}${esc(r[Lg])}</button>`).join("")}</div>
   <div id="game"></div><div class="cards" id="hinfo"></div>`;
- labelGame($("#game"),{vb:[0,0,400,300],targets:withLabel(ROOM_T),svg:m=>roomSVG(own,q.living&&m==="study"),onDone:mis=>{
+ topicGame($("#game"),{key:"living",sents:ROOM_S,vb:[0,0,400,300],targets:withLabel(ROOM_T),svg:g=>roomSVG(own,g),onDone:()=>{
   if(!q.living){q.living=true;c.coins+=20;save();render();party(bi({en:"LIVING ROOM",es:"SALÓN",cs:"OBÝVÁK"}),"+20 🪙",bi({en:"Now you can buy furniture! Tap a + in the room.",es:"¡Ya puedes comprar muebles! Toca un + en la sala.",cs:"Teď můžeš kupovat nábytek! Klepni na + v pokoji."}),A.CRIT[2],3600)}
-  else{c.coins+=3;save();render();A.toast(`${mis?"Hotovo":"Bez chyby!"} +3 🪙`)}}});
+  }});
  $("#hinfo").innerHTML=q.living?`<div class="ccard"><div><b>${bi({en:"Furniture",es:"Muebles",cs:"Nábytek"})}</b><span>Klepni na zelené + v pokoji. Koupíš to v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
    <div class="pre">${Object.values(FURN).map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="fbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`
-  :`<div class="ccard main"><div><b>${bi({en:"Look at the labels. Then hide them and put them back.",es:"Mira las etiquetas. Luego escóndelas y ponlas en su sitio.",cs:"Prohlédni si štítky. Pak je schovej a vrať je na místo."})}</b><span>Klepnutím na štítek uslyšíš výslovnost. Odměna: 20 🪙 a možnost kupovat nábytek.</span></div></div>`;
+  :`<div class="ccard main"><div><b>${bi({en:"Learn the room in 4 steps.",es:"Aprende la sala en 4 pasos.",cs:"Nauč se pokoj ve 4 krocích."})}</b><span>1. štítky s výslovností · 2. přetáhni · 3. napiš · 4. věty, každá 3× správně. Odměna: 20 🪙 a možnost kupovat nábytek.</span></div></div>`;
 }
 
 // ── postava ──
@@ -483,13 +550,13 @@ const SHIRTC=[["#4a7bd6","blue","azul","modré"],["#e0614f","red","rojo","červe
 function renderMe(){
  const c=C(),q=c.quiz||(c.quiz={}),p=P(),Lg=L(),i=Lg==="es"?2:1,lk=p.look||{};
  body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${esc(p.name||"")}</span><b>${bi({en:"My body",es:"Mi cuerpo",cs:"Moje tělo"})}</b></div></div><div id="game"></div><div class="cards" id="minfo"></div>`;
- labelGame($("#game"),{vb:[-75,0,250,145],targets:withLabel(BODY_T),svg:()=>AV(p.g||"m"),onDone:mis=>{
+ topicGame($("#game"),{key:"body",sents:BODY_S,vb:[-75,0,250,145],targets:withLabel(BODY_T),svg:()=>AV(p.g||"m"),onDone:()=>{
   if(!q.body){q.body=true;c.coins+=20;save();render();party(bi({en:"MY BODY",es:"MI CUERPO",cs:"MOJE TĚLO"}),"+20 🪙",bi({en:"Now you can change your look!",es:"¡Ya puedes cambiar tu aspecto!",cs:"Teď si můžeš změnit vzhled!"}),`<svg viewBox="0 0 100 140" style="width:100%;height:100%">${AV(p.g||"m")}</svg>`,3200)}
   else{c.coins+=3;save();render();A.toast("+3 🪙")}}});
  $("#minfo").innerHTML=q.body?`<div class="ccard"><div><b>${ui("hair")}</b><div class="swatches">${HAIRC.map(h=>`<button class="sw2${(lk.hair||"#6b4226")===h[0]?" on":""}" data-act="look-hair-${h[0]}"><i style="background:${h[0]}"></i>${esc(h[i])}<small>${h[3]}</small></button>`).join("")}</div>
    <b style="margin-top:10px">${ui("shirt")}</b><div class="swatches">${SHIRTC.map(h=>`<button class="sw2${(lk.shirt||(p.g==="f"?"#e86f9a":"#4a7bd6"))===h[0]?" on":""}" data-act="look-shirt-${h[0]}"><i style="background:${h[0]}"></i>${esc(h[i])}<small>${h[3]}</small></button>`).join("")}</div>
    <span class="small" style="margin-top:8px">Oblečení (clothes) přijde v dalším levelu.</span></div></div>`
-  :`<div class="ccard main"><div><b>${bi({en:"Learn your body. Then hide the labels and put them back.",es:"Aprende tu cuerpo. Luego esconde las etiquetas y ponlas en su sitio.",cs:"Nauč se části těla. Pak štítky schovej a vrať na místo."})}</b><span>Odměna: 20 🪙 a možnost měnit vlasy a tričko.</span></div></div>`;
+  :`<div class="ccard main"><div><b>${bi({en:"Learn your body in 4 steps.",es:"Aprende tu cuerpo en 4 pasos.",cs:"Nauč se části těla ve 4 krocích."})}</b><span>1. štítky · 2. přetáhni · 3. napiš · 4. věty 3× správně. Odměna: 20 🪙 a možnost měnit vlasy a tričko.</span></div></div>`;
 }
 
 // ── mazlíček ──
@@ -503,13 +570,13 @@ function petItem(id){const k=C().pet&&C().pet.kind;
 function renderPetV(){
  const c=C(),q=c.quiz||(c.quiz={}),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
  body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("pet")}</span><b>${esc(p.name)}</b></div>${c.lv>5?`<button class="btn sm" data-act="feed">🍽️ ${ui("food")}</button>`:""}</div><div id="game"></div><div class="cards" id="pinfo"></div>`;
- labelGame($("#game"),{vb:[-60,-5,210,90],targets:withLabel(PET_T[p.kind]),svg:()=>PETSVG(p.kind,own.collar),onDone:()=>{
+ topicGame($("#game"),{key:"pet",sents:PET_S,vb:[-60,-5,210,90],targets:withLabel(PET_T[p.kind]),svg:()=>PETSVG(p.kind,own.collar),onDone:()=>{
   if(!q.pet){q.pet=true;c.coins+=20;save();render();party(bi({en:"GOOD JOB",es:"¡MUY BIEN!",cs:"VÝBORNĚ"}),"+20 🪙",bi({en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar)}</svg>`,3200)}
   else{c.coins+=3;save();render();A.toast("+3 🪙")}}});
  const items=["collar","home"].map(petItem);
  $("#pinfo").innerHTML=q.pet?`<div class="ccard"><div><b>${bi({en:`Things for ${p.name}`,es:`Cosas para ${p.name}`,cs:`Věci pro ${p.name}`})}</b><span>Koupíš je v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
    <div class="pre">${items.map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="pbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`
-  :`<div class="ccard main"><div><b>${bi({en:`Learn ${p.name}'s body. Then hide the labels and put them back.`,es:`Aprende el cuerpo de ${p.name}. Luego esconde las etiquetas.`,cs:`Nauč se části těla zvířete. Pak štítky schovej a vrať na místo.`})}</b><span>Odměna: 20 🪙 a možnost koupit obojek a ${p.kind==="cat"?"pelíšek":"boudu"}.</span></div></div>`;
+  :`<div class="ccard main"><div><b>${bi({en:`Learn ${p.name}'s body in 4 steps.`,es:`Aprende el cuerpo de ${p.name} en 4 pasos.`,cs:`Nauč se části těla zvířete ve 4 krocích.`})}</b><span>1. štítky · 2. přetáhni · 3. napiš · 4. věty 3× správně. Odměna: 20 🪙 a možnost koupit obojek a ${p.kind==="cat"?"pelíšek":"boudu"}.</span></div></div>`;
 }
 
 // ── nákup jako rozhovor ──
