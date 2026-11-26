@@ -435,7 +435,7 @@ header,.chead{position:static}
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
 
 <div id="menu" hidden><div class="sheet">
- <h2>Menu</h2>
+ <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11262214</small></h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
@@ -453,8 +453,8 @@ header,.chead{position:static}
 </div></div>
 <div id="toast"></div>
 
-<script src="data.js"></script>
-<script src="words.js"></script>
+<script src="data.js?v=11262214"></script>
+<script src="words.js?v=11262214"></script>
 <script>
 {
 // ── data ──
@@ -810,7 +810,7 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
-<script src="city.js"></script>
-<script src="dict.js"></script>
+<script src="city.js?v=11262214"></script>
+<script src="dict.js?v=11262214"></script>
 </body>
 </html>
