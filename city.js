@@ -7,7 +7,7 @@ const A=window.APP;
 const $=s=>document.querySelector(s);
 const esc=A.esc,norm=A.norm,noAcc=A.noAcc;
 const S=()=>A.S,L=()=>S().lang;
-const NEED=3,REVIEW=3,BONUS=10,RW={w:1,s:3},COST={pet:50,shop:150},DECAY=4;
+const NEED=3,REVIEW=3,BONUS=5,RW={w:1,s:2},COST={pet:50,shop:150},DECAY=4;
 const ART={en:/^(the|a|an|to|some) /,es:/^(el|la|los|las|un|una|unos|unas) /};
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
@@ -105,18 +105,19 @@ function check(raw,answers,strip){
 // ── grafika ──
 const HOUSE=`<ellipse cx="0" cy="40" rx="48" ry="8" fill="rgba(0,0,0,.12)"/><rect x="-36" y="-8" width="72" height="48" rx="5" fill="#fff4da" stroke="#c9a46a" stroke-width="2"/><path d="M-46 -6 L0 -46 L46 -6Z" fill="#e0614f" stroke="#b8473a" stroke-width="2" stroke-linejoin="round"/><rect x="20" y="-38" width="10" height="16" fill="#b8473a"/><rect x="-8" y="14" width="16" height="26" rx="3" fill="#9b6334"/><rect x="-28" y="4" width="15" height="13" rx="2" fill="#a8dcf7" stroke="#c9a46a" stroke-width="2"/><rect x="13" y="4" width="15" height="13" rx="2" fill="#a8dcf7" stroke="#c9a46a" stroke-width="2"/>`;
 const SHOP=(lbl)=>`<ellipse cx="0" cy="30" rx="40" ry="7" fill="rgba(0,0,0,.12)"/><rect x="-32" y="-12" width="64" height="42" rx="4" fill="#fff" stroke="#c9a46a" stroke-width="2"/>${[0,1,2,3,4,5].map(k=>`<path d="M${-34+k*11.4} -14 h11.4 v10 a5.7 5.7 0 0 1 -11.4 0z" fill="${k%2?"#fff":"#2f9e6a"}" stroke="#25805a" stroke-width="1"/>`).join("")}<rect x="-28" y="-30" width="56" height="15" rx="3" fill="#25805a"/><text x="0" y="-19" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${lbl}</text><rect x="-7" y="8" width="14" height="22" rx="2" fill="#9b6334"/><rect x="-26" y="6" width="14" height="12" rx="2" fill="#a8dcf7"/><rect x="12" y="6" width="14" height="12" rx="2" fill="#a8dcf7"/>`;
-function AV(g){
- const shirt=g==="f"?"#e86f9a":"#4a7bd6",hair="#6b4226",skin="#f3c9a0";
+function AV(g,look){
+ look=look||P().look||{};const shirt=look.shirt||(g==="f"?"#e86f9a":"#4a7bd6"),hair=look.hair||"#6b4226",skin="#f3c9a0";
  return `<ellipse cx="50" cy="132" rx="26" ry="6" fill="rgba(0,0,0,.15)"/><rect x="39" y="98" width="9" height="32" rx="4" fill="#3b3f58"/><rect x="52" y="98" width="9" height="32" rx="4" fill="#3b3f58"/><path d="M34 70 L20 92" stroke="${skin}" stroke-width="8" stroke-linecap="round"/><path d="M66 70 L80 92" stroke="${skin}" stroke-width="8" stroke-linecap="round"/>${g==="f"?`<path d="M36 62 h28 l10 44 h-48z" fill="${shirt}"/><path d="M25 46 Q22 14 50 15 Q78 14 75 46 L76 74 Q66 66 68 46 Q62 30 50 30 Q38 30 32 46 Q34 66 24 74Z" fill="${hair}"/>`:`<rect x="31" y="62" width="38" height="42" rx="12" fill="${shirt}"/>`}<circle cx="50" cy="42" r="22" fill="${skin}"/>${g==="f"?`<path d="M28 40 Q30 18 50 18 Q70 18 72 40 Q60 30 50 30 Q40 30 28 40Z" fill="${hair}"/>`:`<path d="M27 40 Q28 16 50 17 Q73 16 73 40 Q66 27 50 29 Q35 27 27 40Z" fill="${hair}"/>`}<circle cx="42" cy="44" r="2.8" fill="#2a1d14"/><circle cx="58" cy="44" r="2.8" fill="#2a1d14"/><path d="M43 52 Q50 58 57 52" stroke="#2a1d14" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="36" cy="51" r="4" fill="#f77" opacity=".35"/><circle cx="64" cy="51" r="4" fill="#f77" opacity=".35"/>`;
 }
-function PETSVG(k){
- if(k==="dog")return `<ellipse cx="42" cy="76" rx="26" ry="5" fill="rgba(0,0,0,.15)"/><path d="M66 52 q14 -8 10 -22" stroke="#c98b4f" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="30" y="58" width="8" height="18" rx="4" fill="#b87a40"/><rect x="54" y="58" width="8" height="18" rx="4" fill="#b87a40"/><ellipse cx="48" cy="56" rx="24" ry="15" fill="#c98b4f"/><circle cx="26" cy="38" r="17" fill="#d9a066"/><ellipse cx="12" cy="40" rx="6" ry="12" fill="#8a5a2b"/><ellipse cx="40" cy="38" rx="6" ry="12" fill="#8a5a2b"/><circle cx="21" cy="36" r="2.6" fill="#2a1d14"/><circle cx="31" cy="36" r="2.6" fill="#2a1d14"/><ellipse cx="26" cy="45" rx="4.5" ry="3.2" fill="#2a1d14"/><path d="M22 50 q4 4 8 0" stroke="#2a1d14" stroke-width="2" fill="none" stroke-linecap="round"/>`;
- return `<ellipse cx="42" cy="76" rx="24" ry="5" fill="rgba(0,0,0,.15)"/><path d="M64 66 Q84 60 74 38" stroke="#e98a3a" stroke-width="7" fill="none" stroke-linecap="round"/><ellipse cx="46" cy="60" rx="22" ry="16" fill="#f0a050"/><path d="M12 30 L16 8 L30 22Z M44 30 L40 8 L26 22Z" fill="#f0a050"/><circle cx="28" cy="36" r="17" fill="#f0a050"/><path d="M17 33 q4 -4 8 0 M31 33 q4 -4 8 0" stroke="#2a1d14" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M25 41 h6 l-3 3z" fill="#e0607a"/><path d="M8 40 H20 M8 46 L20 44 M36 40 H48 M36 44 L48 46" stroke="#2a1d14" stroke-width="1.3" opacity=".6"/>`;
+function PETSVG(k,collar){
+ const col=collar?(k==="dog"?`<path d="M28 52 q9 7 18 -1" stroke="#e0614f" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="37" cy="57" r="3.2" fill="#ffd23f"/>`:`<path d="M17 50 q11 7 22 0" stroke="#3566d6" stroke-width="4.5" fill="none" stroke-linecap="round"/><circle cx="28" cy="55" r="3" fill="#ffd23f"/>`):"";
+ if(k==="dog")return `<ellipse cx="42" cy="76" rx="26" ry="5" fill="rgba(0,0,0,.15)"/><path d="M66 52 q14 -8 10 -22" stroke="#c98b4f" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="30" y="58" width="8" height="18" rx="4" fill="#b87a40"/><rect x="54" y="58" width="8" height="18" rx="4" fill="#b87a40"/><ellipse cx="48" cy="56" rx="24" ry="15" fill="#c98b4f"/><circle cx="26" cy="38" r="17" fill="#d9a066"/><ellipse cx="12" cy="40" rx="6" ry="12" fill="#8a5a2b"/><ellipse cx="40" cy="38" rx="6" ry="12" fill="#8a5a2b"/><circle cx="21" cy="36" r="2.6" fill="#2a1d14"/><circle cx="31" cy="36" r="2.6" fill="#2a1d14"/><ellipse cx="26" cy="45" rx="4.5" ry="3.2" fill="#2a1d14"/><path d="M22 50 q4 4 8 0" stroke="#2a1d14" stroke-width="2" fill="none" stroke-linecap="round"/>`+col;
+ return `<ellipse cx="42" cy="76" rx="24" ry="5" fill="rgba(0,0,0,.15)"/><path d="M64 66 Q84 60 74 38" stroke="#e98a3a" stroke-width="7" fill="none" stroke-linecap="round"/><ellipse cx="46" cy="60" rx="22" ry="16" fill="#f0a050"/><path d="M12 30 L16 8 L30 22Z M44 30 L40 8 L26 22Z" fill="#f0a050"/><circle cx="28" cy="36" r="17" fill="#f0a050"/><path d="M17 33 q4 -4 8 0 M31 33 q4 -4 8 0" stroke="#2a1d14" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M25 41 h6 l-3 3z" fill="#e0607a"/><path d="M8 40 H20 M8 46 L20 44 M36 40 H48 M36 44 L48 46" stroke="#2a1d14" stroke-width="1.3" opacity=".6"/><ellipse cx="36" cy="74" rx="7" ry="4" fill="#e98a3a"/><ellipse cx="56" cy="74" rx="7" ry="4" fill="#e98a3a"/>`+col;
 }
 const shopLbl=()=>L()==="es"?"TIENDA":"SHOP";
 function pic(p){
  if(typeof p==="function")p=p(ctx());
- if(p==="m"||p==="f")return `<svg viewBox="0 0 100 140">${AV(p)}</svg>`;
+ if(p==="m"||p==="f")return `<svg viewBox="0 0 100 140">${AV(p,{})}</svg>`;
  if(p==="house")return `<svg viewBox="-50 -50 100 95">${HOUSE}</svg>`;
  if(p==="shop")return `<svg viewBox="-42 -36 84 72">${SHOP(shopLbl())}</svg>`;
  if(p==="dog"||p==="cat")return `<svg viewBox="0 0 90 84">${PETSVG(p)}</svg>`;
@@ -137,8 +138,9 @@ function mapSVG(){
   else out.push(`<g class="tap" data-act="locked-${i}" transform="translate(${x},${y})"><rect x="-38" y="-30" width="76" height="60" rx="12" fill="rgba(255,255,255,.45)" stroke="#9fc08c" stroke-width="2" stroke-dasharray="4 4"/><g transform="translate(0,-6)">${LOCK}</g><text y="21" text-anchor="middle" font-size="12" font-weight="700" fill="#5f7d54">${Lg==="es"?"Nivel":"Level"} ${pl.lv}</text></g>`);
  });
  out.push(`<g class="tap" data-act="house" transform="translate(200,196)">${HOUSE}</g>`);
- if(p.g)out.push(`<g class="tap" data-act="house" transform="translate(228,206) scale(.42)">${AV(p.g)}</g>`);
- if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(132,212) scale(.62)">${PETSVG(c.pet.kind)}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`);
+ if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(228,206) scale(.42)">${AV(p.g)}</g>`);
+ if(c.own&&c.own.home)out.push(`<g transform="translate(104,250)">${c.pet&&c.pet.kind==="cat"?`<ellipse cy="10" rx="20" ry="8" fill="#e86f9a"/><ellipse cy="7" rx="14" ry="5" fill="#f7d3e4"/>`:`<path d="M-20 2 L0 -16 L20 2Z" fill="#b8473a"/><rect x="-16" y="2" width="32" height="20" fill="#c98b4f"/><path d="M-6 22 v-9 a6 6 0 0 1 12 0 v9z" fill="#3a2a1a"/>`}</g>`);
+ if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(132,212) scale(.62)">${PETSVG(c.pet.kind,c.own&&c.own.collar)}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`);
   if(c.lv>5)out.push(`<g transform="translate(118,262)"><ellipse rx="14" ry="5" fill="#5b8fd6"/><ellipse cy="-2" rx="11" ry="3" fill="${c.food?"#b8864a":"#cfe0f5"}"/></g>`)}
  if(c.lv<=2||c.unfog){
   out.push(`<defs><mask id="fm"><rect width="400" height="410" fill="#fff"/><circle cx="200" cy="200" r="82" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)"><rect width="400" height="410" rx="28" fill="#eef2f7" opacity=".97"/>${[[90,90],[300,80],[80,300],[320,320],[200,360],[200,40],[40,190],[360,200]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
@@ -193,6 +195,9 @@ function render(){
  $("#cRes").innerHTML=P().name?resHTML():"";
  if(!P().name)return renderStart();
  if(view==="lesson"&&LS)return renderLesson();
+ if(view==="house")return renderHouse();
+ if(view==="me")return renderMe();
+ if(view==="petv")return renderPetV();
  renderMap();
 }
 function renderStart(){
@@ -229,8 +234,15 @@ document.addEventListener("click",e=>{
  if(a==="pet-adopt")return adopt();
  if(a==="build-shop")return build();
  if(a==="shop")return shop();
- if(a==="pet")return petModal();
- if(a==="house")return houseModal();
+ if(a==="pet"){view="petv";return render()}
+ if(a.startsWith("room-")){const r=ROOMS[+a.slice(5)];return A.toast(`${r[L()]} · ${L()==="es"?"nivel":"level"} ${r.lv}`)}
+ if(a==="house"){view="house";return render()}
+ if(a==="me"){view="me";return render()}
+ if(a==="feed")return petModal();
+ if(a==="tomap"){view="map";return render()}
+ if(a.startsWith("fbuy-")){const id=a.slice(5);return converse(FURN[id],()=>{C().own[id]=true})}
+ if(a.startsWith("pbuy-")){const id=a.slice(5);return converse(petItem(id),()=>{C().own[id]=true})}
+ if(a.startsWith("look-")){const[,k,v]=a.split("-");const lk=P().look||(P().look={});lk[k]=v;save();return render()}
  if(a.startsWith("locked-")){const pl=PLOTS[+a.slice(7)];return A.toast(`${pl[L()]} · ${L()==="es"?"nivel":"level"} ${pl.lv}`)}
 });
 
@@ -259,7 +271,7 @@ function renderLesson(){
  LS.items.forEach(it=>{
   const isNew=!LS.practice&&it.lv===c.lv,ans=tx(it,Lg),rew=RW[it.t],el=document.createElement("div"),s0=st(it.id);
   el.className="card cc";
-  el.innerHTML=`<div class="crow"><div class="cpic">${pic(it.pic)}</div><div class="cs">${esc(tx(it,"cs"))}</div></div><div class="meta"><span class="dots">${[0,1,2].map(k=>`<i class="${k<s0.c?"on":""}"></i>`).join("")}</span>${isNew?`<span class="tag new">${ui("new")}</span>`:""}${ans.length>1?`<span class="tag">${ans.length} ${ans.length>=5?"variant":"varianty"}</span>`:""}</div>
+  el.innerHTML=`<div class="crow"><div class="cpic">${pic(it.pic)}</div><div class="cs">${esc(tx(it,"cs"))}</div></div><div class="meta"><span class="dots">${[0,1,2].map(k=>`<i class="${k<s0.c?"on":""}"></i>`).join("")}</span>${isNew?`<span class="tag new">${ui("new")}</span>`:""}${L()==="es"&&s0.c>=2?`<span class="tag st">přesně s diakritikou</span>`:""}${ans.length>1?`<span class="tag">${ans.length} ${ans.length>=5?"variant":"varianty"}</span>`:""}</div>
   <div class="field"><textarea rows="1" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="next"></textarea><div class="reveal">${esc(ans[0])}</div><button class="say" aria-label="Play">${A.SPK}</button></div><div class="msg"></div><div class="mini"></div><div class="info"></div>`;
   list.appendChild(el);
   const inp=el.querySelector("textarea"),cs=el.querySelector(".crow"),stt={done:false,peek:false,wrong:false};cards.push({el,inp,stt});
@@ -283,8 +295,9 @@ function renderLesson(){
    setTimeout(()=>{el.classList.add("compact");if(next)next.inp.scrollIntoView({block:"center",behavior:"smooth"})},600);
    if(cards.every(x=>x.stt.done))nextT=setTimeout(roundDone,900);
   };
-  inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");fit();if(stt.done)return;el.classList.remove("bad");const r=check(inp.value,ans,it.t==="w");if(r.s==="ok"||r.s==="accent")win(r)});
-  const judge=()=>{if(stt.done)return;const r=check(inp.value,ans,it.t==="w");if(r.s==="empty")return;if(r.s==="ok"||r.s==="accent")return win(r);el.classList.remove("bad");void el.offsetWidth;el.classList.add("bad");if(!stt.wrong){stt.wrong=true;st(it.id).w++;save()}};
+  const strict=()=>L()==="es"&&st(it.id).c>=2,msg=el.querySelector(".msg");
+  inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");fit();if(stt.done)return;el.classList.remove("bad");msg.textContent="";msg.classList.remove("strict");const r=check(inp.value,ans,it.t==="w");if(r.s==="ok"||(r.s==="accent"&&!strict()))win(r)});
+  const judge=()=>{if(stt.done)return;const r=check(inp.value,ans,it.t==="w");if(r.s==="empty")return;const sa=r.s==="accent"&&strict();if(r.s==="ok"||(r.s==="accent"&&!sa))return win(r);el.classList.remove("bad");void el.offsetWidth;el.classList.add("bad");msg.classList.toggle("strict",sa);if(sa)msg.innerHTML=`Oprav diakritiku: ${[...r.a].map(ch=>noAcc(ch)!==ch?`<u>${esc(ch)}</u>`:esc(ch)).join("")}`;if(!stt.wrong){stt.wrong=true;st(it.id).w++;save()}};
   inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();judge()}});
   inp.addEventListener("blur",judge);
   el.querySelector(".say").onclick=()=>A.say(ans[0]);
@@ -381,10 +394,178 @@ function petModal(){
    if(k==="food"){c.food--;feed(60)}else if(k==="water")feed(5);else{c.goods[k]--;feed(GOODS[k].feed)}});
  });
 }
-function houseModal(){
- const p=P(),c=C();
- openModal(`<div class="petpick">${p.g?`<svg viewBox="0 0 100 140" style="height:120px">${AV(p.g)}</svg>`:""}<svg viewBox="-50 -50 100 95" style="height:110px">${HOUSE}</svg></div><h2>${esc(p.name||"")}</h2>
-  <p>${bi({en:"This is my house.",es:"Esta es mi casa.",cs:"Tohle je můj dům."})}</p><p class="small">${ui("level")} ${Math.min(c.lv,LV.length)} / ${LV.length}</p><button class="btn wide" data-close>${ui("close")}</button>`);
+// ── štítková hra (přetahování) ──
+const UI2={hide:["Hide labels","Ocultar","Schovat štítky"],show:["Show labels","Mostrar","Ukázat štítky"],hair:["Hair","Pelo","Vlasy"],shirt:["T-shirt","Camiseta","Tričko"],feedB:["Food","Comida","Jídlo","food"]};
+Object.assign(UI,UI2);
+function labelGame(el,{svg,vb,targets,onDone,locked}){
+ const[x0,y0,w,h]=vb;let mode="study",placed=0,mistakes=0,sel=null;
+ const lab=t=>`<b>${esc(t.label)}</b><small>${esc(t.cs)}</small>`;
+ function draw(){
+  placed=0;mistakes=0;sel=null;
+  const sw=w/400;
+  const lines=targets.map(t=>`<line x1="${t.ax}" y1="${t.ay}" x2="${t.lx}" y2="${t.ly}" stroke="#2a1d14" stroke-width="${1.3*sw}" stroke-dasharray="${4*sw} ${3*sw}" opacity=".5"/><circle cx="${t.ax}" cy="${t.ay}" r="${3.4*sw}" fill="#fff" stroke="#2a1d14" stroke-width="${1.2*sw}"/>`).join("");
+  el.innerHTML=`<div class="scene" style="aspect-ratio:${w}/${h}"><svg viewBox="${vb.join(" ")}">${svg(mode)}${lines}</svg>${targets.map((t,i)=>`<div class="frame${mode==="study"?" ok":""}" data-i="${i}" style="left:${(t.lx-x0)/w*100}%;top:${(t.ly-y0)/h*100}%">${mode==="study"?lab(t):"&nbsp;"}</div>`).join("")}</div>
+   ${mode==="test"?`<div class="tray">${shuffle(targets.map((_,i)=>i)).map(i=>`<button class="chipl" data-i="${i}">${esc(targets[i].label)}</button>`).join("")}</div><p class="small" style="text-align:center">Přetáhni štítek na správné místo (nebo klepni na štítek a pak na rámeček).</p>`:""}
+   <div class="gbtns">${mode==="study"?`<button class="btn" id="gTest">🙈 ${ui("hide")}</button>`:`<button class="btn ghost" id="gStudy">🏷️ ${ui("show")}</button>`}</div>`;
+  const t1=el.querySelector("#gTest"),t2=el.querySelector("#gStudy");
+  if(t1)t1.onclick=()=>{if(locked&&locked())return;mode="test";draw()};
+  if(t2)t2.onclick=()=>{mode="study";draw()};
+  el.querySelectorAll(".frame").forEach(f=>f.onclick=()=>{const t=targets[+f.dataset.i];if(mode==="study"||f.classList.contains("ok"))return A.say(t.label);if(sel)attempt(+sel.dataset.i,f,sel)});
+  el.querySelectorAll(".chipl").forEach(ch=>ch.addEventListener("pointerdown",e=>{
+   e.preventDefault();const i=+ch.dataset.i,g=ch.cloneNode(true);g.classList.add("drag");document.body.appendChild(g);
+   const sx=e.clientX,sy=e.clientY;let moved=false;
+   const mv=ev=>{if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>6)moved=true;g.style.left=ev.clientX+"px";g.style.top=ev.clientY+"px"};mv(e);
+   const up=ev=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);document.removeEventListener("pointercancel",up);g.remove();
+    if(!moved){el.querySelectorAll(".chipl").forEach(x=>x.classList.toggle("sel",x===ch&&!x.classList.contains("sel")));sel=ch.classList.contains("sel")?ch:null;return}
+    const fr=[...el.querySelectorAll(".frame:not(.ok)")].find(f=>{const r=f.getBoundingClientRect();return ev.clientX>=r.left-10&&ev.clientX<=r.right+10&&ev.clientY>=r.top-10&&ev.clientY<=r.bottom+10});
+    if(fr)attempt(i,fr,ch)};
+   document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);
+  }));
+ }
+ function attempt(i,fr,ch){
+  sel=null;el.querySelectorAll(".chipl").forEach(x=>x.classList.remove("sel"));
+  if(+fr.dataset.i===i){fr.classList.add("ok");fr.innerHTML=lab(targets[i]);ch.remove();A.say(targets[i].label);placed++;if(placed===targets.length)setTimeout(()=>onDone(mistakes),600)}
+  else{mistakes++;fr.classList.remove("no");void fr.offsetWidth;fr.classList.add("no");A.toast("Tam to nepatří")}
+ }
+ draw();
+}
+const T3=(k,cs,en,es,ax,ay,lx,ly)=>({k,cs,en,es,ax,ay,lx,ly});
+const withLabel=arr=>arr.map(t=>({...t,label:t[L()]}));
+
+// ── dům ──
+const ROOMS=[{id:"living",en:"Living room",es:"Salón",cs:"Obývák",lv:1},{id:"kitchen",en:"Kitchen",es:"Cocina",cs:"Kuchyň",lv:8},{id:"bedroom",en:"Bedroom",es:"Dormitorio",cs:"Ložnice",lv:9},{id:"bathroom",en:"Bathroom",es:"Baño",cs:"Koupelna",lv:10},{id:"garage",en:"Garage",es:"Garaje",cs:"Garáž",lv:11}];
+const ROOM_T=[T3("wall","zeď","wall","la pared",230,60,230,22),T3("window","okno","window","la ventana",70,90,70,22),T3("door","dveře","door","la puerta",350,130,350,22),
+ T3("floor","podlaha","floor","el suelo",60,272,52,276),T3("table","stůl","table","la mesa",215,204,200,276),T3("chair","židle","chair","la silla",288,222,335,276)];
+const FURN={
+ sofa:{price:80,cs:"pohovka",cs4:"pohovku",en:["sofa","couch"],es:["sofá"],esA:"un",esD:"el",g:[16,185,138,56]},
+ tv:{price:120,cs:"televize",cs4:"televizi",en:["TV","television"],es:["televisión","tele"],esA:"una",esD:"la",g:[146,90,68,50]},
+ picture:{price:40,cs:"obraz",cs4:"obraz",en:["picture","painting"],es:["cuadro"],esA:"un",esD:"el",g:[248,76,48,38]},
+ lamp:{price:50,cs:"lampa",cs4:"lampu",en:["lamp"],es:["lámpara"],esA:"una",esD:"la",g:[149,126,30,118]},
+ plant:{price:30,cs:"květina",cs4:"květinu",en:["plant","flower"],es:["planta"],esA:"una",esD:"la",g:[200,158,30,42]},
+ rug:{price:60,cs:"koberec",cs4:"koberec",en:["rug","carpet"],es:["alfombra"],esA:"una",esD:"la",g:[130,232,170,24]}};
+Object.keys(FURN).forEach(k=>FURN[k].id=k);
+const FART={
+ rug:`<ellipse cx="215" cy="246" rx="84" ry="13" fill="#c13b79" opacity=".85"/><ellipse cx="215" cy="246" rx="60" ry="8" fill="#f7d3e4" opacity=".8"/>`,
+ sofa:`<rect x="22" y="190" width="126" height="30" rx="10" fill="#4a7bd6"/><rect x="16" y="204" width="138" height="30" rx="10" fill="#3566d6"/><rect x="24" y="234" width="8" height="8" fill="#2a1d14"/><rect x="138" y="234" width="8" height="8" fill="#2a1d14"/>`,
+ tv:`<rect x="148" y="92" width="64" height="40" rx="3" fill="#222"/><rect x="152" y="96" width="56" height="32" fill="#3b6fd8"/><path d="M160 122 l10 -10 l8 6 l12 -12 l14 16z" fill="#86a8ff"/>`,
+ picture:`<rect x="250" y="78" width="44" height="34" fill="#c9a46a"/><rect x="254" y="82" width="36" height="26" fill="#bfe3ee"/><path d="M254 108 l12 -12 l8 8 l6 -5 l10 9z" fill="#4c9a5a"/><circle cx="282" cy="90" r="4" fill="#ffd23f"/>`,
+ lamp:`<rect x="162" y="150" width="4" height="90" fill="#555"/><path d="M151 150 h26 l-6 -22 h-14z" fill="#ffd23f"/><ellipse cx="164" cy="241" rx="10" ry="3" fill="#555"/>`,
+ plant:`<rect x="206" y="186" width="18" height="14" rx="2" fill="#c96a3a"/><path d="M215 186 q-14 -14 -6 -26 q6 10 6 26 q2 -18 12 -24 q4 14 -12 24z" fill="#3fae5a"/>`};
+function roomSVG(own,ghost){
+ const o=[`<rect width="400" height="190" fill="#f6efe3"/><rect y="190" width="400" height="110" fill="#d9b38c"/>${[0,1,2,3,4,5,6,7,8].map(k=>`<line x1="${k*55}" y1="190" x2="${k*55-30}" y2="300" stroke="#c49a70" stroke-width="2"/>`).join("")}<rect y="186" width="400" height="6" fill="#c9a46a"/>`,
+  `<rect x="30" y="50" width="80" height="80" rx="4" fill="#a8dcf7" stroke="#fff" stroke-width="6"/><line x1="70" y1="50" x2="70" y2="130" stroke="#fff" stroke-width="4"/><line x1="30" y1="90" x2="110" y2="90" stroke="#fff" stroke-width="4"/>`,
+  `<rect x="320" y="70" width="60" height="120" rx="3" fill="#9b6334" stroke="#7a4b24" stroke-width="3"/><circle cx="370" cy="132" r="4" fill="#ffd23f"/>`];
+ if(own.rug)o.push(FART.rug);
+ o.push(`<rect x="170" y="200" width="90" height="9" rx="2" fill="#a8743f"/><rect x="176" y="209" width="6" height="36" fill="#8a5a2b"/><rect x="248" y="209" width="6" height="36" fill="#8a5a2b"/>`,
+  `<rect x="296" y="180" width="7" height="45" rx="2" fill="#8a5a2b"/><rect x="272" y="218" width="31" height="6" rx="2" fill="#a8743f"/><rect x="274" y="224" width="4" height="28" fill="#8a5a2b"/><rect x="298" y="224" width="4" height="28" fill="#8a5a2b"/>`);
+ ["sofa","tv","picture","lamp","plant"].forEach(k=>{if(own[k])o.push(FART[k])});
+ if(ghost)Object.values(FURN).forEach(f=>{if(own[f.id])return;const[x,y,w,h]=f.g;o.push(`<g class="tap ghost" data-act="fbuy-${f.id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="rgba(255,255,255,.35)" stroke="#2f9e6a" stroke-width="2" stroke-dasharray="5 4"/><text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#25805a">+${f.price}</text></g>`)});
+ return o.join("");
+}
+function renderHouse(){
+ const c=C(),q=c.quiz||(c.quiz={}),own=c.own||(c.own={}),Lg=L();
+ body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("house")}</span><b>${bi(ROOMS[0])}</b></div></div>
+  <div class="chips" style="margin-bottom:12px">${ROOMS.map((r,i)=>`<button class="chip${i?"":" on"}" ${i?`data-act="room-${i}"`:""}>${i&&c.lv<=r.lv?"🔒 ":""}${esc(r[Lg])}</button>`).join("")}</div>
+  <div id="game"></div><div class="cards" id="hinfo"></div>`;
+ labelGame($("#game"),{vb:[0,0,400,300],targets:withLabel(ROOM_T),svg:m=>roomSVG(own,q.living&&m==="study"),onDone:mis=>{
+  if(!q.living){q.living=true;c.coins+=20;save();render();party(bi({en:"LIVING ROOM",es:"SALÓN",cs:"OBÝVÁK"}),"+20 🪙",bi({en:"Now you can buy furniture! Tap a + in the room.",es:"¡Ya puedes comprar muebles! Toca un + en la sala.",cs:"Teď můžeš kupovat nábytek! Klepni na + v pokoji."}),A.CRIT[2],3600)}
+  else{c.coins+=3;save();render();A.toast(`${mis?"Hotovo":"Bez chyby!"} +3 🪙`)}}});
+ $("#hinfo").innerHTML=q.living?`<div class="ccard"><div><b>${bi({en:"Furniture",es:"Muebles",cs:"Nábytek"})}</b><span>Klepni na zelené + v pokoji. Koupíš to v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
+   <div class="pre">${Object.values(FURN).map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="fbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`
+  :`<div class="ccard main"><div><b>${bi({en:"Look at the labels. Then hide them and put them back.",es:"Mira las etiquetas. Luego escóndelas y ponlas en su sitio.",cs:"Prohlédni si štítky. Pak je schovej a vrať je na místo."})}</b><span>Klepnutím na štítek uslyšíš výslovnost. Odměna: 20 🪙 a možnost kupovat nábytek.</span></div></div>`;
+}
+
+// ── postava ──
+const BODY_T=[T3("hair","vlasy","hair","el pelo",50,20,-35,14),T3("eye","oko","eye","el ojo",42,44,-35,46),T3("hand","ruka","hand","la mano",20,92,-35,92),
+ T3("head","hlava","head","la cabeza",71,34,135,16),T3("mouth","pusa","mouth","la boca",54,54,135,54),T3("leg","noha","leg","la pierna",57,118,135,112)];
+const HAIRC=[["#6b4226","brown","castaño","hnědé"],["#2a1d14","black","negro","černé"],["#e8c26a","blonde","rubio","blond"],["#c0522b","red","pelirrojo","zrzavé"]];
+const SHIRTC=[["#4a7bd6","blue","azul","modré"],["#e0614f","red","rojo","červené"],["#3fae5a","green","verde","zelené"],["#f2c230","yellow","amarillo","žluté"],["#e86f9a","pink","rosa","růžové"]];
+function renderMe(){
+ const c=C(),q=c.quiz||(c.quiz={}),p=P(),Lg=L(),i=Lg==="es"?2:1,lk=p.look||{};
+ body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${esc(p.name||"")}</span><b>${bi({en:"My body",es:"Mi cuerpo",cs:"Moje tělo"})}</b></div></div><div id="game"></div><div class="cards" id="minfo"></div>`;
+ labelGame($("#game"),{vb:[-75,0,250,145],targets:withLabel(BODY_T),svg:()=>AV(p.g||"m"),onDone:mis=>{
+  if(!q.body){q.body=true;c.coins+=20;save();render();party(bi({en:"MY BODY",es:"MI CUERPO",cs:"MOJE TĚLO"}),"+20 🪙",bi({en:"Now you can change your look!",es:"¡Ya puedes cambiar tu aspecto!",cs:"Teď si můžeš změnit vzhled!"}),`<svg viewBox="0 0 100 140" style="width:100%;height:100%">${AV(p.g||"m")}</svg>`,3200)}
+  else{c.coins+=3;save();render();A.toast("+3 🪙")}}});
+ $("#minfo").innerHTML=q.body?`<div class="ccard"><div><b>${ui("hair")}</b><div class="swatches">${HAIRC.map(h=>`<button class="sw2${(lk.hair||"#6b4226")===h[0]?" on":""}" data-act="look-hair-${h[0]}"><i style="background:${h[0]}"></i>${esc(h[i])}<small>${h[3]}</small></button>`).join("")}</div>
+   <b style="margin-top:10px">${ui("shirt")}</b><div class="swatches">${SHIRTC.map(h=>`<button class="sw2${(lk.shirt||(p.g==="f"?"#e86f9a":"#4a7bd6"))===h[0]?" on":""}" data-act="look-shirt-${h[0]}"><i style="background:${h[0]}"></i>${esc(h[i])}<small>${h[3]}</small></button>`).join("")}</div>
+   <span class="small" style="margin-top:8px">Oblečení (clothes) přijde v dalším levelu.</span></div></div>`
+  :`<div class="ccard main"><div><b>${bi({en:"Learn your body. Then hide the labels and put them back.",es:"Aprende tu cuerpo. Luego esconde las etiquetas y ponlas en su sitio.",cs:"Nauč se části těla. Pak štítky schovej a vrať na místo."})}</b><span>Odměna: 20 🪙 a možnost měnit vlasy a tričko.</span></div></div>`;
+}
+
+// ── mazlíček ──
+const PET_T={dog:[T3("head","hlava","head","la cabeza",24,24,-32,6),T3("eye","oko","eye","el ojo",21,36,-32,32),T3("nose","nos","nose","la nariz",26,45,-32,58),
+  T3("ear","ucho","ear","la oreja",41,42,122,10),T3("tail","ocas","tail","la cola",74,32,122,36),T3("paw","tlapka","paw","la pata",58,75,122,66)],
+ cat:[T3("head","hlava","head","la cabeza",28,24,-32,6),T3("eye","oko","eye","el ojo",21,33,-32,32),T3("nose","nos","nose","la nariz",28,42,-32,58),
+  T3("ear","ucho","ear","la oreja",41,13,122,10),T3("tail","ocas","tail","la cola",77,46,122,36),T3("paw","tlapka","paw","la pata",56,75,122,66)]};
+function petItem(id){const k=C().pet&&C().pet.kind;
+ if(id==="collar")return{id,price:40,cs:"obojek",cs4:"obojek",en:["collar"],es:["collar"],esA:"un",esD:"el"};
+ return k==="cat"?{id,price:120,cs:"pelíšek",cs4:"pelíšek",en:["cat bed","pet bed","bed"],es:["cama para gatos","cama"],esA:"una",esD:"la"}:{id,price:120,cs:"psí bouda",cs4:"psí boudu",en:["dog house","kennel","doghouse"],es:["caseta","caseta para perros"],esA:"una",esD:"la"};}
+function renderPetV(){
+ const c=C(),q=c.quiz||(c.quiz={}),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
+ body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("pet")}</span><b>${esc(p.name)}</b></div>${c.lv>5?`<button class="btn sm" data-act="feed">🍽️ ${ui("food")}</button>`:""}</div><div id="game"></div><div class="cards" id="pinfo"></div>`;
+ labelGame($("#game"),{vb:[-60,-5,210,90],targets:withLabel(PET_T[p.kind]),svg:()=>PETSVG(p.kind,own.collar),onDone:()=>{
+  if(!q.pet){q.pet=true;c.coins+=20;save();render();party(bi({en:"GOOD JOB",es:"¡MUY BIEN!",cs:"VÝBORNĚ"}),"+20 🪙",bi({en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar)}</svg>`,3200)}
+  else{c.coins+=3;save();render();A.toast("+3 🪙")}}});
+ const items=["collar","home"].map(petItem);
+ $("#pinfo").innerHTML=q.pet?`<div class="ccard"><div><b>${bi({en:`Things for ${p.name}`,es:`Cosas para ${p.name}`,cs:`Věci pro ${p.name}`})}</b><span>Koupíš je v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
+   <div class="pre">${items.map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="pbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`
+  :`<div class="ccard main"><div><b>${bi({en:`Learn ${p.name}'s body. Then hide the labels and put them back.`,es:`Aprende el cuerpo de ${p.name}. Luego esconde las etiquetas.`,cs:`Nauč se části těla zvířete. Pak štítky schovej a vrať na místo.`})}</b><span>Odměna: 20 🪙 a možnost koupit obojek a ${p.kind==="cat"?"pelíšek":"boudu"}.</span></div></div>`;
+}
+
+// ── nákup jako rozhovor ──
+const STAGES=["výběr ze 3 s překladem","výběr ze 4","doplň slovo","napiš s nápovědou","napiš sám"];
+function converse(item,onBought){
+ const c=C(),Lg=L();
+ if(!c.b.shop)return info(bi({en:"You need a shop",es:"Necesitas una tienda",cs:"Potřebuješ obchod"}),bi({en:"Build a shop first (level 6).",es:"Primero construye una tienda (nivel 6).",cs:"Nejdřív postav obchod (level 6)."}));
+ if(c.coins<item.price)return info(bi({en:"Not enough coins",es:"No tienes suficientes monedas",cs:"Málo mincí"}),`${item.price} 🪙 · ${bi({en:`You have ${c.coins}.`,es:`Tienes ${c.coins}.`,cs:`Máš ${c.coins}. Procvičuj lekce a štítky, vyděláš si.`})}`);
+ const stage=Math.min(c.buys||0,4),nm=item[Lg],NAMES=nm.map(x=>noAcc(norm(x).t));
+ const full=Lg==="en"?`${/^[aeiou]/i.test(nm[0])?"an":"a"} ${nm[0]}`:`${item.esA} ${nm[0]}`;
+ const re=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),NM=`(${NAMES.map(re).join("|")})`;
+ const n=s=>noAcc(norm(s).t);
+ const T1=Lg==="en"?new RegExp(`^((hello|hi|good morning|good afternoon|good evening) )?(i want to buy|i would like to buy|id like to buy|i want|i would like|id like|can i have|can i buy|i need)( (a|an|the|some))? ${NM}( please)?$`)
+                   :new RegExp(`^((hola|buenos dias|buenas tardes|buenas) )?(quiero comprar|quisiera comprar|me gustaria comprar|quiero|quisiera|me gustaria|necesito)( (un|una|el|la))? ${NM}( por favor)?$`);
+ const T2=Lg==="en"?/^(here you are|here you go|here it is|thank you|thanks)( (thank you|thanks|here you are|here you go))?$/:/^(aqui tiene|aqui tienes|aqui esta|gracias)( (gracias|aqui tiene|aqui tienes))?$/;
+ const T3r=Lg==="en"?/(goodbye|bye|see you)/:/(adios|hasta luego|hasta pronto|chao)/;
+ const SK=Lg==="en"?[["Hello! Can I help you?","Dobrý den! Můžu vám pomoct?"],[`Here you are. It is ${item.price} coins.`,`Tady máte. Stojí to ${item.price} mincí.`],["Thank you! Goodbye!","Děkuji! Na shledanou!"]]
+  :[["¡Hola! ¿En qué puedo ayudarle?","Dobrý den! Můžu vám pomoct?"],[`Aquí tiene. Son ${item.price} monedas.`,`Tady máte. Stojí to ${item.price} mincí.`],["¡Gracias! ¡Adiós!","Děkuji! Na shledanou!"]];
+ const U=Lg==="en"?[
+  {t:`Hello! I want to buy ${full}.`,cs:`Dobrý den! Chci koupit ${item.cs4}.`,pre:`Hello! I want to buy ${full.split(" ")[0]} `,post:".",blank:x=>NAMES.includes(n(x).replace(/^(a|an|the) /,"")),test:x=>T1.test(n(x)),
+   d:[[`Goodbye! I want to sell ${full}.`,`Na shledanou! Chci prodat ${item.cs4}.`],[`Hello! I am ${full}.`,`Ahoj! Já jsem ${item.cs}.`],[`Where is the ${nm[0]}?`,`Kde je ${item.cs}?`]]},
+  {t:"Here you are.",cs:"Tady máte (podávám peníze).",pre:"Here you ",post:".",blank:x=>["are","go"].includes(n(x)),test:x=>T2.test(n(x)),d:[["I am hungry.","Mám hlad."],["Where is the shop?","Kde je obchod?"],["How old are you?","Kolik ti je let?"]]},
+  {t:"Goodbye!",cs:"Na shledanou!",pre:"",post:"!",blank:x=>["goodbye","bye"].includes(n(x)),test:x=>T3r.test(n(x)),d:[["Hello!","Ahoj!"],["How much is it?","Kolik to stojí?"],["I want a dog.","Chci psa."]]}]
+ :[
+  {t:`¡Hola! Quiero comprar ${full}.`,cs:`Dobrý den! Chci koupit ${item.cs4}.`,pre:`¡Hola! Quiero comprar ${item.esA} `,post:".",blank:x=>NAMES.includes(n(x).replace(/^(un|una|el|la) /,"")),test:x=>T1.test(n(x)),
+   d:[[`¡Adiós! Quiero vender ${full}.`,`Na shledanou! Chci prodat ${item.cs4}.`],[`¡Hola! Soy ${full}.`,`Ahoj! Já jsem ${item.cs}.`],[`¿Dónde está ${item.esD} ${nm[0]}?`,`Kde je ${item.cs}?`]]},
+  {t:"Aquí tiene.",cs:"Tady máte (podávám peníze).",pre:"Aquí ",post:".",blank:x=>["tiene","tienes"].includes(n(x)),test:x=>T2.test(n(x)),d:[["Tengo hambre.","Mám hlad."],["¿Dónde está la tienda?","Kde je obchod?"],["¿Cuántos años tienes?","Kolik ti je let?"]]},
+  {t:"¡Adiós!",cs:"Na shledanou!",pre:"¡",post:"!",blank:x=>["adios","hasta luego"].includes(n(x)),test:x=>T3r.test(n(x)),d:[["¡Hola!","Ahoj!"],["¿Cuánto cuesta?","Kolik to stojí?"],["Quiero un perro.","Chci psa."]]}];
+ let step=0,tries=0;const log=[];
+ const skB=k=>`<div class="cb k"><span>${esc(SK[k][0])}</span>${stage<=1?`<small>${esc(SK[k][1])}</small>`:""}</div>`;
+ log.push(skB(0));
+ function draw(){
+  const u=U[step];let inp="";
+  if(stage<=1){const opts=shuffle([[u.t,u.cs,1]].concat(shuffle(u.d.slice()).slice(0,stage===0?2:3)));inp=`<div class="opts">${opts.map(o=>`<button class="opt" data-ok="${o[2]||0}">${esc(o[0])}${stage===0?`<small>${esc(o[1])}</small>`:""}</button>`).join("")}</div>`}
+  else if(stage===2)inp=`<div class="fill">${esc(u.pre)}<input class="bl ain" autocomplete="off" autocapitalize="off" spellcheck="false" lang="${Lg}">${esc(u.post)}</div><button class="btn wide" id="cOk">${ui("ok")}</button>`;
+  else inp=`${stage===3?`<p class="small">Nápověda: <b>${esc(u.t.split(" ").map(w=>w.replace(/^([¡¿]?.).*?([.!?]?)$/,"$1…$2")).join(" "))}</b> · ${esc(u.cs)}</p>`:`<p class="small" id="cHint">💡 <a href="#" id="cShow">Ukázat, co mám říct česky</a></p>`}<textarea rows="1" class="ain" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><button class="btn wide" id="cOk">${ui("ok")}</button>`;
+  openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="skh"><b>${bi({en:"Shopping",es:"De compras",cs:"Nákup"})}</b><span class="small">Nákup č. ${(c.buys||0)+1} · ${STAGES[stage]} · ${esc(nm[0])} ${item.price} 🪙</span></div></div>
+   <div class="chat">${log.join("")}</div><p class="amsg"></p>${inp}<button class="btn ghost wide" data-close style="margin-top:8px">${ui("close")}</button>`,b=>{
+   const msg=b.querySelector(".amsg");
+   const good=text=>{log.push(`<div class="cb u">${esc(text)}</div>`);step++;tries=0;
+    if(step<3){log.push(skB(step));A.say(SK[step][0]);draw()}else finish()};
+   const bad=el=>{tries++;if(el){el.classList.remove("shake");void el.offsetWidth;el.classList.add("shake")}msg.innerHTML=tries>=2?`Správně: <b>${esc(u.t)}</b>`:"Zkus to znovu."};
+   b.querySelectorAll(".opt").forEach(o=>o.onclick=()=>{if(o.dataset.ok==="1")good(u.t);else{o.classList.add("wrong");bad()}});
+   const ok=b.querySelector("#cOk"),ta=b.querySelector(".ain");
+   if(ok){const go=()=>{const v=ta.value;if(!v.trim())return;if(stage===2?u.blank(v):u.test(v))good(stage===2?u.pre+v.trim()+u.post:v.trim());else bad(ta)};ok.onclick=go;ta.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();go()}});setTimeout(()=>ta.focus(),50)}
+   const sh=b.querySelector("#cShow");if(sh)sh.onclick=e=>{e.preventDefault();b.querySelector("#cHint").textContent="💡 "+u.cs};
+   const ch=b.querySelector(".chat");ch.scrollTop=ch.scrollHeight;
+  });
+ }
+ function finish(){
+  c.coins-=item.price;c.buys=(c.buys||0)+1;c.own=c.own||{};onBought();save();
+  log.push(skB(2));
+  openModal(`<div class="chat">${log.join("")}</div><h2>${bi({en:"You bought it!",es:"¡Lo has comprado!",cs:"Koupeno!"})}</h2><p>${esc(nm[0])} · −${item.price} 🪙</p><p class="small">Další nákup bude těžší: ${STAGES[Math.min(c.buys,4)]}.</p><button class="btn wide" data-close>${ui("close")}</button>`);
+  render();
+ }
+ A.say(SK[0][0]);draw();
 }
 
 window.City={render:()=>{if(view==="lesson"&&LS&&LS.lang!==L()){clearTimeout(nextT);view="map";LS=null}render()}};
