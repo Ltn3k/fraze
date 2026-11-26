@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sa
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
 .screen{display:none}
-body[data-screen=intro] #intro,body[data-screen=tiers] #tiers,body[data-screen=app] #app,body[data-screen=city] #city{display:block}
+body[data-screen=intro] #intro,body[data-screen=tiers] #tiers,body[data-screen=app] #app,body[data-screen=city] #city,body[data-screen=dict] #dict{display:block}
 .btn{border:0;border-radius:12px;padding:12px 20px;min-height:48px;font-weight:700;background:var(--acc);color:#fff}
 .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .btn.wide{width:100%}
@@ -334,6 +334,47 @@ header,.chead{position:static}
 .badge #bName{display:none}.badge #status{font-size:14px;color:var(--mute)}.badge #status b{display:inline;color:var(--ink)}
 .badge{min-height:40px}.top .ib{width:40px;height:40px}
 .mtools{justify-content:space-between;margin:10px 0}
+
+/* slovník */
+#dictBody{padding-top:10px;padding-bottom:40vh}
+.dbar{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.dmodes{flex:1;display:flex;gap:4px;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.dmodes button{flex:1;border:0;background:none;border-radius:10px;padding:8px 2px;font:inherit;font-size:13px;font-weight:700;color:var(--mute)}
+.dmodes button.on{background:var(--card);color:var(--ink);box-shadow:0 2px 0 var(--edge),0 3px 8px var(--sh)}
+.dinfo{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--mute);margin:2px 4px 8px}
+.dhelp{margin:0 4px 8px}
+.dlist{display:grid;gap:6px}
+.drow{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 8px 6px 14px;border-radius:14px;background:var(--card);box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 4px 10px var(--sh);transition:background .2s,transform .15s}
+.drow .cz{flex:1;font-weight:600;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.drow .cz.peek{color:var(--acc)}
+.drow .en{flex:1;text-align:right;font-weight:700;color:var(--acc);background:none;border:0;font:inherit;font-weight:700}
+.drow .en i{font-style:normal;font-size:12px;opacity:.6}
+.drow.ok{background:linear-gradient(180deg,#fff,#e6f6ec);box-shadow:inset 0 1px 0 #fff,0 2px 0 color-mix(in srgb,var(--ok) 45%,transparent)}
+@media(prefers-color-scheme:dark){.drow.ok{background:#1c3326}}
+.drow.ok .en,.drow.ok .slot{color:var(--ok)}
+.din{flex:1;min-width:0;font:inherit;font-size:16px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.din.acc{border-color:#e0a23f}
+.drop .slot{flex:1;min-height:30px;border-radius:10px;border:1.5px dashed var(--line);display:flex;align-items:center;justify-content:flex-end;padding:0 10px;font-weight:700}
+.drow.ok .slot{border:0}
+.drop.hov{transform:scale(1.02);box-shadow:0 0 0 3px var(--acc)}
+.drop.bad{animation:shake .35s}
+.dtray{position:sticky;bottom:0;display:flex;flex-wrap:wrap;gap:6px;padding:10px;margin-top:10px;border-radius:16px 16px 0 0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);box-shadow:0 -6px 18px var(--sh);max-height:34vh;overflow:auto;justify-content:center;align-items:center}
+.dchip{border:0;font:inherit;font-weight:700;font-size:14px;padding:8px 12px;border-radius:12px;background:linear-gradient(180deg,#fff,#eef1f8);color:#15181d;box-shadow:inset 0 1px 0 #fff,0 3px 0 color-mix(in srgb,var(--acc) 55%,#000),0 5px 10px var(--sh);touch-action:none;user-select:none;-webkit-user-select:none}
+.dchip.sel{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 72%,#fff),var(--acc));color:#fff}
+.ghostchip{position:fixed;z-index:99;pointer-events:none;transform:translate(-50%,-60%) scale(1.08);opacity:.95}
+.okflash{position:fixed;left:50%;top:38%;z-index:120;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;display:grid;place-items:center;font-size:46px;font-weight:900;color:#fff;background:radial-gradient(circle at 35% 30%,#7be0a0,#1d9a52);box-shadow:0 10px 30px rgba(29,154,82,.45);pointer-events:none;animation:okf .65s ease-out forwards}
+@keyframes okf{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.08);opacity:1}60%{transform:scale(1);opacity:1}100%{transform:scale(1.15);opacity:0}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hold{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer}
+.peekb{display:inline-block;font-size:13px;font-weight:600;color:var(--mute);padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent);margin:2px 0 6px}
+.hold.peek{color:var(--acc);font-weight:800;background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.ain.good{border-color:var(--ok)!important;background:color-mix(in srgb,var(--ok) 10%,var(--card))}
+.walkbob{animation:bob .45s ease-in-out infinite alternate}.walkbob.d{animation-duration:.3s}
+@keyframes bob{to{transform:translateY(-1.6px)}}
+.unls{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0 4px}
+.unl{font-size:12px;font-weight:700;color:var(--mute);padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 6%,transparent)}.unl i{font-style:normal;color:var(--acc);margin-left:2px}
+.pickh{display:flex;gap:12px;align-items:center;margin:0 0 10px;padding:10px 12px;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--soft) 60%,var(--card)),var(--soft));box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 8px 18px var(--sh)}
+.pickh .pbig{font-size:34px}.pickh b{display:block;font-size:16px}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -361,7 +402,7 @@ header,.chead{position:static}
 
 <!-- ── VÝBĚR ÚROVNĚ ── -->
 <section id="tiers" class="screen"><div class="wrap">
- <div class="tierhead"><h1>Vyber úroveň</h1><div class="tswitch"><div class="langs modes"><button data-m="f">Fráze</button><button data-m="w">Slovník</button></div><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div></div>
+ <div class="tierhead"><h1>Vyber úroveň</h1><div class="tswitch"><div class="langs"><button data-l="en">ENG</button><button data-l="es">ESP</button></div></div></div>
  <p class="lead" style="margin-bottom:18px" id="tLead"></p>
  <button class="citycard" id="toCity"><span class="ic">🏡</span><span><b>Moje město</b><span>Nová hra (beta): uč se slova a fráze a buduj s nimi vlastní městečko.</span></span><em>Hrát →</em></button>
  <div class="tlist" id="tlist"></div>
@@ -386,6 +427,7 @@ header,.chead{position:static}
 </div>
 
 <!-- ── MĚSTO ── -->
+<section id="dict" class="screen"><div class="wrap" id="dictBody"></div></section>
 <section id="city" class="screen">
  <div class="chead"><div class="wrap"><button class="ib" id="cBack">←</button><div id="cRes"></div></div></div>
  <div class="wrap" id="cityBody"></div>
@@ -395,7 +437,7 @@ header,.chead{position:static}
 <div id="menu" hidden><div class="sheet">
  <h2>Menu</h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
- <div class="tools mtools"><label class="sw"><input type="checkbox" id="dict"> Slovník</label><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
+ <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
  <p id="progressAll"></p>
  <div id="stats"></div>
@@ -439,7 +481,7 @@ let S;
 try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!S.langs)S={lang:"en",langs:{}};
 if(!LANG[S.lang])S.lang="en";
-if(S.mode!=="w")S.mode="f";P=DATA[S.mode];
+S.mode="f";P=DATA[S.mode];
 const isW=()=>S.mode==="w";
 const UNIT=()=>isW()?{one:"slovo",few:"slova",many:"slov"}:{one:"věta",few:"věty",many:"vět"};
 const K=()=>(isW()?"w_":"")+S.lang;
@@ -629,12 +671,11 @@ const showAllOn=()=>false;
 function setMode(m){
  S.mode=m;P=DATA[m];save();
  document.body.classList.toggle("dict",m==="w");
- $("#dict").checked=m==="w";
  document.querySelectorAll(".modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
  applyTier();
  if(document.body.dataset.screen==="app")buildRound();else renderTiers();
 }
-$("#dict").addEventListener("change",e=>{setMode(e.target.checked?"w":"f");toast(e.target.checked?"Slovník":"Fráze")});
+
 document.addEventListener("click",e=>{const b=e.target.closest(".modes button");if(b&&b.dataset.m!==S.mode)setMode(b.dataset.m)});
 
 // ── výběr úrovně ──
@@ -717,7 +758,7 @@ function say(text){
   const u=new SpeechSynthesisUtterance(text);u.lang=LANG[S.lang].tts;u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}
 }
 let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2200)}
-function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers();if(name==="city"){document.body.dataset.tier="B";window.City&&City.render()}else applyTier()}
+function show(name){document.body.dataset.screen=name;window.scrollTo({top:0});if(name==="tiers")renderTiers();if(name==="dict")window.Dict&&Dict.render();if(name==="city"){document.body.dataset.tier="B";window.City&&City.render()}else applyTier()}
 function setLang(l){
  S.lang=l;save();
  document.querySelectorAll(".langs button[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===l));
@@ -748,11 +789,13 @@ $("#menuBtn").addEventListener("click",()=>{
 });
 $("#closeMenu").addEventListener("click",()=>$("#menu").hidden=true);
 $("#menu").addEventListener("click",e=>{if(e.target.id==="menu")$("#menu").hidden=true});
+$("#mDict").addEventListener("click",()=>{$("#menu").hidden=true;show("dict")});
 $("#mTiers").addEventListener("click",()=>{$("#menu").hidden=true;show("tiers")});
 $("#mIntro").addEventListener("click",()=>{$("#menu").hidden=true;show("intro")});
 $("#mCity").addEventListener("click",()=>{$("#menu").hidden=true;show("city")});
 $("#toCity").addEventListener("click",()=>show("city"));
 $("#cBack").addEventListener("click",()=>{if(S.started){show("app");if(!round.length)buildRound()}else show("tiers")});
+window.showScreen=()=>{if(S.started){show("app");if(!round.length)buildRound()}else show("tiers")};
 window.APP={get S(){return S},save,toast,esc,norm,noAcc,say:t=>{try{const u=new SpeechSynthesisUtterance(t);u.lang=LANG[S.lang].tts;u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}},CRIT,SPK};
 $("#reset").addEventListener("click",e=>{
  if(!armed){armed=true;e.target.textContent="Opravdu? Klepni znovu";return}
@@ -762,11 +805,12 @@ $("#reset").addEventListener("click",e=>{
 // ── start ──
 document.querySelectorAll(".langs button[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===S.lang));
 document.querySelectorAll(".modes button").forEach(b=>b.classList.toggle("on",b.dataset.m===S.mode));
-document.body.classList.toggle("dict",isW());$("#dict").checked=isW();
+document.body.classList.toggle("dict",isW());
 applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
 <script src="city.js"></script>
+<script src="dict.js"></script>
 </body>
 </html>

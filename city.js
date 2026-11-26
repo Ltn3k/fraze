@@ -189,28 +189,58 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// pozemky na podkladu img/map.webp (souřadnice v px obrázku 1024)
-const PPOS={shop:[512,222],market:[795,342],cafe:[800,597],zoo:[512,717],school:[220,597],doctor:[225,347],bus:[700,900],station:[118,112]};
-const pos=i=>{const p=PPOS[PLOTS[i].id];return[p[0]*400/1024,p[1]*400/1024]};
-function mapSVG(){
- const c=C(),p=P(),Lg=L(),out=[DEFS];
+// parcely na podkladu img/map.webp (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
+const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
+const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
+const avail=pl=>IMPL.includes(pl.id)&&(pl.id==="zoo"?C().lv>=3:C().lv>pl.lv);
+const needLv=pl=>pl.id==="zoo"?3:pl.lv+1;
+function slots(){const c=C();if(!c.slots){c.slots={};if(c.b.shop)c.slots.shop=0;if(c.lv>=3)c.slots.zoo=3;save()}return c.slots}
+const pendingPick=()=>PLOTS.find(pl=>avail(pl)&&slots()[pl.id]==null);
+const freeSlots=()=>{const u=Object.values(slots());return SLOTP.map((_,k)=>k).filter(k=>!u.includes(k))};
+// denní doba: night · blue · day · gold
+function tod(){const q=new URLSearchParams(location.search).get("tod");if(q)return q;const h=new Date().getHours()+new Date().getMinutes()/60;
+ return h<5||h>=21?"night":h<7.5||h>=19.5?"blue":h>=16.5?"gold":"day"}
+function todLayer(t){
+ if(t==="day")return `<rect width="400" height="400" fill="#fff8e0" opacity=".06" style="mix-blend-mode:screen"/>`;
+ if(t==="gold")return `<rect width="400" height="400" fill="#ff9a3c" opacity=".28" style="mix-blend-mode:multiply"/><radialGradient id="tg" cx=".85" cy=".1" r=".9"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient><rect width="400" height="400" fill="url(#tg)" style="mix-blend-mode:screen"/>`;
+ const lights=`<radialGradient id="tl"><stop offset="0" stop-color="#ffd76a" stop-opacity=".95"/><stop offset=".35" stop-color="#ffb347" stop-opacity=".45"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>${[[190,158,22],[214,166,16],[200,192,30],[200,40,16],[24,130,14],[381,130,14],[200,336,20]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#tl)" style="mix-blend-mode:screen"/>`).join("")}`;
+ if(t==="blue")return `<rect width="400" height="400" fill="#4d6fc4" opacity=".42" style="mix-blend-mode:multiply"/><rect width="400" height="400" fill="#9ab8ff" opacity=".12" style="mix-blend-mode:screen"/>`+lights.replace(/\.95/,".6");
+ return `<rect width="400" height="400" fill="#1a2550" opacity=".66" style="mix-blend-mode:multiply"/><rect width="400" height="400" fill="#203a80" opacity=".18" style="mix-blend-mode:screen"/>`+lights+[[60,30],[140,14],[330,24],[372,60],[250,10],[30,380],[390,340]].map(([x,y],k)=>`<circle cx="${x}" cy="${y}" r="${k%2?1:1.4}" fill="#fff" opacity=".8"/>`).join("");
+}
+function walkSVG(p,c){
+ const path="M254 214 C268 238 236 250 200 250 C162 250 134 238 136 216 C137 206 144 200 152 200";
+ const av=`<g><animateMotion dur="16s" path="${path}" keyPoints="0;1;1;0" keyTimes="0;.45;.55;1" calcMode="linear" fill="freeze"/><g class="walkbob"><g transform="translate(-18,-50) scale(.36)">${AV(p.g)}</g></g></g>`;
+ const dog=c.pet?`<g><animateMotion dur="16s" begin=".7s" path="${path}" keyPoints="0;1;1;0" keyTimes="0;.45;.55;1" calcMode="linear" fill="freeze"/><g class="walkbob d"><g transform="translate(-19,-33) scale(.42)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}</g></g></g>`:"";
+ return `<g class="tap" data-act="me">${dog}${av}</g>`;
+}
+function mapSVG(pick){
+ const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
  out.push(`<image href="img/map.webp" width="400" height="400"/>`);
- PLOTS.forEach((pl,i)=>{
-  const[x,y]=pos(i),built=c.b[pl.id],can=c.lv>pl.lv,T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`,out_=pl.id==="bus"||pl.id==="station";
-  if(pl.id==="zoo"&&c.lv>=3)out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}</g>`);
-  else if(built)out.push(`<g class="tap" data-act="${pl.id}" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
-  else if(can)out.push(`<g class="tap" data-act="build-${pl.id}" ${T}><rect x="-38" y="-30" width="76" height="60" fill="transparent"/>${out_?siteArt():""}<g class="pulse">${badge("+","g",13)}</g>${banner(pl[Lg],24)}</g>`);
-  else out.push(`<g class="tap" data-act="locked-${i}" ${T}><rect x="-38" y="-30" width="76" height="60" fill="transparent"/>${badge(pl.lv,"l",11)}${banner(`${pl[Lg]} 🔒`,22)}</g>`);
+ PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
+  if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
+  else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
+  else out.push(`<g class="tap" data-act="build-${pl.id}" ${T}><g transform="translate(0,6)">${siteArt()}</g><g class="pulse" transform="translate(0,-14)">${badge("+","g",13)}</g>${banner(pl[Lg],26)}</g>`);
  });
- out.push(`<g class="tap" data-act="house" transform="translate(200,168)"><rect x="-42" y="-50" width="84" height="80" fill="transparent"/>${banner(p.name||(Lg==="es"?"Casa":"Home"),48)}</g>`);
- if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(236,166) scale(.36)"><ellipse cx="50" cy="132" rx="30" ry="8" fill="rgba(40,60,20,.25)"/>${AV(p.g)}</g>`);
+ const walking=!pick&&c.walkNow&&p.g;
+ out.push(`<g class="tap" data-act="house" transform="translate(200,168)"><rect x="-42" y="-50" width="84" height="80" fill="transparent"/>${banner(p.name||(Lg==="es"?"Casa":"Home"),48)}<g transform="translate(34,-46)">${badge(c.lv,"",12)}</g></g>`);
  if(c.own&&c.own.home)out.push(`<g transform="translate(128,210)">${c.pet&&c.pet.kind==="cat"?`<ellipse cy="10" rx="18" ry="7" fill="#e86f9a"/><ellipse cy="7" rx="12" ry="4.5" fill="#f7d3e4"/>`:`<g transform="scale(.45)">${bld({w:30,h:20,dx:10,dy:7,rh:10,wall:"#c98b4f",side:"#a86f3a",front:`<path d="M-6 0v-9a6 6 0 0 1 12 0v9z" fill="#3a2a1a"/>`})}</g>`}</g>`);
- if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(126,166) scale(.5)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`);
-  if(c.lv>5)out.push(`<g transform="translate(150,214)"><ellipse rx="10" ry="4" fill="#5b8fd6"/><ellipse cy="-2" rx="7.5" ry="2.3" fill="${c.food?"#b8864a":"#cfe0f5"}"/></g>`)}
+ if(c.pet&&c.lv>5)out.push(`<g transform="translate(150,214)"><ellipse rx="10" ry="4" fill="#5b8fd6"/><ellipse cy="-2" rx="7.5" ry="2.3" fill="${hunger()>40?"#b8864a":"#cfe0f5"}"/></g>`);
+ if(walking)out.push(walkSVG(p,c));
+ else{
+  if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(236,166) scale(.36)"><ellipse cx="50" cy="132" rx="30" ry="8" fill="rgba(40,60,20,.25)"/>${AV(p.g)}</g>`);
+  if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(126,166) scale(.5)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`)}
+ }
+ out.push(`<g pointer-events="none">${todLayer(t)}</g>`);
+ if(pick)freeSlots().forEach(k=>{const[x,y]=sp(k);out.push(`<g class="tap" data-act="slot-${k}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><rect x="-40" y="-32" width="80" height="64" rx="10" fill="rgba(255,255,255,.28)" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/><g class="pulse">${badge("+","g",14)}</g></g>`)});
  if(c.lv<=2||c.unfog){
   out.push(`<defs><mask id="fm"><rect width="400" height="400" fill="#fff"/><ellipse cx="200" cy="175" rx="84" ry="78" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)"><rect width="400" height="400" fill="#eef2f7" opacity=".96"/>${[[90,80],[300,70],[80,290],[320,300],[200,360],[200,30],[40,180],[360,180]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
  }
- return `<svg class="map" viewBox="0 0 400 400" role="img" aria-label="Map">${out.join("")}</svg>`;
+ return `<svg class="map tod-${t}" viewBox="0 0 400 400" role="img" aria-label="Map">${out.join("")}</svg>`;
+}
+function nextUnlocks(){const c=C();return PLOTS.filter(pl=>IMPL.includes(pl.id)&&!avail(pl)).map(pl=>`<span class="unl">🔒 ${PIC[pl.id]} ${esc(pl[L()])} <i>lvl ${needLv(pl)}</i></span>`).join("")}
+function renderPick(pl){
+ body().innerHTML=`<div class="pickh"><span class="pbig">${PIC[pl.id]}</span><div><b>${bi({en:`Where shall we build the ${pl.en.toLowerCase()}?`,es:`¿Dónde construimos ${pl.id==="zoo"?"el zoo":"la tienda"}?`,cs:`Kde postavíme ${pl.id==="zoo"?"zoo":"obchod"}?`})}</b><span class="small">Klepni na volnou parcelu.</span></div></div><div class="mapwrap">${mapSVG(true)}</div>`;
 }
 
 // ── modální okno ──
@@ -254,7 +284,7 @@ function fly(el,text){
 // ── obrazovky ──
 let view="map",LS=null,nextT=null;
 const body=()=>$("#cityBody");
-function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins / mince">🪙 ${c.coins}</span>`);if(c.lv>5)out.push(`<span title="Food / jídlo">🍽️ ${c.food}</span>`);if(c.lv>7)out.push(`<span title="Pet food / granule">🦴 ${c.goods.petfood}</span>`);return out.join("")}
+function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins / mince">🪙 ${c.coins}</span>`);return out.join("")}
 function render(){
  $("#cBack").innerHTML="✕";$("#cBack").setAttribute("aria-label","Zavřít hru");
  $("#cRes").innerHTML=P().name?resHTML():"";
@@ -277,18 +307,21 @@ function renderStart(){
 }
 function storyModal(n){if(n>LV.length)return;const lv=LV[n-1];info(`${ui("level")} ${n}: ${bi(lv.t)}`,bi(lv.story),"start")}
 function renderMap(){
- const c=C(),cards=[],pend=pending();
+ const c=C(),cards=[],pend=pending(),pk=pendingPick();
+ if(pk&&P().g)return renderPick(pk);
+ if(c.walkPend){delete c.walkPend;c.walkNow=Math.random()<.6;save()}else if(c.walkNow){c.walkNow=false;save()}
  if(pend==="avatar")cards.push(`<div class="ccard act"><div><b>${bi(LV[0].done)}</b></div><button class="btn" data-go="avatar">${ui("next")}</button></div>`);
  if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi(LV[3].done)}</b><span>${COST.pet} 🪙</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
  if(pend==="shop")cards.push(`<div class="ccard act"><div><b>${bi(LV[5].done)}</b><span>${COST.shop} 🪙</span></div><button class="btn" data-go="build-shop">${ui("build")}</button></div>`);
- if(c.pet&&c.lv>5&&hunger()<40)cards.push(`<div class="ccard warn"><div><b>${bi({en:`${c.pet.name} is hungry!`,es:`¡${c.pet.name} tiene hambre!`,cs:`${c.pet.name} má hlad!`})}</b></div><button class="btn" data-go="pet">${ui("food")}</button></div>`);
+ if(c.pet&&c.lv>5&&hunger()<40)cards.push(`<div class="ccard warn"><div><b>${bi({en:`${c.pet.name} is hungry!`,es:`¡${c.pet.name} tiene hambre!`,cs:`${c.pet.name} má hlad!`})}</b></div><button class="btn" data-go="pet">🦴</button></div>`);
  if(c.lv<=LV.length){
   const lv=LV[c.lv-1],nw=lv[c.part],prog=nw.reduce((a,i)=>a+Math.min(st(i.id).c,NEED),0);
   cards.push(`<div class="ccard main"><div><span class="kap">${ui("level")} ${c.lv} · ${ui(c.part==="w"?"words":"sents")}</span><b>${bi(lv.t)}</b><span>${bi(lv.story)}</span>
    <div class="pre">${nw.map(i=>`<span class="pchip">${pic(i.pic)}<i>${"●".repeat(Math.min(st(i.id).c,NEED))}${"○".repeat(NEED-Math.min(st(i.id).c,NEED))}</i></span>`).join("")}</div></div>
    ${pend?`<span class="small">Nejdřív dokonči úkol výš.</span>`:`<button class="btn" data-go="lesson">${ui(prog?"next":"start")}</button>`}</div>`);
  }else cards.push(`<div class="ccard"><div><span class="kap">${ui("level")} 8</span><b>${ui("soon")}</b><span>Další levely připravujeme. Zatím si procvičuj a vydělávej.</span></div><button class="btn" data-go="practice">${ui("practice")}</button></div>`);
- body().innerHTML=`<div class="mapwrap">${mapSVG()}</div><div class="cards">${cards.join("")}</div>`;
+ const nu=nextUnlocks();
+ body().innerHTML=`<div class="mapwrap">${mapSVG()}</div>${nu?`<div class="unls">${nu}</div>`:""}<div class="cards">${cards.join("")}</div>`;
  if(c.unfog)setTimeout(()=>{c.unfog=false;save()},1700);
 }
 document.addEventListener("click",e=>{
@@ -315,6 +348,7 @@ document.addEventListener("click",e=>{
  if(a.startsWith("paint-")){C().paint=a.slice(6);save();return render()}
  if(a.startsWith("fur-")){C().fur=a.slice(4);save();return render()}
  if(a.startsWith("look-")){const[,k,v]=a.split("-");const lk=P().look||(P().look={});lk[k]=v;save();return render()}
+ if(a.startsWith("slot-")){const pl=pendingPick();if(!pl)return;slots()[pl.id]=+a.slice(5);save();A.toast(`${PIC[pl.id]} ${pl[L()]} ✓`);if(pl.id==="zoo")party(bi({en:"NEW BUILDING",es:"NUEVO EDIFICIO",cs:"NOVÁ BUDOVA"}),"🦁",bi({en:"The zoo is open!",es:"¡El zoo está abierto!",cs:"Zoo je otevřená!"}),A.CRIT[1],2600);return render()}
  if(a.startsWith("locked-")){const pl=PLOTS[+a.slice(7)];return A.toast(`${pl[L()]} · ${L()==="es"?"nivel":"level"} ${pl.lv}`)}
 });
 
@@ -388,9 +422,9 @@ function roundDone(){
 }
 function levelDone(){
  const c=C(),n=c.lv,lv=LV[n-1];
- c.lv++;c.part="w";c.coins+=BONUS;
+ c.lv++;c.part="w";c.coins+=BONUS;c.walkPend=1;
  if(n===2)c.unfog=true;
- if(n===5){c.food=2;if(c.pet){c.pet.h=60;c.pet.ts=Date.now()}}
+ if(n===5){if(c.pet){c.pet.h=60;c.pet.ts=Date.now()}}
  save();view="map";LS=null;render();window.scrollTo({top:0});
  let sub=bi(lv.done);
  if(n===3)sub=bi({en:`You have ${c.coins} coins!`,es:`¡Tienes ${c.coins} monedas!`,cs:`Máš ${c.coins} mincí, které sis zatím vydělal${P().g==="f"?"a":""}!`});
@@ -438,7 +472,7 @@ function shop(knowPrice){
  const greet={en:"Hello! What would you like?",es:"¡Hola! ¿Qué desea?",cs:"Dobrý den! Co si přejete?"};
  if(c.lv<=7)return openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi({en:"Hello! Sorry, the shelves are empty.",es:"¡Hola! Lo siento, no hay nada.",cs:"Dobrý den! Promiň, regály jsou zatím prázdné."})}</div></div><p class="small">Zboží přibude po levelu 7.</p><button class="btn ghost wide" data-close>${ui("close")}</button>`);
  openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi(greet)}</div></div>
-  <p class="small">🪙 ${c.coins} · 🍞 ${c.goods.bread} · 🥛 ${c.goods.milk} · 🦴 ${c.goods.petfood}</p>
+  <p class="small">🪙 ${c.coins}</p>
   <div class="items">${Object.entries(GOODS).map(([k,g])=>`<button class="item" data-buy="${k}"><span class="emo">${g.pic}</span><b>${esc(BYID[k].cs)}</b><span>${knowPrice?g.price+" 🪙":"? 🪙"}</span></button>`).join("")}</div>
   ${knowPrice?"":`<button class="btn ghost wide" id="askPrice">💬 ${ui("ask")}</button>`}<button class="btn ghost wide" data-close style="margin-top:8px">${ui("back")}</button>`,b=>{
   const ap=b.querySelector("#askPrice"),q=LV[5].s[1];
@@ -447,7 +481,7 @@ function shop(knowPrice){
    const k=btn.dataset.buy,g=GOODS[k];
    if(!knowPrice)return A.toast("Nejdřív se zeptej na cenu.");
    if(c.coins<g.price)return A.toast(`${g.price} 🪙`);
-   askWord({title:bi({en:"What would you like?",es:"¿Qué desea?",cs:"Co si přejete?"}),cs:BYID[k].cs,answers:BYID[k][Lg],okHtml:`${ui("buy")} · ${g.price} 🪙`,onOk:()=>{c.coins-=g.price;c.goods[k]++;save();render();A.toast(`${g.pic} +1`);shop(true)}});
+   askWord({title:bi({en:"What would you like?",es:"¿Qué desea?",cs:"Co si přejete?"}),cs:BYID[k].cs,answers:BYID[k][Lg],okHtml:`${ui("buy")} · ${g.price} 🪙`,onOk:()=>{c.coins-=g.price;c.goods[k]++;if(k==="petfood"&&c.pet){c.pet.h=100;c.pet.ts=Date.now()}save();render();A.toast(k==="petfood"&&c.pet?`🦴 ${c.pet.name}: Mňam!`:`${g.pic} +1`);shop(true)}});
   });
  });
 }
@@ -457,18 +491,21 @@ function petModal(){
  openModal(`<div class="petpick"><svg viewBox="0 0 90 84" class="${h<40?"":"happy"}">${PETSVG(p.kind)}</svg></div><h2>${esc(p.name)}</h2>
   ${fed?`<p>${ui("hungry")}</p><div class="hbar"><div style="width:${100-h}%;background:${h<40?"#e0614f":"#3fae5a"}"></div></div>
   <div class="items" style="margin-top:12px">
-   <button class="item" data-f="food" ${c.food?"":"disabled"}><span class="emo">🍽️</span><b>${ui("food")}</b><span>${c.food}×</span></button>
-   <button class="item" data-f="water"><span class="emo">💧</span><b>${ui("water")}</b><span>∞</span></button>
-   ${c.lv>7?Object.entries(GOODS).map(([k,g])=>`<button class="item" data-f="${k}" ${c.goods[k]?"":"disabled"}><span class="emo">${g.pic}</span><b>${esc(BYID[k].cs)}</b><span>${c.goods[k]}×</span></button>`).join(""):""}
+   <button class="item" data-f="petfood" ${c.coins>=GOODS.petfood.price?"":"disabled"}><span class="emo">🦴</span><b>Granule</b><span>${GOODS.petfood.price} 🪙</span></button>
+   <button class="item" data-f="water"><span class="emo">💧</span><b>${ui("water")}</b><span>zdarma</span></button>
+  </div><p class="small" style="margin-top:8px">🪙 ${c.coins}</p><div>
   </div>`:`<p>${bi({en:"Your pet is happy.",es:"Tu mascota está feliz.",cs:"Mazlíček je spokojený."})}</p>`}
   <button class="btn ghost wide" data-close style="margin-top:12px">${ui("close")}</button>`,b=>{
   b.querySelectorAll("[data-f]").forEach(btn=>btn.onclick=()=>{const k=btn.dataset.f;
-   if(k==="food"){c.food--;feed(60)}else if(k==="water")feed(5);else{c.goods[k]--;feed(GOODS[k].feed)}});
+   if(k==="water")return feed(5);if(c.coins<GOODS.petfood.price)return A.toast(`${GOODS.petfood.price} 🪙`);c.coins-=GOODS.petfood.price;feed(GOODS.petfood.feed)});
  });
 }
 // ── štítková hra (přetahování) ──
 const UI2={hide:["Hide labels","Ocultar","Schovat štítky"],show:["Show labels","Mostrar","Ukázat štítky"],hair:["Hair","Pelo","Vlasy"],shirt:["T-shirt","Camiseta","Tričko"],feedB:["Food","Comida","Jídlo","food"]};
 Object.assign(UI,UI2);
+function okFlash(){const f=document.createElement("div");f.className="okflash";f.textContent="✓";document.body.appendChild(f);setTimeout(()=>f.remove(),650)}
+function holdPeek(root,def){if(!root)return;root.querySelectorAll(".hold").forEach(h=>{let t;const alt=h.dataset.alt||def,show=()=>{h.dataset.o=h.innerHTML;h.textContent=alt;h.classList.add("peek")},hide=()=>{clearTimeout(t);if(h.dataset.o!=null){h.innerHTML=h.dataset.o;delete h.dataset.o;h.classList.remove("peek")}};
+ h.addEventListener("pointerdown",e=>{e.preventDefault();t=setTimeout(show,350)});["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,hide));h.addEventListener("contextmenu",e=>e.preventDefault())})}
 function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
  const c=C(),qs=c.qs||(c.qs={}),stt=qs[key]||(qs[key]={step:1}),q=c.quiz||(c.quiz={}),Lg=L();
  const done=!!q[key],[x0,y0,w,h]=vb,sw=w/400;
@@ -507,7 +544,7 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
   }));
  }
  // jedno pole s textem + kontrola; použito pro krok 3 a 4
- function askBox(html,answers,onOk,hint){
+ function askBox(html,answers,onOk,hint,peek){
   let tries=0;
   el.insertAdjacentHTML("beforeend",`<div class="wbox">${html}<textarea rows="1" class="ain" lang="${Lg}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea><p class="amsg"></p>${btn("wOk","wide",ui("ok"))}</div>`);
   const inp=el.querySelector(".wbox .ain"),msg=el.querySelector(".wbox .amsg");
@@ -515,6 +552,8 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
    if(r.s==="ok"||r.s==="accent"){if(r.s==="accent")A.toast(`Pozor na diakritiku: ${r.a}`);onOk(r)}
    else{tries++;inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");msg.innerHTML=tries>=2?`Správně: <b>${esc(answers[0])}</b>${hint?` (${esc(hint)})`:""}`:"Zkus to znovu."}};
   el.querySelector("#wOk").onclick=ok;inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ok()}});
+  let fired=false;inp.addEventListener("input",()=>{if(fired)return;const r=check(inp.value,answers,true);if(r.s==="ok"){fired=true;inp.readOnly=true;inp.classList.add("good");okFlash();setTimeout(()=>onOk(r),380)}});
+  holdPeek(el.querySelector(".wbox"),peek||answers[0]);
   setTimeout(()=>inp.focus({preventScroll:true}),50);
  }
  function write(){
@@ -522,7 +561,7 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
   const paint=()=>{
    const cur=order[k],t=targets[cur];
    el.innerHTML=bar()+scene(false,(t,i)=>filled[i]?["ok",lab(t)]:i===cur?["cur","?"]:["","&nbsp;"]);
-   askBox(`<p>${bi({en:"What is it? Write it.",es:"¿Qué es? Escríbelo.",cs:"Co to je? Napiš to."})} <span class="small">(${k+1}/${targets.length})</span></p>`,[t.label],()=>{filled[cur]=1;A.say(t.label);k++;if(k===targets.length)setTimeout(()=>go(4),600);else paint()},t.cs);
+   askBox(`<p>${bi({en:"What is it? Write it.",es:"¿Qué es? Escríbelo.",cs:"Co to je? Napiš to."})} <span class="small">(${k+1}/${targets.length})</span></p><p class="hold peekb" data-alt="${esc(t.cs)} → ${esc(t.label)}">💡 Podrž pro nápovědu</p>`,[t.label],()=>{filled[cur]=1;A.say(t.label);k++;if(k===targets.length)setTimeout(()=>go(4),600);else paint()},t.cs);
   };
   paint();
  }
@@ -531,7 +570,7 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
   const paint=()=>{
    const s=order[k],g=typeof s.g[Lg]==="function"?s.g[Lg](ctx()):s.g[Lg],[pre,post]=g[0].split("_");
    el.innerHTML=bar()+scene(false,(t,i)=>i===s.ti?["cur",lab(t)]:["ok",lab(t)]);
-   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
+   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs hold" data-alt="${esc(tx(s,Lg)[0])}">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
   };
   paint();
  }
@@ -778,7 +817,7 @@ function roomSVG(own,ghost,wall,li=0){
  return o.join("");
 }
 const colName=k=>{const cl=WD[k];return `${esc(L()==="es"?cl[2]:cl[1])}<small>${cl[0]}</small>`};
-function topicDone(k,i,title,sub,art){const c=C(),q=c.quiz||(c.quiz={});q[tKey(k,i)]=true;finishRun(tKey(k,i));c.coins+=20;c.tsel=c.tsel||{};delete c.tsel[k];save();render();party(title,"+20 🪙",sub,art,3600)}
+function topicDone(k,i,title,sub,art){const c=C();c.walkPend=1;const q=c.quiz||(c.quiz={});q[tKey(k,i)]=true;finishRun(tKey(k,i));c.coins+=20;c.tsel=c.tsel||{};delete c.tsel[k];save();render();party(title,"+20 🪙",sub,art,3600)}
 function renderHouse(){
  const c=C(),own=c.own||(c.own={}),Lg=L(),i=tCur("living"),T=TOPIC.living[i];
  body().innerHTML=`${topHead(ROOMS[0][Lg],ROOMS[0].cs,tDone("living",0)?coinPill():"")}${lvNav("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
@@ -813,7 +852,7 @@ function petItem(id){const k=C().pet&&C().pet.kind;
 function renderPetV(){
  const c=C(),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
  const i=tCur("pet"),T=TOPIC.pet[i];
- body().innerHTML=`${topHead(p.name,"",(tDone("pet",0)?coinPill():"")+(c.lv>5?`<button class="ib wide" data-act="feed">🍽️ ${c.food}</button>`:""))}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
+ body().innerHTML=`${topHead(p.name,"",(tDone("pet",0)?coinPill():"")+(c.lv>5?`<button class="ib wide" data-act="feed">🦴</button>`:""))}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
  topicGame($("#game"),{key:tKey("pet",i),sents:T.sents,qa:T.qa,vb:T.vb||[-60,-5,210,90],targets:withLabel(T.targets(p.kind)),svg:()=>PETSVG(p.kind,own.collar||T.collar,T.pal||FURC[c.fur],T.ex),
   onDone:()=>topicDone("pet",i,`${ui("level")} ${i+1} ✓`,bi([{en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`},{en:`Now you can choose ${p.name}'s color!`,es:`¡Ya puedes elegir el color de ${p.name}!`,cs:`Teď můžeš vybrat barvu srsti!`},{en:`${p.name} loves the new ball!`,es:`¡A ${p.name} le encanta la pelota!`,cs:`${p.name} má radost z míče!`},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar,FURC[c.fur])}</svg>`)});
  const items=["collar","home"].map(petItem),cards=[];
