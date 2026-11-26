@@ -276,7 +276,7 @@ let view="map",LS=null,nextT=null;
 const body=()=>$("#cityBody");
 function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins / mince">🪙 ${c.coins}</span>`);if(c.lv>5)out.push(`<span title="Food / jídlo">🍽️ ${c.food}</span>`);if(c.lv>7)out.push(`<span title="Pet food / granule">🦴 ${c.goods.petfood}</span>`);return out.join("")}
 function render(){
- $("#cBack").innerHTML=ui("back");
+ $("#cBack").innerHTML="✕";$("#cBack").setAttribute("aria-label","Zavřít hru");
  $("#cRes").innerHTML=P().name?resHTML():"";
  if(!P().name)return renderStart();
  if(view==="lesson"&&LS)return renderLesson();
@@ -494,7 +494,7 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
  let step=done?0:stt.step,practice=false;
  const lab=t=>`<b>${esc(t.label)}</b><small>${esc(t.cs)}</small>`;
  const SN=[{en:"Learn",es:"Aprende",cs:"Uč se"},{en:"Drag",es:"Arrastra",cs:"Přetáhni"},{en:"Write",es:"Escribe",cs:"Napiš"},{en:"Fill in",es:"Completa",cs:"Doplň"},{en:"Sentences",es:"Frases",cs:"Věty"}];
- const bar=()=>done?"":`<div class="steps">${SN.map((s,i)=>`<span class="${i+1<step?"ok":i+1===step?"on":""}">${i+1<step?"✓":`${i+1}.`} ${esc(s[Lg])}<small>${esc(s.cs)}</small></span>`).join("")}</div>`;
+ const bar=()=>{if(done)return"";const k=Math.max(1,step)-1,s0=SN[k];return `<div class="stepbar"><div class="segs">${SN.map((_,i)=>`<i class="${i<k?"ok":i===k?"on":""}"></i>`).join("")}</div><span><b>${k+1}/5</b> ${esc(s0[Lg])} <small>${esc(s0.cs)}</small></span></div>`};
  const lines=targets.map(t=>`<line x1="${t.ax}" y1="${t.ay}" x2="${t.lx}" y2="${t.ly}" stroke="#2a1d14" stroke-width="${1.3*sw}" stroke-dasharray="${4*sw} ${3*sw}" opacity=".5"/><circle cx="${t.ax}" cy="${t.ay}" r="${3.4*sw}" fill="#fff" stroke="#2a1d14" stroke-width="${1.2*sw}"/>`).join("");
  const scene=(ghost,frame)=>`<div class="scene" style="aspect-ratio:${w}/${h}"><svg viewBox="${vb.join(" ")}">${svg(ghost)}${lines}</svg>${targets.map((t,i)=>{const f=frame(t,i);return `<div class="frame ${f[0]}" data-i="${i}" style="left:${(t.lx-x0)/w*100}%;top:${(t.ly-y0)/h*100}%">${f[1]}</div>`}).join("")}</div>`;
  const go=n=>{step=n;if(!done){stt.step=n;save()}practice=false;draw()};
@@ -732,6 +732,10 @@ const tDone=(k,i)=>!!(C().quiz||{})[tKey(k,i)];
 function tCur(k){const c=C();c.tsel=c.tsel||{};const first=TOPIC[k].findIndex((_,i)=>!tDone(k,i));const lim=first<0?TOPIC[k].length-1:first;let s=c.tsel[k];if(s==null||s>lim)s=lim;return s}
 function tChips(k){const cur=tCur(k),first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),Lg=L();
  return `<div class="chips tchips">${TOPIC[k].map((t,i)=>{const open=first<0||i<=first;return `<button class="chip${i===cur?" on":""}" ${open?`data-act="tsel-${k}-${i}"`:"disabled"}>${tDone(k,i)?"✓":open?"":"🔒"} ${i+1}. ${esc(t.t[Lg])}</button>`}).join("")}</div>`}
+
+function topHead(title,cs,extra=""){return `<div class="thead"><button class="ib" data-go="tomap" aria-label="Mapa">←</button><div class="tt"><b>${esc(title)}</b>${cs?`<small>${esc(cs)}</small>`:""}</div>${extra}</div>`}
+function lvNav(k){const cur=tCur(k),N=TOPIC[k].length,first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),lim=first<0?N-1:first,T=TOPIC[k][cur],Lg=L(),d=tDone(k,cur);
+ return `<div class="lvnav"><button class="ib" ${cur>0?`data-act="tsel-${k}-${cur-1}"`:"disabled"} aria-label="Předchozí level">‹</button><div class="lvc"><div class="lvt"><span class="lvn">${Lg==="es"?"Nivel":"Level"} ${cur+1}<i>/${N}</i></span><b>${esc(T.t[Lg])}</b><small>${esc(T.t.cs)}</small></div><div class="lvd">${TOPIC[k].map((_,i)=>`<i class="${tDone(k,i)?"ok":""}${i===cur?" cur":""}${i>lim?" lk":""}"></i>`).join("")}<span class="rw">${d?"✓ hotovo":"🎁 20 🪙"}</span></div></div><button class="ib" ${cur<lim?`data-act="tsel-${k}-${cur+1}"`:"disabled"} aria-label="Další level">${cur<lim||cur+1>=N?"›":"🔒"}</button></div>`}
 const FURN={
  sofa:{price:80,cs:"pohovka",cs4:"pohovku",en:["sofa","couch"],es:["sofá"],esA:"un",esD:"el",g:[16,185,138,56]},
  tv:{price:120,cs:"televize",cs4:"televizi",en:["TV","television"],es:["televisión","tele"],esA:"una",esD:"la",g:[146,90,68,50]},
@@ -793,16 +797,12 @@ const colName=k=>{const cl=WD[k];return `${esc(L()==="es"?cl[2]:cl[1])}<small>${
 function topicDone(k,i,title,sub,art){const c=C(),q=c.quiz||(c.quiz={});q[tKey(k,i)]=true;finishRun(tKey(k,i));c.coins+=20;c.tsel=c.tsel||{};delete c.tsel[k];save();render();party(title,"+20 🪙",sub,art,3600)}
 function renderHouse(){
  const c=C(),own=c.own||(c.own={}),Lg=L(),i=tCur("living"),T=TOPIC.living[i];
- body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("house")}</span><b>${bi(ROOMS[0])}</b></div></div>
-  <div class="chips" style="margin-bottom:8px">${ROOMS.map((r,j)=>`<button class="chip${j?"":" on"}" ${j?`data-act="room-${j}"`:""}>${j&&c.lv<=r.lv?"🔒 ":""}${esc(r[Lg])}</button>`).join("")}</div>
-  ${tChips("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
+ body().innerHTML=`${topHead(ROOMS[0][Lg],ROOMS[0].cs)}${lvNav("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
  topicGame($("#game"),{key:tKey("living",i),sents:T.sents,qa:T.qa,vb:[0,0,400,300],targets:withLabel(T.targets),svg:g=>roomSVG(own,g&&i===0,g?c.paint:null,g?0:i),
   onDone:()=>topicDone("living",i,`${ui("level")} ${i+1} ✓`,bi([{en:"Now you can buy furniture! Tap a + in the room.",es:"¡Ya puedes comprar muebles! Toca un + en la sala.",cs:"Teď můžeš kupovat nábytek! Klepni na + v pokoji."},{en:"Now you can paint the walls!",es:"¡Ya puedes pintar las paredes!",cs:"Teď můžeš malovat zdi!"},{en:"Your room has new things!",es:"¡Tu sala tiene cosas nuevas!",cs:"V pokoji přibyly nové věci!"},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),A.CRIT[2])});
  const cards=[];
- if(tDone("living",0))cards.push(`<div class="ccard"><div><b>${bi({en:"Furniture",es:"Muebles",cs:"Nábytek"})}</b><span>Klepni na zelené + v pokoji. Koupíš to v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
-   <div class="pre">${Object.values(FURN).map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="fbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`);
- if(tDone("living",1))cards.push(`<div class="ccard"><div><b>${bi({en:"Paint the walls",es:"Pinta las paredes",cs:"Vymaluj zdi"})}</b><div class="swatches">${PAINT.map(p=>`<button class="sw2${(c.paint||"#f6efe3")===p[0]?" on":""}" data-act="paint-${p[0]}"><i style="background:${p[0]}"></i>${colName(p[1])}</button>`).join("")}</div></div></div>`);
- cards.push(`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>${T.qa?"Odpovídej na otázky v cizím jazyce, každou 3× správně.":"1. štítky s výslovností · 2. přetáhni · 3. napiš slovo · 4. doplň slovo do věty · 5. napiš celou větu 3×."} ${tDone("living",i)?"Hotovo ✓":`Odměna: 20 🪙${[" a nákup nábytku"," a malování zdí","",""][i]||""}.`}</span></div></div>`);
+ if(tDone("living",0))cards.push(`<div class="ccard slim"><div><b>${bi({en:"Furniture",es:"Muebles",cs:"Nábytek"})}</b><div class="pre strip">${Object.values(FURN).map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="fbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`);
+ if(tDone("living",1))cards.push(`<div class="ccard slim"><div><b>${bi({en:"Paint the walls",es:"Pinta las paredes",cs:"Vymaluj zdi"})}</b><div class="swatches">${PAINT.map(p=>`<button class="sw2${(c.paint||"#f6efe3")===p[0]?" on":""}" data-act="paint-${p[0]}"><i style="background:${p[0]}"></i>${colName(p[1])}</button>`).join("")}</div></div></div>`);
  $("#hinfo").innerHTML=cards.join("");
 }
 
@@ -811,13 +811,12 @@ const HAIRC=[["#6b4226","brown"],["#2a1d14","black"],["#c0522b","red"],["#e8e4dc
 const SHIRTC=[["#4a7bd6","blue"],["#e0614f","red"],["#3fae5a","green"],["#2a2a2a","black"],["#f4f4f4","white"]];
 function renderMe(){
  const c=C(),p=P(),Lg=L(),lk=p.look||{},i=tCur("body"),T=TOPIC.body[i];
- body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${esc(p.name||"")}</span><b>${bi({en:"Me",es:"Yo",cs:"Já"})}</b></div></div>${tChips("body")}<div id="game"></div><div class="cards" id="minfo"></div>`;
+ body().innerHTML=`${topHead(p.name||(Lg==="es"?"Yo":"Me"),"")}${lvNav("body")}<div id="game"></div><div class="cards" id="minfo"></div>`;
  topicGame($("#game"),{key:tKey("body",i),sents:T.sents,qa:T.qa,vb:[-75,0,250,145],targets:withLabel(typeof T.targets==="function"?T.targets(p.g):T.targets),svg:()=>AV(p.g||"m",T.look?Object.assign({},lk,T.look):undefined),
   onDone:()=>topicDone("body",i,`${ui("level")} ${i+1} ✓`,bi([{en:"Great! Next: how you look.",es:"¡Genial! Ahora: tu aspecto.",cs:"Výborně! Dál: jak vypadáš."},{en:"Now you can change your hair and T-shirt!",es:"¡Ya puedes cambiar tu pelo y tu camiseta!",cs:"Teď si můžeš změnit vlasy a tričko!"},{en:"Now you can wear a hat and glasses!",es:"¡Ya puedes llevar gorra y gafas!",cs:"Teď můžeš nosit čepici a brýle!"},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 100 140" style="width:100%;height:100%">${AV(p.g||"m")}</svg>`)});
  const cards=[];
- if(tDone("body",1))cards.push(`<div class="ccard"><div><b>${ui("hair")}</b><div class="swatches">${HAIRC.map(h=>`<button class="sw2${(lk.hair||"#6b4226")===h[0]?" on":""}" data-act="look-hair-${h[0]}"><i style="background:${h[0]}"></i>${colName(h[1])}</button>`).join("")}</div>
+ if(tDone("body",1))cards.push(`<div class="ccard slim"><div><b>${ui("hair")}</b><div class="swatches">${HAIRC.map(h=>`<button class="sw2${(lk.hair||"#6b4226")===h[0]?" on":""}" data-act="look-hair-${h[0]}"><i style="background:${h[0]}"></i>${colName(h[1])}</button>`).join("")}</div>
    <b style="margin-top:10px">${ui("shirt")}</b><div class="swatches">${SHIRTC.map(h=>`<button class="sw2${(lk.shirt||(p.g==="f"?"#e86f9a":"#4a7bd6"))===h[0]?" on":""}" data-act="look-shirt-${h[0]}"><i style="background:${h[0]}"></i>${colName(h[1])}</button>`).join("")}</div>${tDone("body",2)?`<b style="margin-top:10px">${bi({en:"Hat and glasses",es:"Gorra y gafas",cs:"Čepice a brýle"})}</b><div class="swatches"><button class="sw2${lk.hat?" on":""}" data-act="wear-hat">🧢 ${esc(L()==="es"?"la gorra":"hat")}<small>čepice</small></button><button class="sw2${lk.glasses?" on":""}" data-act="wear-glasses">👓 ${esc(L()==="es"?"las gafas":"glasses")}<small>brýle</small></button></div>`:""}</div></div>`);
- cards.push(`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>${T.qa?"Odpovídej na otázky v cizím jazyce, každou 3× správně.":"1. štítky · 2. přetáhni · 3. napiš slovo · 4. doplň do věty · 5. celá věta 3×."} ${tDone("body",i)?"Hotovo ✓":`Odměna: 20 🪙${["",", změna vlasů a trička",", čepice a brýle",""][i]||""}.`}</span></div></div>`);
  $("#minfo").innerHTML=cards.join("");
 }
 
@@ -830,14 +829,12 @@ function petItem(id){const k=C().pet&&C().pet.kind;
 function renderPetV(){
  const c=C(),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
  const i=tCur("pet"),T=TOPIC.pet[i];
- body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">${ui("pet")}</span><b>${esc(p.name)}</b></div>${c.lv>5?`<button class="btn sm" data-act="feed">🍽️ ${ui("food")}</button>`:""}</div>${tChips("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
+ body().innerHTML=`${topHead(p.name,"",c.lv>5?`<button class="ib wide" data-act="feed">🍽️</button>`:"")}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
  topicGame($("#game"),{key:tKey("pet",i),sents:T.sents,qa:T.qa,vb:T.vb||[-60,-5,210,90],targets:withLabel(T.targets(p.kind)),svg:()=>PETSVG(p.kind,own.collar||T.collar,T.pal||FURC[c.fur],T.ex),
   onDone:()=>topicDone("pet",i,`${ui("level")} ${i+1} ✓`,bi([{en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`},{en:`Now you can choose ${p.name}'s color!`,es:`¡Ya puedes elegir el color de ${p.name}!`,cs:`Teď můžeš vybrat barvu srsti!`},{en:`${p.name} loves the new ball!`,es:`¡A ${p.name} le encanta la pelota!`,cs:`${p.name} má radost z míče!`},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar,FURC[c.fur])}</svg>`)});
  const items=["collar","home"].map(petItem),cards=[];
- if(tDone("pet",0))cards.push(`<div class="ccard"><div><b>${bi({en:`Things for ${p.name}`,es:`Cosas para ${p.name}`,cs:`Věci pro ${p.name}`})}</b><span>Koupíš je v obchodě, celý nákup proběhne ${Lg==="es"?"španělsky":"anglicky"}.</span>
-   <div class="pre">${items.map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="pbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`);
- if(tDone("pet",1))cards.push(`<div class="ccard"><div><b>${bi({en:"Fur color",es:"Color del pelo",cs:"Barva srsti"})}</b><div class="swatches">${Object.keys(FURC).map(k=>`<button class="sw2${(c.fur||"brown")===k?" on":""}" data-act="fur-${k}"><i style="background:${k==="brown"?(p.kind==="cat"?"#f0a050":"#c98b4f"):FURC[k].fur}"></i>${colName(k)}</button>`).join("")}</div></div></div>`);
- cards.push(`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>${T.qa?"Odpovídej na otázky v cizím jazyce, každou 3× správně.":"1. štítky · 2. přetáhni · 3. napiš slovo · 4. doplň do věty · 5. celá věta 3×."} ${tDone("pet",i)?"Hotovo ✓":`Odměna: 20 🪙${[` a obojek a ${p.kind==="cat"?"pelíšek":"bouda"}`," a výběr barvy srsti","",""][i]||""}.`}</span></div></div>`);
+ if(tDone("pet",0))cards.push(`<div class="ccard slim"><div><b>${bi({en:`Things for ${p.name}`,es:`Cosas para ${p.name}`,cs:`Věci pro ${p.name}`})}</b><div class="pre strip">${items.map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="pbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`);
+ if(tDone("pet",1))cards.push(`<div class="ccard slim"><div><b>${bi({en:"Fur color",es:"Color del pelo",cs:"Barva srsti"})}</b><div class="swatches">${Object.keys(FURC).map(k=>`<button class="sw2${(c.fur||"brown")===k?" on":""}" data-act="fur-${k}"><i style="background:${k==="brown"?(p.kind==="cat"?"#f0a050":"#c98b4f"):FURC[k].fur}"></i>${colName(k)}</button>`).join("")}</div></div></div>`);
  $("#pinfo").innerHTML=cards.join("");
 }
 
@@ -941,10 +938,9 @@ function zooSVG(i){
 }
 function renderZoo(){
  const c=C(),Lg=L(),i=tCur("zoo"),T=TOPIC.zoo[i];
- body().innerHTML=`<div class="lhead"><button class="btn ghost sm" data-go="tomap">← ${ui("map")}</button><div><span class="kap">ZOO</span><b>${bi(T.t)}</b></div></div>${tChips("zoo")}<div id="game"></div><div class="cards" id="zinfo"></div>`;
+ body().innerHTML=`${topHead("Zoo","")}${lvNav("zoo")}<div id="game"></div><div class="cards" id="zinfo"></div>`;
  topicGame($("#game"),{key:tKey("zoo",i),sents:T.sents,qa:T.qa,vb:[0,0,400,300],targets:withLabel(T.targets),svg:()=>zooSVG(i),
   onDone:()=>topicDone("zoo",i,`${ui("level")} ${i+1} ✓`,i<TOPIC.zoo.length-1?bi({en:`Next: ${TOPIC.zoo[i+1].t.en}!`,es:`Ahora: ${TOPIC.zoo[i+1].t.es}!`,cs:`Další výběh: ${TOPIC.zoo[i+1].t.cs}!`}):bi({en:"You know all the animals!",es:"¡Conoces todos los animales!",cs:"Znáš všechna zvířata!"}),`<svg viewBox="0 0 100 100" style="width:100%;height:100%"><text x="50" y="55" font-size="70" text-anchor="middle" dominant-baseline="central">${T.targets[0].emo}</text></svg>`)});
- $("#zinfo").innerHTML=`<div class="ccard main"><div><b>${ui("level")} ${i+1}: ${bi(T.t)}</b><span>${T.qa?"Odpovídej na otázky v cizím jazyce, každou 3× správně.":"1. štítky · 2. přetáhni · 3. napiš slovo · 4. doplň do věty · 5. celá věta 3×."} ${tDone("zoo",i)?"Hotovo ✓":i<TOPIC.zoo.length-1?"Odměna: 20 🪙 a další výběh.":"Odměna: 20 🪙."}</span></div></div>`;
 }
 
 // ── nákup jako rozhovor ──
