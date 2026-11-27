@@ -376,6 +376,15 @@ header,.chead{position:static}
 .pickh{display:flex;gap:12px;align-items:center;margin:0 0 10px;padding:10px 12px;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--soft) 60%,var(--card)),var(--soft));box-shadow:inset 0 1px 0 var(--rim),0 2px 0 var(--edge),0 8px 18px var(--sh)}
 .pickh .pbig{font-size:34px}.pickh b{display:block;font-size:16px}
 .reveal span{display:inline-block}.reveal span+span::before{content:"·";margin:0 8px;opacity:.45}
+.howto{margin:8px 0 10px;padding-left:0;list-style:none;display:grid;gap:8px}
+.howto li{padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--soft) 70%,var(--card))}.howto b{display:block}.howto span{font-size:14px;color:var(--mute)}
+.howtip{font-size:14px;margin:6px 0}
+.lrn{display:grid;gap:8px}
+.lcard{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:var(--card);box-shadow:inset 0 1px 0 var(--rim),0 3px 0 var(--edge),0 8px 16px var(--sh)}
+.lcard .lt{flex:1;display:grid;gap:2px}.lcz{font-size:14px;color:var(--mute)}.lfo{font-size:19px;font-weight:800;color:var(--acc)}
+.lfo span+span::before{content:"·";margin:0 7px;opacity:.45}
+.lcard .say{display:grid;width:40px;height:40px}
+.cpic.sm{width:34px;height:34px;flex:none}.cpic.sm svg,.cpic.sm .emo{max-height:30px;font-size:22px}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -436,7 +445,7 @@ header,.chead{position:static}
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
 
 <div id="menu" hidden><div class="sheet">
- <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11262229</small></h2>
+ <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11280034</small></h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
@@ -454,8 +463,8 @@ header,.chead{position:static}
 </div></div>
 <div id="toast"></div>
 
-<script src="data.js?v=11262229"></script>
-<script src="words.js?v=11262229"></script>
+<script src="data.js?v=11280034"></script>
+<script src="words.js?v=11280034"></script>
 <script>
 {
 // ── data ──
@@ -814,7 +823,7 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
-<script src="city.js?v=11262229"></script>
-<script src="dict.js?v=11262229"></script>
+<script src="city.js?v=11280034"></script>
+<script src="dict.js?v=11280034"></script>
 </body>
 </html>

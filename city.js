@@ -190,7 +190,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11262229 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11280034 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -217,7 +217,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11262229" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11280034" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -291,7 +291,7 @@ function render(){
  $("#cRes").innerHTML=P().name?resHTML():"";
  $("#city").dataset.v=P().name?(view==="lesson"&&!LS?"map":view):"start";
  if(!P().name)return renderStart();
- if(view==="lesson"&&LS)return renderLesson();
+ if(view==="lesson"&&LS)return LS.learn?renderLearn():renderLesson();
  if(view==="house")return renderHouse();
  if(view==="me")return renderMe();
  if(view==="petv")return renderPetV();
@@ -340,6 +340,7 @@ document.addEventListener("click",e=>{
  if(a==="house"){view="house";return render()}
  if(a==="me"){view="me";return render()}
  if(a==="zoo"){view="zoo";return render()}
+ if(a==="help")return showHelp();
  if(a==="feed")return petModal();
  if(a==="tomap"){view="map";return render()}
  if(a.startsWith("fbuy-")){const id=a.slice(5);return converse(FURN[id],()=>{C().own[id]=true})}
@@ -365,14 +366,68 @@ function roundItems(practice){
  const nw=LV[c.lv-1][c.part],older=LV.slice(0,c.lv-1).flatMap(l=>l[c.part]);
  return shuffle(nw.concat(weighted(older,REVIEW)));
 }
+// ── nápověda k ovládání (poprvé) ──
+function helpHTML(){return `<h2>Jak se tu učí</h2>
+<ol class="howto">
+<li><b>📖 Uč se</b><span>Nejdřív uvidíš slovo nebo větu česky i ${L()==="es"?"španělsky":"anglicky"}. Klepni na 🔊 a poslechni si výslovnost.</span></li>
+<li><b>🔀 Spoj</b><span>Přetáhni překlad na správné české slovo. Jde to i klepnutím: nejdřív na překlad, pak na slovo.</span></li>
+<li><b>✏️ Napiš</b><span>Napiš překlad z češtiny. Správná odpověď se přijme sama a blikne zelená ✓. Enter = zkontrolovat.</span></li>
+</ol>
+<p class="howtip">💡 <b>Nápověda:</b> podrž prst na českém textu nebo na „💡 Podrž pro nápovědu“. Ukáže se odpověď i se všemi variantami. Za odpověď s nápovědou nejsou mince.</p>
+<p class="howtip">✌️ <b>2× správně</b> a máš to. Napoprvé projde odpověď i bez otazníku${L()==="es"?" a diakritiky":""}, podruhé už musí být přesně${L()==="es"?" (otazník i diakritika)":" (u otázky otazník)"}.</p>
+<p class="howtip">🪙 Za nové věci dostaneš plnou odměnu, za opakování méně. Ovládání je stejné v angličtině i španělštině. Návod otevřeš znovu přes <b>?</b> nahoře.</p>
+<button class="btn wide" id="hok">Rozumím, jdeme na to!</button>`}
+function showHelp(then){openModal(helpHTML(),b=>b.querySelector("#hok").onclick=()=>{closeModal();then&&then()})}
+function firstHelp(){const S=A.S;S.helpSeen=S.helpSeen||{};if(S.helpSeen[L()])return;S.helpSeen[L()]=1;save();setTimeout(()=>showHelp(),150)}
+const helpBtn=`<button class="ib" data-act="help" aria-label="Nápověda">?</button>`;
+// ── nová látka: ukázat → spojit, pak lekce (psaní) ──
+function needLearn(){const c=C();if(c.lv>LV.length)return false;const k=c.lv+c.part,nw=LV[c.lv-1][c.part];c.learned=c.learned||{};return !c.learned[k]&&!nw.some(i=>st(i.id).c>0)}
+function renderLearn(){
+ const c=C(),Lg=L(),lv=LV[c.lv-1],nw=LV[c.lv-1][c.part],isW=c.part==="w",k=c.lv+c.part;
+ const S3=[["📖","Uč se"],["🔀","Spoj"],["✏️","Napiš"]],step=LS.learn;
+ const bar=`<div class="stepbar"><div class="segs">${S3.map((_,i)=>`<i class="${i<step-1?"ok":i===step-1?"on":""}"></i>`).join("")}</div><span><b>${step}/3</b> ${S3[step-1][0]} ${S3[step-1][1]}</span></div>`;
+ const head=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${esc(lv.t[Lg])}</b><small>${isW?"nová slova":"nové věty"}</small></div>${helpBtn}</div>`;
+ const done=()=>{c.learned=c.learned||{};c.learned[k]=1;save();LS.learn=0;render()};
+ if(step===1){
+  body().innerHTML=head+bar+`<div class="lrn">${nw.map(it=>`<div class="lcard">${isW?`<div class="cpic">${pic(it.pic)}</div>`:""}<div class="lt"><span class="lcz">${esc(tx(it,"cs"))}</span><span class="lfo">${tx(it,Lg).slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("")}</span></div><button class="say" data-say="${esc(tx(it,Lg)[0])}" aria-label="Přehrát">${A.SPK}</button></div>`).join("")}</div>
+  <button class="btn wide" id="lnext" style="margin-top:12px">Dál → spojování</button>`;
+  body().querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>A.say(b.dataset.say));
+  $("#lnext").onclick=()=>{LS.learn=2;render()};
+ }else{
+  const solved=LS.solved||(LS.solved=new Set()),order=LS.order||(LS.order=shuffle(nw.map((_,i)=>i)));let sel=null;
+  const paint=()=>{
+   body().innerHTML=head+bar+`<p class="small" style="margin:0 4px 8px">Přetáhni ${Lg==="es"?"španělský":"anglický"} překlad na české ${isW?"slovo":"větu"} (nebo klepni na překlad a pak na ${isW?"slovo":"větu"}).</p>
+   <div class="dlist">${nw.map((it,i)=>`<div class="drow drop${solved.has(i)?" ok":""}" data-i="${i}">${isW?`<div class="cpic sm">${pic(it.pic)}</div>`:""}<span class="cz">${esc(tx(it,"cs"))}</span><span class="slot">${solved.has(i)?esc(tx(it,Lg)[0]):""}</span></div>`).join("")}</div>
+   <div class="dtray">${order.filter(i=>!solved.has(i)).map(i=>`<button class="dchip${sel===i?" sel":""}" data-i="${i}">${esc(tx(nw[i],Lg)[0])}</button>`).join("")||`<button class="btn" id="lgo">✏️ Teď to napiš</button>`}</div>`;
+   bindL();
+  };
+  const tryDrop=(i,row)=>{if(!row||row.classList.contains("ok"))return false;const j=+row.dataset.i;
+   if(i===j){solved.add(i);sel=null;okFlash();A.say(tx(nw[i],Lg)[0]);paint();return true}
+   row.classList.add("bad");setTimeout(()=>row.classList.remove("bad"),400);sel=null;return false};
+  const bindL=()=>{const el=body();
+   $("#lBack").onclick=()=>{view="map";LS=null;render()};
+   const g=$("#lgo");if(g)g.onclick=done;
+   el.querySelectorAll(".drop").forEach(r=>r.onclick=()=>{if(sel!=null&&!tryDrop(sel,r))paint()});
+   el.querySelectorAll(".dchip").forEach(ch=>{const i=+ch.dataset.i;let gh=null,sx=null,moved=false;
+    ch.addEventListener("pointerdown",e=>{sx=e.clientX;sy0=e.clientY;moved=false;ch.setPointerCapture(e.pointerId)});
+    ch.addEventListener("pointermove",e=>{if(sx==null)return;if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy0)<8)return;
+     if(!moved){moved=true;gh=ch.cloneNode(true);gh.classList.add("ghostchip");document.body.appendChild(gh)}
+     gh.style.left=e.clientX+"px";gh.style.top=e.clientY+"px";el.querySelectorAll(".drop.hov").forEach(x=>x.classList.remove("hov"));gh.style.display="none";const r=document.elementFromPoint(e.clientX,e.clientY);gh.style.display="";const row=r&&r.closest(".drop");if(row)row.classList.add("hov")});
+    ch.addEventListener("pointerup",e=>{sx=null;if(!moved){sel=sel===i?null:i;paint();return}gh.style.display="none";const r=document.elementFromPoint(e.clientX,e.clientY);gh.remove();if(!tryDrop(i,r&&r.closest(".drop")))paint()});
+   });
+  };
+  let sy0=0;paint();return;
+ }
+ $("#lBack").onclick=()=>{view="map";LS=null;render()};
+}
 function startLesson(practice){
  const c=C();if(!practice&&(pending()||c.lv>LV.length))return;
- clearTimeout(nextT);LS={practice,lang:L(),items:roundItems(practice)};view="lesson";render();window.scrollTo({top:0});
+ clearTimeout(nextT);LS={practice,lang:L(),items:roundItems(practice),learn:!practice&&needLearn()?1:0};view="lesson";render();window.scrollTo({top:0});firstHelp();
 }
 function renderLesson(){
  const c=C(),Lg=L(),lv=LV[Math.min(c.lv,LV.length)-1];
  const head=LS.practice?ui("practice"):`${ui("level")} ${c.lv} · ${ui(c.part==="w"?"words":"sents")}`;
- body().innerHTML=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${LS.practice?esc(Lg==="es"?"Práctica":"Practice"):esc(lv.t[Lg])}</b><small>${LS.practice?"procvičování":`${esc(lv.t.cs)} · ${c.part==="w"?"slova":"věty"}`}</small></div></div><div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
+ body().innerHTML=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${LS.practice?esc(Lg==="es"?"Práctica":"Practice"):esc(lv.t[Lg])}</b><small>${LS.practice?"procvičování":`${esc(lv.t.cs)} · ${c.part==="w"?"slova":"věty"}`}</small></div>${helpBtn}</div>${LS.practice?"":`<div class="stepbar"><div class="segs"><i class="ok"></i><i class="ok"></i><i class="on"></i></div><span><b>3/3</b> ✏️ Napiš</span></div>`}<div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
  $("#lBack").onclick=()=>{clearTimeout(nextT);view="map";LS=null;render()};
  const list=$("#lList"),cards=[];
  LS.items.forEach(it=>{
@@ -508,6 +563,7 @@ function okFlash(){const f=document.createElement("div");f.className="okflash";f
 function holdPeek(root,def){if(!root)return;root.querySelectorAll(".hold").forEach(h=>{let t;const alt=h.dataset.alt||def,show=()=>{h.dataset.o=h.innerHTML;h.textContent=alt;h.classList.add("peek")},hide=()=>{clearTimeout(t);if(h.dataset.o!=null){h.innerHTML=h.dataset.o;delete h.dataset.o;h.classList.remove("peek")}};
  h.addEventListener("pointerdown",e=>{e.preventDefault();t=setTimeout(show,350)});["pointerup","pointerleave","pointercancel"].forEach(ev=>h.addEventListener(ev,hide));h.addEventListener("contextmenu",e=>e.preventDefault())})}
 function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
+ firstHelp();
  const c=C(),qs=c.qs||(c.qs={}),stt=qs[key]||(qs[key]={step:1}),q=c.quiz||(c.quiz={}),Lg=L();
  const done=!!q[key],[x0,y0,w,h]=vb,sw=w/400;
  let step=done?0:stt.step,practice=false;
@@ -567,11 +623,11 @@ function topicGame(el,{key,svg,vb,targets,sents,onDone,qa}){
   paint();
  }
  function fill(){
-  const order=shuffle(sents.slice());let k=0;
+  const order=shuffle(sents.slice()),dn=new Set();let k=0;
   const paint=()=>{
    const s=order[k],g=typeof s.g[Lg]==="function"?s.g[Lg](ctx()):s.g[Lg],[pre,post]=g[0].split("_");
-   el.innerHTML=bar()+scene(false,(t,i)=>i===s.ti?["cur",lab(t)]:["ok",lab(t)]);
-   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs hold" data-alt="${esc(tx(s,Lg).slice(0,3).join("  ·  "))}">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
+   el.innerHTML=bar()+scene(false,(t,i)=>i===s.ti?["cur","?"]:dn.has(i)?["ok",lab(t)]:["","&nbsp;"]);
+   askBox(`<p>${bi({en:"Fill in the missing word.",es:"Completa la palabra.",cs:"Doplň chybějící slovo."})} <span class="small">(${k+1}/${order.length})</span></p><p class="gcs hold" data-alt="${esc(tx(s,Lg).slice(0,3).join("  ·  "))}">${esc(tx(s,"cs"))}</p><p class="gap">${esc(pre)}<span>?</span>${esc(post)}</p>`,g[1],r=>{dn.add(s.ti);A.say(tx(s,Lg)[0]);k++;if(k===order.length)setTimeout(()=>go(5),600);else paint()});
   };
   paint();
  }
@@ -755,7 +811,7 @@ function tChips(k){const cur=tCur(k),first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)
  return `<div class="chips tchips">${TOPIC[k].map((t,i)=>{const open=first<0||i<=first;return `<button class="chip${i===cur?" on":""}" ${open?`data-act="tsel-${k}-${i}"`:"disabled"}>${tDone(k,i)?"✓":open?"":"🔒"} ${i+1}. ${esc(t.t[Lg])}</button>`}).join("")}</div>`}
 
 const coinPill=()=>`<span class="coin">🪙 ${C().coins}</span>`;
-function topHead(title,cs,extra=""){return `<div class="thead"><button class="ib" data-go="tomap" aria-label="Mapa">←</button><div class="tt"><b>${esc(title)}</b>${cs?`<small>${esc(cs)}</small>`:""}</div>${extra}</div>`}
+function topHead(title,cs,extra=""){return `<div class="thead"><button class="ib" data-go="tomap" aria-label="Mapa">←</button><div class="tt"><b>${esc(title)}</b>${cs?`<small>${esc(cs)}</small>`:""}</div>${extra}${helpBtn}</div>`}
 function lvNav(k){const cur=tCur(k),N=TOPIC[k].length,first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),lim=first<0?N-1:first,T=TOPIC[k][cur],Lg=L(),d=tDone(k,cur);
  return `<div class="lvnav"><button class="ib" ${cur>0?`data-act="tsel-${k}-${cur-1}"`:"disabled"} aria-label="Předchozí level">‹</button><div class="lvc"><div class="lvt"><span class="lvn">${Lg==="es"?"Nivel":"Level"} ${cur+1}<i>/${N}</i></span><b>${esc(T.t[Lg])}</b><small>${esc(T.t.cs)}</small></div><div class="lvd">${TOPIC[k].map((_,i)=>`<i class="${tDone(k,i)?"ok":""}${i===cur?" cur":""}${i>lim?" lk":""}"></i>`).join("")}<span class="rw">${d?"✓ hotovo":"🎁 20 🪙"}</span></div></div><button class="ib" ${cur<lim?`data-act="tsel-${k}-${cur+1}"`:"disabled"} aria-label="Další level">${cur<lim||cur+1>=N?"›":"🔒"}</button></div>`}
 const FURN={
