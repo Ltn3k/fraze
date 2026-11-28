@@ -15,7 +15,7 @@ const shuffle=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()
 // ── obsah levelů ──
 const W=(id,cs,en,es,pic,n)=>({t:"w",id,cs,en,es,pic,n});
 const T=(cs,en,es,pic,n)=>({t:"s",cs,en,es,pic,n});
-const LV=[
+const OLD=[
  {t:{en:"Hello!",es:"¡Hola!",cs:"Ahoj!"},
   story:{en:"Welcome to your new town! First: who are you?",es:"¡Bienvenido a tu nuevo pueblo! Primero: ¿quién eres?",cs:"Vítej ve svém novém městě! Nejdřív: kdo jsi?"},
   done:{en:"Now choose: man or woman?",es:"Ahora elige: ¿hombre o mujer?",cs:"Teď vyber: muž, nebo žena?"},
@@ -66,8 +66,19 @@ const LV=[
      T("Máte mléko?",["Do you have milk?","Have you got milk?","Do you have any milk?","Have you got any milk?"],["¿Tiene leche?","¿Tienen leche?","¿Hay leche?"],"🥛"),
      T("Potřebuji granule.",["I need pet food.","I need some pet food.","I need dog food.","I need cat food."],["Necesito comida para mascotas.","Necesito pienso."],"🦴")]}
 ];
-LV.forEach((lv,i)=>{lv.w.forEach(it=>{it.lv=i+1});lv.s.forEach((it,k)=>{it.lv=i+1;it.id=`l${i+1}s${k}`})});
-const ALL=LV.flatMap(l=>l.w.concat(l.s)),BYID=Object.fromEntries(ALL.map(i=>[i.id,i]));
+OLD.forEach((lv,i)=>{lv.w.forEach(it=>{it.lv=999});lv.s.forEach((it,k)=>{it.lv=999;it.id=`l${i+1}s${k}`})});
+// ── hlavní budova: kapitoly A1 z curriculum.js ──
+const CON=[[/\bI am\b/g,"I'm"],[/\bYou are\b/g,"You're"],[/\byou are\b/g,"you're"],[/\bHe is\b/g,"He's"],[/\bShe is\b/g,"She's"],[/\bIt is\b/g,"It's"],[/\bit is\b/g,"it's"],[/\bWe are\b/g,"We're"],[/\bThere is\b/g,"There's"],[/\bthere is\b/g,"there's"],[/\bWhat is\b/g,"What's"],[/\bWhere is\b/g,"Where's"],[/\bWho is\b/g,"Who's"],[/\bis not\b/g,"isn't"],[/\bdo not\b/g,"don't"],[/\bdoes not\b/g,"doesn't"],[/\bcannot\b/g,"can't"]];
+const UNCON=[[/\bdon't\b/g,"do not"],[/\bcan't\b/g,"cannot"],[/\bisn't\b/g,"is not"]];
+const expEN=list=>[...new Set(list.flatMap(x=>[x,CON.reduce((a,[r,b])=>a.replace(r,b),x),UNCON.reduce((a,[r,b])=>a.replace(r,b),x)]))];
+const LV=[],CHS=window.A1.map((ch,ci)=>({t:{en:ch.t[0],es:ch.t[1],cs:ch.t[2]},n:ci+1}));
+window.A1.forEach((ch,ci)=>ch.lv.forEach((l,li)=>{const n=LV.length+1,isS=!!l.tip;
+ LV.push({t:{en:l.t[0],es:l.t[1],cs:l.t[2]},ch:ci+1,li:li+1,tip:l.tip,story:li===0?{en:ch.story[0],es:ch.story[1],cs:ch.story[2]}:null,
+  w:l.it.map((r,k)=>({t:isS?"s":"w",id:`a${ci+1}_${li+1}_${k}`,cs:r[0],en:expEN(r[1].split("|")),es:r[2].split("|"),pic:r[3]||"",lv:n})),s:[]})}));
+const ALL=LV.flatMap(l=>l.w),BYID=Object.fromEntries(ALL.concat(OLD.flatMap(l=>l.w.concat(l.s))).map(i=>[i.id,i]));
+const PER_CH=4,NCH=CHS.length;
+// kapitola, jejíž test čeká (všechny 4 levely hotové, test ještě ne)
+const testPending=()=>{const c=C(),done=Math.min(c.lv-1,LV.length),k=Math.floor(done/PER_CH);return k>(c.ch||0)?(c.ch||0)+1:0};
 const GOODS={bread:{price:5,feed:25,pic:"🍞"},milk:{price:5,feed:35,pic:"🥛"},petfood:{price:10,feed:100,pic:"🦴"}};
 const PLOTS=[{id:"shop",en:"Shop",es:"Tienda",lv:6},{id:"market",en:"Market",es:"Mercado",lv:8},{id:"bus",en:"Bus stop",es:"Parada",lv:9},{id:"cafe",en:"Café",es:"Café",lv:10},{id:"zoo",en:"Zoo",es:"Zoo",lv:3},{id:"school",en:"School",es:"Escuela",lv:12},{id:"doctor",en:"Doctor",es:"Médico",lv:13},{id:"station",en:"Station",es:"Estación",lv:14}];
 
@@ -86,11 +97,12 @@ const writeIn=()=>L()==="es"?{es:"Escribe en español:",cs:"Napiš španělsky:"
 
 // ── stav ──
 const P=()=>{const s=S();return s.cityP||(s.cityP={})};
-function C(){const s=S();s.city2=s.city2||{};return s.city2[s.lang]||(s.city2[s.lang]={lv:1,part:"w",coins:0,st:{},pet:null,b:{},food:0,goods:{bread:0,milk:0,petfood:0}})}
+function C(){const s=S();s.city2=s.city2||{};const c=s.city2[s.lang]||(s.city2[s.lang]={v2:1,ch:0,lv:1,part:"w",coins:0,st:{},pet:null,b:{},goods:{bread:0,milk:0,petfood:0}});
+ if(!c.v2){c.v2=1;c.fogGone=c.lv>2;c.lv=1;c.part="w";c.ch=0;c.learned={};A.save()}return c}
 const save=()=>A.save();
 const ctx=()=>({name:P().name||"Alex",pet:C().pet&&C().pet.kind,g:P().g});
 const tx=(it,f)=>{const v=it[f];return typeof v==="function"?v(ctx()):v};
-const wallet=()=>C().lv>3;
+const wallet=()=>C().lv>1||C().ch>0;
 // odměny: 1. dokončení plně, 2. polovina, 3. a další čtvrtina (zlomky mincí se sčítají)
 const MULT=[1,.5,.25];
 const runs=key=>{const r=(C().runs||{})[key];return r!=null?r:((C().quiz||{})[key]?1:0)};
@@ -99,7 +111,7 @@ function pay(base,key){const c=C(),v=base*mult(key);c.cfrac=(c.cfrac||0)+v;const
 function finishRun(key){const c=C();c.runs=c.runs||{};c.runs[key]=runs(key)+1;save()}
 const fmt=v=>String(Math.round(v*100)/100).replace(".",",");
 function hunger(){const p=C().pet;if(!p||!p.ts)return 100;return Math.max(0,Math.round(p.h-(Date.now()-p.ts)/36e5*DECAY))}
-function pending(){const c=C();if(c.lv>1&&!P().g)return"avatar";if(c.lv>4&&!c.pet)return"pet";if(c.lv>6&&!c.b.shop)return"shop";return null}
+function pending(){const c=C();if(c.lv>1&&!P().g)return"avatar";if(c.ch>=4&&!c.pet)return"pet";if(c.ch>=4&&!c.b.shop)return"shop";return null}
 
 // ── kontrola ──
 function check(raw,answers,strip,needQ){
@@ -190,13 +202,13 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11280034 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11280817 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
-const avail=pl=>IMPL.includes(pl.id)&&(pl.id==="zoo"?C().lv>=3:C().lv>pl.lv);
-const needLv=pl=>pl.id==="zoo"?3:pl.lv+1;
-function slots(){const c=C();if(!c.slots){c.slots={};if(c.b.shop)c.slots.shop=0;if(c.lv>=3)c.slots.zoo=3;save()}return c.slots}
+const avail=pl=>IMPL.includes(pl.id)&&(C().ch>=needLv(pl)||(pl.id==="zoo"&&slots().zoo!=null));
+const needLv=pl=>pl.id==="zoo"?3:pl.id==="shop"?4:99;
+function slots(){const c=C();if(!c.slots){c.slots={};if(c.b.shop)c.slots.shop=0;if(c.ch>=3)c.slots.zoo=3;save()}return c.slots}
 const pendingPick=()=>PLOTS.find(pl=>avail(pl)&&slots()[pl.id]==null);
 const freeSlots=()=>{const u=Object.values(slots());return SLOTP.map((_,k)=>k).filter(k=>!u.includes(k))};
 // denní doba: night · blue · day · gold
@@ -217,29 +229,29 @@ function walkSVG(p,c){
 }
 function mapSVG(pick){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11280034" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11280817" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
   else out.push(`<g class="tap" data-act="build-${pl.id}" ${T}><g transform="translate(0,6)">${siteArt()}</g><g class="pulse" transform="translate(0,-14)">${badge("+","g",13)}</g>${banner(pl[Lg],26)}</g>`);
  });
  const walking=!pick&&c.walkNow&&p.g;
- out.push(`<g class="tap" data-act="house" transform="translate(200,168)"><rect x="-42" y="-50" width="84" height="80" fill="transparent"/>${banner(p.name||(Lg==="es"?"Casa":"Home"),48)}<g transform="translate(34,-46)">${badge(c.lv,"",12)}</g></g>`);
+ out.push(`<g class="tap" data-act="house" transform="translate(200,168)"><rect x="-42" y="-50" width="84" height="80" fill="transparent"/>${banner(p.name||(Lg==="es"?"Casa":"Home"),48)}<g transform="translate(34,-46)">${badge(c.ch||0,"",12)}</g></g>`);
  if(c.own&&c.own.home)out.push(`<g transform="translate(128,210)">${c.pet&&c.pet.kind==="cat"?`<ellipse cy="10" rx="18" ry="7" fill="#e86f9a"/><ellipse cy="7" rx="12" ry="4.5" fill="#f7d3e4"/>`:`<g transform="scale(.45)">${bld({w:30,h:20,dx:10,dy:7,rh:10,wall:"#c98b4f",side:"#a86f3a",front:`<path d="M-6 0v-9a6 6 0 0 1 12 0v9z" fill="#3a2a1a"/>`})}</g>`}</g>`);
- if(c.pet&&c.lv>5)out.push(`<g transform="translate(150,214)"><ellipse rx="10" ry="4" fill="#5b8fd6"/><ellipse cy="-2" rx="7.5" ry="2.3" fill="${hunger()>40?"#b8864a":"#cfe0f5"}"/></g>`);
+ if(c.pet)out.push(`<g transform="translate(150,214)"><ellipse rx="10" ry="4" fill="#5b8fd6"/><ellipse cy="-2" rx="7.5" ry="2.3" fill="${hunger()>40?"#b8864a":"#cfe0f5"}"/></g>`);
  if(walking)out.push(walkSVG(p,c));
  else{
   if(p.g)out.push(`<g class="tap" data-act="me" transform="translate(236,166) scale(.36)"><ellipse cx="50" cy="132" rx="30" ry="8" fill="rgba(40,60,20,.25)"/>${AV(p.g)}</g>`);
-  if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(126,166) scale(.5)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${c.lv>5&&h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`)}
+  if(c.pet){const h=hunger();out.push(`<g class="tap" data-act="pet" transform="translate(126,166) scale(.5)">${PETSVG(c.pet.kind,c.own&&c.own.collar,FURC[c.fur])}${h<40?`<g transform="translate(46,-6)"><circle r="14" fill="#fff" stroke="#e0614f" stroke-width="3"/><text y="6" text-anchor="middle" font-size="18" font-weight="700" fill="#e0614f">!</text></g>`:""}</g>`)}
  }
  out.push(`<g pointer-events="none">${todLayer(t)}</g>`);
  if(pick)freeSlots().forEach(k=>{const[x,y]=sp(k);out.push(`<g class="tap" data-act="slot-${k}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><rect x="-40" y="-32" width="80" height="64" rx="10" fill="rgba(255,255,255,.28)" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 5"/><g class="pulse">${badge("+","g",14)}</g></g>`)});
- if(!pick&&(c.lv<=2||c.unfog)){
+ if(!pick&&((!c.ch&&!c.fogGone)||c.unfog)){
   out.push(`<defs><mask id="fm"><rect width="400" height="400" fill="#fff"/><ellipse cx="200" cy="175" rx="84" ry="78" fill="#000"/></mask></defs><g class="${c.unfog?"fogout":""}" mask="url(#fm)" pointer-events="none"><rect width="400" height="400" fill="#eef2f7" opacity=".96"/>${[[90,80],[300,70],[80,290],[320,300],[200,360],[200,30],[40,180],[360,180]].map(([x,y])=>`<g transform="translate(${x},${y})" fill="#fff"><circle r="34"/><circle cx="-30" cy="10" r="24"/><circle cx="30" cy="10" r="26"/></g>`).join("")}</g>`);
  }
  return `<svg class="map tod-${t}" viewBox="0 0 400 400" role="img" aria-label="Map">${out.join("")}</svg>`;
 }
-function nextUnlocks(){const c=C();return PLOTS.filter(pl=>IMPL.includes(pl.id)&&!avail(pl)).map(pl=>`<span class="unl">🔒 ${PIC[pl.id]} ${esc(pl[L()])} <i>lvl ${needLv(pl)}</i></span>`).join("")}
+function nextUnlocks(){const c=C();return PLOTS.filter(pl=>IMPL.includes(pl.id)&&!avail(pl)).map(pl=>`<span class="unl">🔒 ${PIC[pl.id]} ${esc(pl[L()])} <i>kap. ${needLv(pl)}</i></span>`).join("")}
 function renderPick(pl){
  body().innerHTML=`<div class="pickh"><span class="pbig">${PIC[pl.id]}</span><div><b>${bi({en:`Where shall we build the ${pl.en.toLowerCase()}?`,es:`¿Dónde construimos ${pl.id==="zoo"?"el zoo":"la tienda"}?`,cs:`Kde postavíme ${pl.id==="zoo"?"zoo":"obchod"}?`})}</b><span class="small">Klepni na volnou parcelu.</span></div></div><div class="mapwrap">${mapSVG(true)}</div>`;
 }
@@ -292,6 +304,7 @@ function render(){
  $("#city").dataset.v=P().name?(view==="lesson"&&!LS?"map":view):"start";
  if(!P().name)return renderStart();
  if(view==="lesson"&&LS)return LS.learn?renderLearn():renderLesson();
+ if(view==="test"&&TS)return renderTest();
  if(view==="house")return renderHouse();
  if(view==="me")return renderMe();
  if(view==="petv")return renderPetV();
@@ -306,21 +319,23 @@ function renderStart(){
  const go=()=>{const n=$("#avName").value.trim();if(!n)return A.toast("Napiš svoje jméno");P().name=n;save();render();storyModal(1)};
  $("#avGo").onclick=go;$("#avName").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
 }
-function storyModal(n){if(n>LV.length)return;const lv=LV[n-1];info(`${ui("level")} ${n}: ${bi(lv.t)}`,bi(lv.story),"start")}
+function storyModal(n){if(testPending())return testInfo();if(n>LV.length)return;const lv=LV[n-1];if(!lv.story)return;info(`${bi({en:"Chapter",es:"Capítulo",cs:"Kapitola"})} ${lv.ch}: ${bi(CHS[lv.ch-1].t)}`,bi(lv.story),"start")}
 function renderMap(){
  const c=C(),cards=[],pend=pending(),pk=pendingPick();
  if(pk&&P().g){if(c.unfog){c.unfog=false;save()}return renderPick(pk)}
  if(c.walkPend){delete c.walkPend;c.walkNow=Math.random()<.6;save()}else if(c.walkNow){c.walkNow=false;save()}
- if(pend==="avatar")cards.push(`<div class="ccard act"><div><b>${bi(LV[0].done)}</b></div><button class="btn" data-go="avatar">${ui("next")}</button></div>`);
- if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi(LV[3].done)}</b><span>${COST.pet} 🪙</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
- if(pend==="shop")cards.push(`<div class="ccard act"><div><b>${bi(LV[5].done)}</b><span>${COST.shop} 🪙</span></div><button class="btn" data-go="build-shop">${ui("build")}</button></div>`);
- if(c.pet&&c.lv>5&&hunger()<40)cards.push(`<div class="ccard warn"><div><b>${bi({en:`${c.pet.name} is hungry!`,es:`¡${c.pet.name} tiene hambre!`,cs:`${c.pet.name} má hlad!`})}</b></div><button class="btn" data-go="pet">🦴</button></div>`);
- if(c.lv<=LV.length){
-  const lv=LV[c.lv-1],nw=lv[c.part],prog=nw.reduce((a,i)=>a+Math.min(st(i.id).c,NEED),0);
-  cards.push(`<div class="ccard main"><div><span class="kap">${ui("level")} ${c.lv} · ${ui(c.part==="w"?"words":"sents")}</span><b>${bi(lv.t)}</b><span>${bi(lv.story)}</span>
+ if(pend==="avatar")cards.push(`<div class="ccard act"><div><b>${bi(OLD[0].done)}</b></div><button class="btn" data-go="avatar">${ui("next")}</button></div>`);
+ if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi(OLD[3].done)}</b><span>${COST.pet} 🪙</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
+ if(pend==="shop")cards.push(`<div class="ccard act"><div><b>${bi(OLD[5].done)}</b><span>${COST.shop} 🪙</span></div><button class="btn" data-go="build-shop">${ui("build")}</button></div>`);
+ if(c.pet&&hunger()<40)cards.push(`<div class="ccard warn"><div><b>${bi({en:`${c.pet.name} is hungry!`,es:`¡${c.pet.name} tiene hambre!`,cs:`${c.pet.name} má hlad!`})}</b></div><button class="btn" data-go="pet">🦴</button></div>`);
+ const tp=testPending();
+ if(tp)cards.push(`<div class="ccard main"><div><span class="kap">${bi({en:"Chapter",es:"Capítulo",cs:"Kapitola"})} ${tp} · test</span><b>${bi({en:"Chapter test",es:"Examen del capítulo",cs:"Test kapitoly"})}</b><span>${esc(CHS[tp-1].t.cs)}: shrnutí všeho, co ses v kapitole naučil${P().g==="f"?"a":""}. Po testu se zvedne hlavní level.</span></div>${pend?`<span class="small">Nejdřív dokonči úkol výš.</span>`:`<button class="btn" data-go="test">${bi({en:"Start",es:"Empezar",cs:"Začít"})}</button>`}</div>`);
+ else if(c.lv<=LV.length){
+  const lv=LV[c.lv-1],nw=lv.w;
+  cards.push(`<div class="ccard main"><div><span class="kap">${bi({en:"Chapter",es:"Capítulo",cs:"Kapitola"})} ${lv.ch} · level ${lv.li}/${PER_CH}</span><b>${bi(lv.t)}</b><span>${esc(CHS[lv.ch-1].t.cs)} · ${nw[0].t==="w"?"nová slova":"věty"}</span>
    <div class="pre">${nw.map(i=>`<span class="pchip">${pic(i.pic)}<i>${"●".repeat(Math.min(st(i.id).c,NEED))}${"○".repeat(NEED-Math.min(st(i.id).c,NEED))}</i></span>`).join("")}</div></div>
-   ${pend?`<span class="small">Nejdřív dokonči úkol výš.</span>`:`<button class="btn" data-go="lesson">${ui(prog?"next":"start")}</button>`}</div>`);
- }else cards.push(`<div class="ccard"><div><span class="kap">${ui("level")} 8</span><b>${ui("soon")}</b><span>Další levely připravujeme. Zatím si procvičuj a vydělávej.</span></div><button class="btn" data-go="practice">${ui("practice")}</button></div>`);
+   ${pend?`<span class="small">Nejdřív dokonči úkol výš.</span>`:`<button class="btn" data-go="lesson">${ui(nw.some(i=>st(i.id).c)?"next":"start")}</button>`}</div>`);
+ }else cards.push(`<div class="ccard"><div><span class="kap">A1 ✓</span><b>${bi({en:"Level A1 complete!",es:"¡Nivel A1 completado!",cs:"Úroveň A1 hotová!"})}</b><span>Další úroveň připravujeme. Zatím procvičuj v budovách.</span></div><button class="btn" data-go="practice">${ui("practice")}</button></div>`);
  const nu=nextUnlocks();
  body().innerHTML=`<div class="mapwrap">${mapSVG()}</div>${nu?`<div class="unls">${nu}</div>`:""}<div class="cards">${cards.join("")}</div>`;
  if(c.unfog)setTimeout(()=>{c.unfog=false;save()},1700);
@@ -330,6 +345,7 @@ document.addEventListener("click",e=>{
  const t=e.target.closest("[data-act],[data-go]");if(!t)return;
  const a=t.dataset.act||t.dataset.go;
  if(a==="lesson")return startLesson(false);
+ if(a==="test")return testInfo();
  if(a==="practice")return startLesson(true);
  if(a==="avatar")return chooseAvatar();
  if(a==="pet-adopt")return adopt();
@@ -383,13 +399,34 @@ const helpBtn=`<button class="ib" data-act="help" aria-label="Nápověda">?</but
 // ── nová látka: ukázat → spojit, pak lekce (psaní) ──
 function needLearn(){const c=C();if(c.lv>LV.length)return false;const k=c.lv+c.part,nw=LV[c.lv-1][c.part];c.learned=c.learned||{};return !c.learned[k]&&!nw.some(i=>st(i.id).c>0)}
 function renderLearn(){
- const c=C(),Lg=L(),lv=LV[c.lv-1],nw=LV[c.lv-1][c.part],isW=c.part==="w",k=c.lv+c.part;
- const S3=[["📖","Uč se"],["🔀","Spoj"],["✏️","Napiš"]],step=LS.learn;
- const bar=`<div class="stepbar"><div class="segs">${S3.map((_,i)=>`<i class="${i<step-1?"ok":i===step-1?"on":""}"></i>`).join("")}</div><span><b>${step}/3</b> ${S3[step-1][0]} ${S3[step-1][1]}</span></div>`;
+ const c=C(),Lg=L(),lv=LV[c.lv-1],nw=LV[c.lv-1][c.part],isW=nw[0].t==="w",k=c.lv+c.part;
+ const S3=isW?[["📖","Uč se"],["🔀","Spoj"],["✏️","Napiš"]]:[["📖","Uč se"],["🔀","Spoj"],["🧩","Slož"],["✏️","Napiš"]],step=LS.learn;
+ const bar=`<div class="stepbar"><div class="segs">${S3.map((_,i)=>`<i class="${i<step-1?"ok":i===step-1?"on":""}"></i>`).join("")}</div><span><b>${step}/${S3.length}</b> ${S3[step-1][0]} ${S3[step-1][1]}</span></div>`;
  const head=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${esc(lv.t[Lg])}</b><small>${isW?"nová slova":"nové věty"}</small></div>${helpBtn}</div>`;
  const done=()=>{c.learned=c.learned||{};c.learned[k]=1;save();LS.learn=0;render()};
+ if(step===3){
+  // skládání vět z dlaždic
+  const q=LS.cq||(LS.cq={i:0,order:shuffle(nw.map((_,i)=>i))});
+  const it=nw[q.order[q.i]],full=tx(it,Lg)[0],toks=full.replace(/[¿¡?.!,]/g,"").split(/\s+/).filter(Boolean);
+  if(!q.pool||q.for!==q.i){q.for=q.i;q.pool=shuffle(toks.map((t,j)=>({t,j})));q.built=[]}
+  const paint=()=>{
+   body().innerHTML=head+bar+`<p class="small" style="margin:0 4px 8px">Slož větu z dlaždic ve správném pořadí. <b>${q.i+1}/${nw.length}</b></p>
+   <div class="ccard cmp"><div class="cmpcz">${esc(tx(it,"cs"))}</div><div class="cmpline">${q.built.map((b,j)=>`<button class="dchip on" data-b="${j}">${esc(b.t)}</button>`).join("")||`<span class="small">Klepni na slova dole…</span>`}</div></div>
+   <div class="dtray cmptray">${q.pool.filter(x=>!q.built.includes(x)).map(x=>`<button class="dchip" data-p="${x.j}">${esc(x.t)}</button>`).join("")}</div>
+   <div style="text-align:center;margin-top:8px"><button class="btn ghost sm" id="cRes2">↺ Znovu</button></div>`;
+   $("#lBack").onclick=()=>{view="map";LS=null;render()};
+   $("#cRes2").onclick=()=>{q.built=[];paint()};
+   body().querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{q.built.push(q.pool.find(x=>x.j===+b.dataset.p));
+    if(q.built.length===toks.length){const ok=q.built.map(x=>x.t.toLowerCase()).join(" ")===toks.map(t=>t.toLowerCase()).join(" ");
+     if(ok){okFlash();A.say(full);paint();setTimeout(()=>{q.i++;if(q.i>=nw.length){LS.cq=null;done()}else render()},700);return}
+     paint();const ln=body().querySelector(".cmpline");ln.classList.add("bad");setTimeout(()=>{q.built=[];paint()},650);return}
+    paint()});
+   body().querySelectorAll("[data-b]").forEach(b=>b.onclick=()=>{q.built.splice(+b.dataset.b,1);paint()});
+  };
+  return paint();
+ }
  if(step===1){
-  body().innerHTML=head+bar+`<div class="lrn">${nw.map(it=>`<div class="lcard">${isW?`<div class="cpic">${pic(it.pic)}</div>`:""}<div class="lt"><span class="lcz">${esc(tx(it,"cs"))}</span><span class="lfo">${tx(it,Lg).slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("")}</span></div><button class="say" data-say="${esc(tx(it,Lg)[0])}" aria-label="Přehrát">${A.SPK}</button></div>`).join("")}</div>
+  body().innerHTML=head+bar+(lv.tip&&lv.tip[Lg]?`<div class="tipc"><b>💡 Jak na to</b><p>${esc(lv.tip[Lg])}</p></div>`:"")+`<div class="lrn">${nw.map(it=>`<div class="lcard">${isW?`<div class="cpic">${pic(it.pic)}</div>`:""}<div class="lt"><span class="lcz">${esc(tx(it,"cs"))}</span><span class="lfo">${tx(it,Lg).slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("")}</span></div><button class="say" data-say="${esc(tx(it,Lg)[0])}" aria-label="Přehrát">${A.SPK}</button></div>`).join("")}</div>
   <button class="btn wide" id="lnext" style="margin-top:12px">Dál → spojování</button>`;
   body().querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>A.say(b.dataset.say));
   $("#lnext").onclick=()=>{LS.learn=2;render()};
@@ -398,15 +435,15 @@ function renderLearn(){
   const paint=()=>{
    body().innerHTML=head+bar+`<p class="small" style="margin:0 4px 8px">Přetáhni ${Lg==="es"?"španělský":"anglický"} překlad na české ${isW?"slovo":"větu"} (nebo klepni na překlad a pak na ${isW?"slovo":"větu"}).</p>
    <div class="dlist">${nw.map((it,i)=>`<div class="drow drop${solved.has(i)?" ok":""}" data-i="${i}">${isW?`<div class="cpic sm">${pic(it.pic)}</div>`:""}<span class="cz">${esc(tx(it,"cs"))}</span><span class="slot">${solved.has(i)?esc(tx(it,Lg)[0]):""}</span></div>`).join("")}</div>
-   <div class="dtray">${order.filter(i=>!solved.has(i)).map(i=>`<button class="dchip${sel===i?" sel":""}" data-i="${i}">${esc(tx(nw[i],Lg)[0])}</button>`).join("")||`<button class="btn" id="lgo">✏️ Teď to napiš</button>`}</div>`;
+   <div class="dtray">${order.filter(i=>!solved.has(i)).map(i=>`<button class="dchip${sel===i?" sel":""}" data-i="${i}">${esc(tx(nw[i],Lg)[0])}</button>`).join("")||`<button class="btn" id="lgo">${isW?"✏️ Teď to napiš":"🧩 Teď slož věty"}</button>`}</div>`;
    bindL();
   };
   const tryDrop=(i,row)=>{if(!row||row.classList.contains("ok"))return false;const j=+row.dataset.i;
-   if(i===j){solved.add(i);sel=null;okFlash();A.say(tx(nw[i],Lg)[0]);paint();return true}
+   if(i===j||tx(nw[i],Lg)[0]===tx(nw[j],Lg)[0]){solved.add(j);if(i!==j){const oi=LS.order.indexOf(i),oj=LS.order.indexOf(j);LS.order[oi]=j;LS.order[oj]=i}sel=null;okFlash();A.say(tx(nw[j],Lg)[0]);paint();return true}
    row.classList.add("bad");setTimeout(()=>row.classList.remove("bad"),400);sel=null;return false};
   const bindL=()=>{const el=body();
    $("#lBack").onclick=()=>{view="map";LS=null;render()};
-   const g=$("#lgo");if(g)g.onclick=done;
+   const g=$("#lgo");if(g)g.onclick=isW?done:()=>{LS.learn=3;render()};
    el.querySelectorAll(".drop").forEach(r=>r.onclick=()=>{if(sel!=null&&!tryDrop(sel,r))paint()});
    el.querySelectorAll(".dchip").forEach(ch=>{const i=+ch.dataset.i;let gh=null,sx=null,moved=false;
     ch.addEventListener("pointerdown",e=>{sx=e.clientX;sy0=e.clientY;moved=false;ch.setPointerCapture(e.pointerId)});
@@ -421,13 +458,13 @@ function renderLearn(){
  $("#lBack").onclick=()=>{view="map";LS=null;render()};
 }
 function startLesson(practice){
- const c=C();if(!practice&&(pending()||c.lv>LV.length))return;
+ const c=C();if(!practice&&(pending()||c.lv>LV.length||testPending()))return;
  clearTimeout(nextT);LS={practice,lang:L(),items:roundItems(practice),learn:!practice&&needLearn()?1:0};view="lesson";render();window.scrollTo({top:0});firstHelp();
 }
 function renderLesson(){
  const c=C(),Lg=L(),lv=LV[Math.min(c.lv,LV.length)-1];
  const head=LS.practice?ui("practice"):`${ui("level")} ${c.lv} · ${ui(c.part==="w"?"words":"sents")}`;
- body().innerHTML=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${LS.practice?esc(Lg==="es"?"Práctica":"Practice"):esc(lv.t[Lg])}</b><small>${LS.practice?"procvičování":`${esc(lv.t.cs)} · ${c.part==="w"?"slova":"věty"}`}</small></div>${helpBtn}</div>${LS.practice?"":`<div class="stepbar"><div class="segs"><i class="ok"></i><i class="ok"></i><i class="on"></i></div><span><b>3/3</b> ✏️ Napiš</span></div>`}<div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
+ body().innerHTML=`<div class="thead"><button class="ib" id="lBack" aria-label="Mapa">←</button><div class="tt"><b>${LS.practice?esc(Lg==="es"?"Práctica":"Practice"):esc(lv.t[Lg])}</b><small>${LS.practice?"procvičování":`${esc(lv.t.cs)} · ${lv.w[0].t==="w"?"slova":"věty"}`}</small></div>${helpBtn}</div>${LS.practice?"":(n=>`<div class="stepbar"><div class="segs">${"<i class='ok'></i>".repeat(n-1)}<i class="on"></i></div><span><b>${n}/${n}</b> ✏️ Napiš</span></div>`)(lv.w[0].t==="w"?3:4)}<div id="lList"></div><p class="help">Podrž český text pro nápovědu (bez odměny) · Enter = zkontrolovat</p>`;
  $("#lBack").onclick=()=>{clearTimeout(nextT);view="map";LS=null;render()};
  const list=$("#lList"),cards=[];
  LS.items.forEach(it=>{
@@ -470,26 +507,69 @@ function roundDone(){
  if(LS.practice){A.toast(L()==="es"?"Otra ronda":"Next round");return startLesson(true)}
  const nw=LV[c.lv-1][c.part];
  if(!nw.every(i=>st(i.id).c>=NEED)){A.toast(L()==="es"?"Otra ronda":"Next round");return startLesson(false)}
- if(c.part==="w"){
+ if(c.part==="w"&&LV[c.lv-1].s.length){
   c.part="s";save();
   return info(`${ui("words")}: ${ui("done")}`,bi({en:"Now: sentences with the same words.",es:"Ahora: frases con las mismas palabras.",cs:"Teď věty se stejnými slovy."}),"next",()=>startLesson(false));
  }
  levelDone();
 }
+// ── test kapitoly ──
+let TS=null;
+const TCFG=ch=>ch>=NCH?{n:30,choice:6,pass:.8,old:.6}:ch<=3?{n:10,choice:6,pass:.7,old:.2}:ch<=7?{n:15,choice:5,pass:.8,old:.3}:{n:20,choice:5,pass:.8,old:.4};
+function testInfo(){const ch=testPending();if(!ch)return;const g=TCFG(ch);
+ openModal(`<h2>${bi({en:`Chapter ${ch} test`,es:`Examen del capítulo ${ch}`,cs:`Test kapitoly ${ch}`})}</h2><p>${esc(CHS[ch-1].t.cs)}: ${g.n} otázek, nejdřív výběr, pak psaní. Na postup potřebuješ ${Math.round(g.pass*100)} %.</p><p class="small">V testu není nápověda a každá odpověď se píše jen jednou, rovnou přesně${L()==="es"?" (i s diakritikou)":""}. Když to nevyjde, ukážu ti chyby a můžeš to zkusit znovu.</p><button class="btn wide" id="tgo">${bi({en:"Start the test",es:"Empezar",cs:"Začít test"})}</button>`,b=>b.querySelector("#tgo").onclick=()=>{closeModal();startTest()})}
+function startTest(){const ch=testPending();if(!ch)return;const g=TCFG(ch);
+ const cur=LV.filter(l=>l.ch===ch).flatMap(l=>l.w),old=LV.filter(l=>l.ch<ch).flatMap(l=>l.w);
+ const nOld=old.length?Math.round(g.n*g.old):0,items=shuffle(cur.slice()).slice(0,g.n-nOld).concat(shuffle(old.slice()).slice(0,nOld));
+ const words=shuffle(items.filter(i=>i.t==="w")),sents=shuffle(items.filter(i=>i.t==="s"));
+ const ordered=words.concat(sents),qs=ordered.map((it,k)=>({it,mode:k<g.choice?"c":"t"}));
+ qs.forEach(q=>{if(q.mode==="c"){const pool=ALL.filter(x=>x.t===q.it.t&&x.lv<C().lv&&tx(x,L())[0]!==tx(q.it,L())[0]);q.opts=shuffle([tx(q.it,L())[0]].concat(shuffle(pool.slice()).slice(0,3).map(x=>tx(x,L())[0])))}});
+ TS={ch,qs,i:0,ok:0,wrong:[],ans:null};view="test";render();window.scrollTo({top:0});
+}
+function renderTest(){
+ const q=TS.qs[TS.i],Lg=L(),it=q.it,N=TS.qs.length,ans=tx(it,Lg);
+ const head=`<div class="thead"><button class="ib" id="tBack" aria-label="Mapa">←</button><div class="tt"><b>${bi({en:`Test ${TS.ch}`,es:`Examen ${TS.ch}`,cs:`Test ${TS.ch}`})}</b><small>${esc(CHS[TS.ch-1].t.cs)}</small></div></div>
+ <div class="stepbar"><div class="tprog"><i style="width:${TS.i/N*100}%"></i></div><span><b>${TS.i+1}/${N}</b> ✓ ${TS.ok}</span></div>`;
+ const fb=TS.ans?`<div class="tfb ${TS.ans.ok?"ok":"no"}">${TS.ans.ok?"✓ Správně":`✗ Správně je: <b>${esc(ans[0])}</b>`}</div>${TS.ans.ok?"":`<button class="btn wide" id="tnext" style="margin-top:10px">Dál →</button>`}`:"";
+ let main;
+ if(q.mode==="c")main=`<p class="small">${bi({en:"Choose the translation.",es:"Elige la traducción.",cs:"Vyber překlad."})}</p><div class="topts">${q.opts.map((o,k)=>`<button class="topt${TS.ans?(o===ans[0]?" ok":TS.ans.pick===k?" no":""):""}" data-o="${k}" ${TS.ans?"disabled":""}>${esc(o)}</button>`).join("")}</div>`;
+ else main=`<p class="small">${bi({en:"Write it.",es:"Escríbelo.",cs:"Napiš překlad."})} <span class="tag st">${Lg==="es"?"přesně, s diakritikou":"přesně"}</span></p><textarea class="tin tta" rows="1" autocomplete="off" autocapitalize="off" spellcheck="false" ${TS.ans?"readonly":""}>${TS.ans?esc(TS.ans.val):""}</textarea>${TS.ans?"":`<button class="btn wide" id="tok" style="margin-top:8px">${bi({en:"Check",es:"Comprobar",cs:"Zkontrolovat"})}</button>`}`;
+ body().innerHTML=head+`<div class="ccard tq"><div class="tqcz">${it.t==="w"&&it.pic?`<span class="cpic sm">${pic(it.pic)}</span>`:""}<b>${esc(tx(it,"cs"))}</b></div>${main}${fb}</div>`;
+ $("#tBack").onclick=()=>{view="map";TS=null;render()};
+ const next=()=>{TS.i++;TS.ans=null;if(TS.i>=N)return testFinish();render()};
+ const answer=(ok,extra)=>{if(TS.ans)return;TS.ans=Object.assign({ok},extra);if(ok){TS.ok++;okFlash();A.say(ans[0])}else TS.wrong.push({it,val:extra.val!=null?extra.val:q.opts[extra.pick]});render();if(ok)setTimeout(next,750)};
+ if(TS.ans&&!TS.ans.ok)$("#tnext").onclick=next;
+ if(q.mode==="c"&&!TS.ans)body().querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{const k=+b.dataset.o;answer(q.opts[k]===ans[0],{pick:k})});
+ if(q.mode==="t"&&!TS.ans){const inp=body().querySelector(".tta");const strict=v=>check(v,ans,it.t==="w",true).s==="ok";
+  inp.addEventListener("input",()=>{inp.value=inp.value.replace(/\s*\n\s*/g," ");if(strict(inp.value))answer(true,{val:inp.value})});
+  const sub=()=>{if(!inp.value.trim())return;answer(strict(inp.value),{val:inp.value})};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();sub()}});$("#tok").onclick=sub;setTimeout(()=>inp.focus({preventScroll:true}),60)}
+}
+function testFinish(){
+ const g=TCFG(TS.ch),N=TS.qs.length,sc=TS.ok/N,pct=Math.round(sc*100);
+ if(sc>=g.pass)return chapterDone(TS.ch,pct);
+ body().innerHTML=`<div class="thead"><button class="ib" id="tBack" aria-label="Mapa">←</button><div class="tt"><b>${pct} %</b><small>na postup je potřeba ${Math.round(g.pass*100)} %</small></div></div>
+ <div class="ccard"><div><b>Tentokrát to nevyšlo, ale nevadí.</b><span>Tady jsou chyby. Zopakuj si je a zkus test znovu – je zdarma.</span></div></div>
+ <div class="dlist" style="margin-top:8px">${TS.wrong.map(w=>`<div class="drow"><span class="cz">${esc(tx(w.it,"cs"))}</span><span class="en" style="flex:1;text-align:right"><s style="opacity:.55">${esc(w.val||"")}</s><br>${esc(tx(w.it,L())[0])}</span></div>`).join("")}</div>
+ <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="tMap" style="flex:1">← Mapa</button><button class="btn" id="tAgain" style="flex:1">Zkusit znovu</button></div>`;
+ $("#tBack").onclick=$("#tMap").onclick=()=>{view="map";TS=null;render()};$("#tAgain").onclick=()=>{TS=null;startTest()};
+}
+const UNLOCK={1:{en:"The fog is gone! Your house is open.",es:"¡La niebla se fue! Tu casa está abierta.",cs:"Mlha zmizela! Dům a postava jsou otevřené."},3:{en:"The zoo is open!",es:"¡El zoo está abierto!",cs:"Otevřela se zoo!"},4:{en:"Now you can get a pet and build a shop!",es:"¡Ya puedes tener una mascota y construir una tienda!",cs:"Teď si můžeš pořídit mazlíčka a postavit obchod!"},10:{en:"You finished A1!",es:"¡Terminaste el A1!",cs:"Dokončil(a) jsi úroveň A1!"}};
+function chapterDone(ch,pct){
+ const c=C();c.ch=Math.max(c.ch||0,ch);if(ch===1)c.unfog=true;const v=pay(10,"T"+ch);c.walkPend=1;save();TS=null;view="map";render();window.scrollTo({top:0});
+ party(bi({en:`CHAPTER ${ch}`,es:`CAPÍTULO ${ch}`,cs:`KAPITOLA ${ch}`}),`✓ ${pct} % · +${fmt(v)} 🪙`,bi(UNLOCK[ch]||{en:"Main level up!",es:"¡Subes de nivel!",cs:"Hlavní level o jeden výš!"}),A.CRIT[ch%A.CRIT.length],3200).then(()=>{
+  if(view!=="map")return;const pend=pending();if(pend==="avatar")return chooseAvatar();if(pendingPick())return render();storyModal(c.lv)});
+}
 function levelDone(){
  const c=C(),n=c.lv,lv=LV[n-1];
  c.lv++;c.part="w";c.coins+=BONUS;c.walkPend=1;
- if(n===2)c.unfog=true;
- if(n===5){if(c.pet){c.pet.h=60;c.pet.ts=Date.now()}}
  save();view="map";LS=null;render();window.scrollTo({top:0});
- let sub=bi(lv.done);
- if(n===3)sub=bi({en:`You have ${c.coins} coins!`,es:`¡Tienes ${c.coins} monedas!`,cs:`Máš ${c.coins} mincí, které sis zatím vydělal${P().g==="f"?"a":""}!`});
- party(`${L()==="es"?"NIVEL":"LEVEL"} ${n}`,`✓ ${esc(lv.t[L()])}`,sub,A.CRIT[n%A.CRIT.length]).then(()=>{
+ const last=n%PER_CH===0;
+ const sub=last?bi({en:"Chapter finished! Now the chapter test.",es:"¡Capítulo terminado! Ahora el examen.",cs:"Kapitola hotová! Teď test kapitoly."}):bi({en:`Next: ${LV[n].t.en}`,es:`Ahora: ${LV[n].t.es}`,cs:`Další: ${LV[n].t.cs}`});
+ party(`${L()==="es"?"NIVEL":"LEVEL"} ${lv.ch}.${lv.li}`,`✓ ${esc(lv.t[L()])}`,sub,A.CRIT[n%A.CRIT.length]).then(()=>{
   if(view!=="map")return;
   const pend=pending();
   if(pend==="avatar")return chooseAvatar();
-  if(pend==="pet")return adopt();
-  if(pend==="shop")return build();
   storyModal(c.lv);
  });
 }
@@ -526,12 +606,12 @@ function build(){
 function shop(knowPrice){
  const c=C(),Lg=L();
  const greet={en:"Hello! What would you like?",es:"¡Hola! ¿Qué desea?",cs:"Dobrý den! Co si přejete?"};
- if(c.lv<=7)return openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi({en:"Hello! Sorry, the shelves are empty.",es:"¡Hola! Lo siento, no hay nada.",cs:"Dobrý den! Promiň, regály jsou zatím prázdné."})}</div></div><p class="small">Zboží přibude po levelu 7.</p><button class="btn ghost wide" data-close>${ui("close")}</button>`);
+ if(c.ch<4)return openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi({en:"Hello! Sorry, the shelves are empty.",es:"¡Hola! Lo siento, no hay nada.",cs:"Dobrý den! Promiň, regály jsou zatím prázdné."})}</div></div><p class="small">Zboží přibude po levelu 7.</p><button class="btn ghost wide" data-close>${ui("close")}</button>`);
  openModal(`<div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi(greet)}</div></div>
   <p class="small">🪙 ${c.coins}</p>
   <div class="items">${Object.entries(GOODS).map(([k,g])=>`<button class="item" data-buy="${k}"><span class="emo">${g.pic}</span><b>${esc(BYID[k].cs)}</b><span>${knowPrice?g.price+" 🪙":"? 🪙"}</span></button>`).join("")}</div>
   ${knowPrice?"":`<button class="btn ghost wide" id="askPrice">💬 ${ui("ask")}</button>`}<button class="btn ghost wide" data-close style="margin-top:8px">${ui("back")}</button>`,b=>{
-  const ap=b.querySelector("#askPrice"),q=LV[5].s[1];
+  const ap=b.querySelector("#askPrice"),q=OLD[5].s[1];
   if(ap)ap.onclick=()=>askWord({title:bi({en:"Ask the shopkeeper",es:"Pregunta al tendero",cs:"Zeptej se prodavače"}),cs:q.cs,answers:q[Lg],strip:false,onOk:()=>{A.say(q[Lg][0]);shop(true)}});
   b.querySelectorAll("[data-buy]").forEach(btn=>btn.onclick=()=>{
    const k=btn.dataset.buy,g=GOODS[k];
@@ -542,7 +622,7 @@ function shop(knowPrice){
  });
 }
 function petModal(){
- const c=C(),p=c.pet;if(!p)return;const h=hunger(),fed=c.lv>5;
+ const c=C(),p=c.pet;if(!p)return;const h=hunger(),fed=true;
  const feed=v=>{p.h=Math.min(100,hunger()+v);p.ts=Date.now();save();A.toast(pick(["Mňam!","Ňam ňam!",L()==="es"?"¡Gracias!":"Thank you!"]));petModal();render()};
  openModal(`<div class="petpick"><svg viewBox="0 0 90 84" class="${h<40?"":"happy"}">${PETSVG(p.kind)}</svg></div><h2>${esc(p.name)}</h2>
   ${fed?`<p>${ui("hungry")}</p><div class="hbar"><div style="width:${100-h}%;background:${h<40?"#e0614f":"#3fae5a"}"></div></div>
@@ -806,14 +886,19 @@ const TOPIC={
     SX("p4_3",2,"Má jeden ocas.",E("It has one tail.","It has a tail."),["Tiene una cola."],["It has _ tail.",["one","a"]],["Tiene _ cola.",["una"]])]}]};
 const tKey=(k,i)=>i?`${k}${i+1}`:k;
 const tDone=(k,i)=>!!(C().quiz||{})[tKey(k,i)];
-function tCur(k){const c=C();c.tsel=c.tsel||{};const first=TOPIC[k].findIndex((_,i)=>!tDone(k,i));const lim=first<0?TOPIC[k].length-1:first;let s=c.tsel[k];if(s==null||s>lim)s=lim;return s}
+// která kapitola hlavní budovy musí být hotová, aby šel level budovy otevřít
+const TGATE={living:[1,3,4,4,5],body:[1,3,4,4,5],pet:[4,4,4,4,5],zoo:[3,3,3,3,3,3,5]};
+const tOpen=(k,i)=>tDone(k,i)||(TGATE[k][i]||1)<=(C().ch||0);
+function tLim(k){const first=TOPIC[k].findIndex((_,i)=>!tDone(k,i));let lim=first<0?TOPIC[k].length-1:first;while(lim>0&&!tOpen(k,lim))lim--;return lim}
+function lockCard(k){const i=tCur(k);if(tOpen(k,i))return false;$("#game").innerHTML=`<div class="ccard lockc"><div><b>🔒 ${bi({en:"Not yet",es:"Todavía no",cs:"Zatím zamčeno"})}</b><span>Tohle se otevře po kapitole ${TGATE[k][i]} v hlavní budově. Tam se naučíš gramatiku, kterou tu budeš potřebovat.</span></div><button class="btn" data-go="tomap">← Mapa</button></div>`;return true}
+function tCur(k){const c=C();c.tsel=c.tsel||{};const lim=tLim(k);let s=c.tsel[k];if(s==null||s>lim)s=lim;return s}
 function tChips(k){const cur=tCur(k),first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),Lg=L();
  return `<div class="chips tchips">${TOPIC[k].map((t,i)=>{const open=first<0||i<=first;return `<button class="chip${i===cur?" on":""}" ${open?`data-act="tsel-${k}-${i}"`:"disabled"}>${tDone(k,i)?"✓":open?"":"🔒"} ${i+1}. ${esc(t.t[Lg])}</button>`}).join("")}</div>`}
 
 const coinPill=()=>`<span class="coin">🪙 ${C().coins}</span>`;
 function topHead(title,cs,extra=""){return `<div class="thead"><button class="ib" data-go="tomap" aria-label="Mapa">←</button><div class="tt"><b>${esc(title)}</b>${cs?`<small>${esc(cs)}</small>`:""}</div>${extra}${helpBtn}</div>`}
-function lvNav(k){const cur=tCur(k),N=TOPIC[k].length,first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),lim=first<0?N-1:first,T=TOPIC[k][cur],Lg=L(),d=tDone(k,cur);
- return `<div class="lvnav"><button class="ib" ${cur>0?`data-act="tsel-${k}-${cur-1}"`:"disabled"} aria-label="Předchozí level">‹</button><div class="lvc"><div class="lvt"><span class="lvn">${Lg==="es"?"Nivel":"Level"} ${cur+1}<i>/${N}</i></span><b>${esc(T.t[Lg])}</b><small>${esc(T.t.cs)}</small></div><div class="lvd">${TOPIC[k].map((_,i)=>`<i class="${tDone(k,i)?"ok":""}${i===cur?" cur":""}${i>lim?" lk":""}"></i>`).join("")}<span class="rw">${d?"✓ hotovo":"🎁 20 🪙"}</span></div></div><button class="ib" ${cur<lim?`data-act="tsel-${k}-${cur+1}"`:"disabled"} aria-label="Další level">${cur<lim||cur+1>=N?"›":"🔒"}</button></div>`}
+function lvNav(k){const cur=tCur(k),N=TOPIC[k].length,lim=tLim(k),T=TOPIC[k][cur],Lg=L(),d=tDone(k,cur);
+ return `<div class="lvnav"><button class="ib" ${cur>0?`data-act="tsel-${k}-${cur-1}"`:"disabled"} aria-label="Předchozí level">‹</button><div class="lvc"><div class="lvt"><span class="lvn">${Lg==="es"?"Nivel":"Level"} ${cur+1}<i>/${N}</i></span><b>${esc(T.t[Lg])}</b><small>${esc(T.t.cs)}</small></div><div class="lvd">${TOPIC[k].map((_,i)=>`<i class="${tDone(k,i)?"ok":""}${i===cur?" cur":""}${i>lim?" lk":""}"></i>`).join("")}<span class="rw">${d?"✓ hotovo":tOpen(k,cur)?"🎁 20 🪙":`🔒 kap. ${TGATE[k][cur]}`}</span>${cur===lim&&cur+1<N&&!tOpen(k,cur+1)&&d?`<span class="rw">· další po kap. ${TGATE[k][cur+1]}</span>`:""}</div></div><button class="ib" ${cur<lim?`data-act="tsel-${k}-${cur+1}"`:"disabled"} aria-label="Další level">${cur<lim||cur+1>=N?"›":"🔒"}</button></div>`}
 const FURN={
  sofa:{price:80,cs:"pohovka",cs4:"pohovku",en:["sofa","couch"],es:["sofá"],esA:"un",esD:"el",g:[16,185,138,56]},
  tv:{price:120,cs:"televize",cs4:"televizi",en:["TV","television"],es:["televisión","tele"],esA:"una",esD:"la",g:[146,90,68,50]},
@@ -878,6 +963,7 @@ function topicDone(k,i,title,sub,art){const c=C();c.walkPend=1;const q=c.quiz||(
 function renderHouse(){
  const c=C(),own=c.own||(c.own={}),Lg=L(),i=tCur("living"),T=TOPIC.living[i];
  body().innerHTML=`${topHead(ROOMS[0][Lg],ROOMS[0].cs,tDone("living",0)?coinPill():"")}${lvNav("living")}<div id="game"></div><div class="cards" id="hinfo"></div>`;
+ if(lockCard("living"))return;
  topicGame($("#game"),{key:tKey("living",i),sents:T.sents,qa:T.qa,vb:[0,0,400,300],targets:withLabel(T.targets),svg:g=>roomSVG(own,g&&i===0,g?c.paint:null,g?0:i),
   onDone:()=>topicDone("living",i,`${ui("level")} ${i+1} ✓`,bi([{en:"Now you can buy furniture! Tap a + in the room.",es:"¡Ya puedes comprar muebles! Toca un + en la sala.",cs:"Teď můžeš kupovat nábytek! Klepni na + v pokoji."},{en:"Now you can paint the walls!",es:"¡Ya puedes pintar las paredes!",cs:"Teď můžeš malovat zdi!"},{en:"Your room has new things!",es:"¡Tu sala tiene cosas nuevas!",cs:"V pokoji přibyly nové věci!"},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),A.CRIT[2])});
  const cards=[];
@@ -892,6 +978,7 @@ const SHIRTC=[["#4a7bd6","blue"],["#e0614f","red"],["#3fae5a","green"],["#2a2a2a
 function renderMe(){
  const c=C(),p=P(),Lg=L(),lk=p.look||{},i=tCur("body"),T=TOPIC.body[i];
  body().innerHTML=`${topHead(p.name||(Lg==="es"?"Yo":"Me"),"")}${lvNav("body")}<div id="game"></div><div class="cards" id="minfo"></div>`;
+ if(lockCard("body"))return;
  topicGame($("#game"),{key:tKey("body",i),sents:T.sents,qa:T.qa,vb:[-75,0,250,145],targets:withLabel(typeof T.targets==="function"?T.targets(p.g):T.targets),svg:()=>AV(p.g||"m",T.look?Object.assign({},lk,T.look):undefined),
   onDone:()=>topicDone("body",i,`${ui("level")} ${i+1} ✓`,bi([{en:"Great! Next: how you look.",es:"¡Genial! Ahora: tu aspecto.",cs:"Výborně! Dál: jak vypadáš."},{en:"Now you can change your hair and T-shirt!",es:"¡Ya puedes cambiar tu pelo y tu camiseta!",cs:"Teď si můžeš změnit vlasy a tričko!"},{en:"Now you can wear a hat and glasses!",es:"¡Ya puedes llevar gorra y gafas!",cs:"Teď můžeš nosit čepici a brýle!"},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 100 140" style="width:100%;height:100%">${AV(p.g||"m")}</svg>`)});
  const cards=[];
@@ -909,7 +996,8 @@ function petItem(id){const k=C().pet&&C().pet.kind;
 function renderPetV(){
  const c=C(),own=c.own||(c.own={}),p=c.pet,Lg=L();if(!p){view="map";return render()}
  const i=tCur("pet"),T=TOPIC.pet[i];
- body().innerHTML=`${topHead(p.name,"",(tDone("pet",0)?coinPill():"")+(c.lv>5?`<button class="ib wide" data-act="feed">🦴</button>`:""))}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
+ body().innerHTML=`${topHead(p.name,"",(tDone("pet",0)?coinPill():"")+`<button class="ib wide" data-act="feed">🦴</button>`)}${lvNav("pet")}<div id="game"></div><div class="cards" id="pinfo"></div>`;
+ if(lockCard("pet"))return;
  topicGame($("#game"),{key:tKey("pet",i),sents:T.sents,qa:T.qa,vb:T.vb||[-60,-5,210,90],targets:withLabel(T.targets(p.kind)),svg:()=>PETSVG(p.kind,own.collar||T.collar,T.pal||FURC[c.fur],T.ex),
   onDone:()=>topicDone("pet",i,`${ui("level")} ${i+1} ✓`,bi([{en:`Now you can buy things for ${p.name}!`,es:`¡Ya puedes comprar cosas para ${p.name}!`,cs:`Teď můžeš kupovat věci pro ${p.name}!`},{en:`Now you can choose ${p.name}'s color!`,es:`¡Ya puedes elegir el color de ${p.name}!`,cs:`Teď můžeš vybrat barvu srsti!`},{en:`${p.name} loves the new ball!`,es:`¡A ${p.name} le encanta la pelota!`,cs:`${p.name} má radost z míče!`},{en:"Great! More levels soon.",es:"¡Genial! Pronto más niveles.",cs:"Výborně! Další levely brzy."}][i]||{en:"Great job!",es:"¡Muy bien!",cs:"Výborně!"}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(p.kind,own.collar,FURC[c.fur])}</svg>`)});
  const items=["collar","home"].map(petItem),cards=[];
@@ -1019,6 +1107,7 @@ function zooSVG(i){
 function renderZoo(){
  const c=C(),Lg=L(),i=tCur("zoo"),T=TOPIC.zoo[i];
  body().innerHTML=`${topHead("Zoo","")}${lvNav("zoo")}<div id="game"></div><div class="cards" id="zinfo"></div>`;
+ if(lockCard("zoo"))return;
  topicGame($("#game"),{key:tKey("zoo",i),sents:T.sents,qa:T.qa,vb:[0,0,400,300],targets:withLabel(T.targets),svg:()=>zooSVG(i),
   onDone:()=>topicDone("zoo",i,`${ui("level")} ${i+1} ✓`,i<TOPIC.zoo.length-1?bi({en:`Next: ${TOPIC.zoo[i+1].t.en}!`,es:`Ahora: ${TOPIC.zoo[i+1].t.es}!`,cs:`Další výběh: ${TOPIC.zoo[i+1].t.cs}!`}):bi({en:"You know all the animals!",es:"¡Conoces todos los animales!",cs:"Znáš všechna zvířata!"}),`<svg viewBox="0 0 100 100" style="width:100%;height:100%"><text x="50" y="55" font-size="70" text-anchor="middle" dominant-baseline="central">${T.targets[0].emo}</text></svg>`)});
 }
