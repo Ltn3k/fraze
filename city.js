@@ -97,8 +97,9 @@ const writeIn=()=>L()==="es"?{es:"Escribe en español:",cs:"Napiš španělsky:"
 
 // ── stav ──
 const P=()=>{const s=S();return s.cityP||(s.cityP={})};
-function C(){const s=S();s.city2=s.city2||{};const c=s.city2[s.lang]||(s.city2[s.lang]={v2:1,ch:0,lv:1,part:"w",coins:0,st:{},pet:null,b:{},goods:{bread:0,milk:0,petfood:0}});
- if(!c.v2){c.v2=1;c.fogGone=c.lv>2;c.lv=1;c.part="w";c.ch=0;c.learned={};A.save()}return c}
+function C(){const s=S();s.city2=s.city2||{};const c=s.city2[s.lang]||(s.city2[s.lang]={v2:1,v3:1,ch:0,lv:1,part:"w",coins:0,st:{},pet:null,b:{},goods:{bread:0,milk:0,petfood:0}});
+ if(!c.v2){c.v2=1;c.fogGone=c.lv>2;c.lv=1;c.part="w";c.ch=0;c.learned={};A.save()}
+ if(!c.v3){c.v3=1;if((c.ch||0)<4){c.pet=null;if(c.own){delete c.own.collar;delete c.own.home}delete c.fur;if(c.quiz)Object.keys(c.quiz).forEach(k=>{if(/^pet/.test(k))delete c.quiz[k]});if(c.runs)Object.keys(c.runs).forEach(k=>{if(/^pet/.test(k))delete c.runs[k]});if(c.tsel)delete c.tsel.pet}A.save()}return c}
 const save=()=>A.save();
 const ctx=()=>({name:P().name||"Alex",pet:C().pet&&C().pet.kind,g:P().g});
 const tx=(it,f)=>{const v=it[f];return typeof v==="function"?v(ctx()):v};
@@ -202,7 +203,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11280817 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11281521 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -229,7 +230,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11280817" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11281521" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -325,7 +326,7 @@ function renderMap(){
  if(pk&&P().g){if(c.unfog){c.unfog=false;save()}return renderPick(pk)}
  if(c.walkPend){delete c.walkPend;c.walkNow=Math.random()<.6;save()}else if(c.walkNow){c.walkNow=false;save()}
  if(pend==="avatar")cards.push(`<div class="ccard act"><div><b>${bi(OLD[0].done)}</b></div><button class="btn" data-go="avatar">${ui("next")}</button></div>`);
- if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi(OLD[3].done)}</b><span>${COST.pet} 🪙</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
+ if(pend==="pet")cards.push(`<div class="ccard act"><div><b>${bi({en:"Your reward: a pet! A dog or a cat?",es:"Tu premio: ¡una mascota! ¿Perro o gato?",cs:"Odměna za kapitolu 4: mazlíček! Pes, nebo kočka?"})}</b><span>🎁 zdarma</span></div><button class="btn" data-go="pet-adopt">${ui("adopt")}</button></div>`);
  if(pend==="shop")cards.push(`<div class="ccard act"><div><b>${bi(OLD[5].done)}</b><span>${COST.shop} 🪙</span></div><button class="btn" data-go="build-shop">${ui("build")}</button></div>`);
  if(c.pet&&hunger()<40)cards.push(`<div class="ccard warn"><div><b>${bi({en:`${c.pet.name} is hungry!`,es:`¡${c.pet.name} tiene hambre!`,cs:`${c.pet.name} má hlad!`})}</b></div><button class="btn" data-go="pet">🦴</button></div>`);
  const tp=testPending();
@@ -554,11 +555,11 @@ function testFinish(){
  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="tMap" style="flex:1">← Mapa</button><button class="btn" id="tAgain" style="flex:1">Zkusit znovu</button></div>`;
  $("#tBack").onclick=$("#tMap").onclick=()=>{view="map";TS=null;render()};$("#tAgain").onclick=()=>{TS=null;startTest()};
 }
-const UNLOCK={1:{en:"The fog is gone! Your house is open.",es:"¡La niebla se fue! Tu casa está abierta.",cs:"Mlha zmizela! Dům a postava jsou otevřené."},3:{en:"The zoo is open!",es:"¡El zoo está abierto!",cs:"Otevřela se zoo!"},4:{en:"Now you can get a pet and build a shop!",es:"¡Ya puedes tener una mascota y construir una tienda!",cs:"Teď si můžeš pořídit mazlíčka a postavit obchod!"},10:{en:"You finished A1!",es:"¡Terminaste el A1!",cs:"Dokončil(a) jsi úroveň A1!"}};
+const UNLOCK={1:{en:"The fog is gone! Your house is open.",es:"¡La niebla se fue! Tu casa está abierta.",cs:"Mlha zmizela! Dům a postava jsou otevřené."},3:{en:"The zoo is open!",es:"¡El zoo está abierto!",cs:"Otevřela se zoo!"},4:{en:"Your reward: a pet! And you can build a shop.",es:"Tu premio: ¡una mascota! Y puedes construir una tienda.",cs:"Odměna: mazlíček! A můžeš postavit obchod."},10:{en:"You finished A1!",es:"¡Terminaste el A1!",cs:"Dokončil(a) jsi úroveň A1!"}};
 function chapterDone(ch,pct){
  const c=C();c.ch=Math.max(c.ch||0,ch);if(ch===1)c.unfog=true;const v=pay(10,"T"+ch);c.walkPend=1;save();TS=null;view="map";render();window.scrollTo({top:0});
  party(bi({en:`CHAPTER ${ch}`,es:`CAPÍTULO ${ch}`,cs:`KAPITOLA ${ch}`}),`✓ ${pct} % · +${fmt(v)} 🪙`,bi(UNLOCK[ch]||{en:"Main level up!",es:"¡Subes de nivel!",cs:"Hlavní level o jeden výš!"}),A.CRIT[ch%A.CRIT.length],3200).then(()=>{
-  if(view!=="map")return;const pend=pending();if(pend==="avatar")return chooseAvatar();if(pendingPick())return render();storyModal(c.lv)});
+  if(view!=="map")return;const pend=pending();if(pend==="avatar")return chooseAvatar();if(pend==="pet")return adopt();if(pendingPick())return render();storyModal(c.lv)});
 }
 function levelDone(){
  const c=C(),n=c.lv,lv=LV[n-1];
@@ -584,13 +585,12 @@ function chooseAvatar(){
 }
 function adopt(){
  const c=C();
- if(c.coins<COST.pet)return info(bi({en:"Not enough coins",es:"No tienes suficientes monedas",cs:"Málo mincí"}),`${COST.pet} 🪙 · ${bi({en:`You have ${c.coins}.`,es:`Tienes ${c.coins}.`,cs:`Máš ${c.coins}. Procvičuj a vyděláš si.`})}`);
  const ans=L()==="es"?{dog:["el perro","quiero un perro"],cat:["el gato","la gata","quiero un gato","quiero una gata"]}:{dog:["dog","I want a dog"],cat:["cat","I want a cat"]};
- askWord({title:bi({en:"A dog or a cat?",es:"¿Un perro o un gato?",cs:"Pes, nebo kočka?"}),top:`<div class="petpick"><svg viewBox="0 0 90 84">${PETSVG("dog")}</svg><svg viewBox="0 0 90 84">${PETSVG("cat")}</svg></div>`,cs:"pes / kočka",answers:ans.dog.concat(ans.cat),okHtml:`${ui("adopt")} · ${COST.pet} 🪙`,onOk:r=>{
+ askWord({title:bi({en:"A dog or a cat?",es:"¿Un perro o un gato?",cs:"Pes, nebo kočka?"}),top:`<div class="petpick"><svg viewBox="0 0 90 84">${PETSVG("dog")}</svg><svg viewBox="0 0 90 84">${PETSVG("cat")}</svg></div>`,cs:"pes / kočka",answers:ans.dog.concat(ans.cat),okHtml:`${ui("adopt")} 🎁`,onOk:r=>{
   const kind=ans.dog.includes(r.a)?"dog":"cat";
   openModal(`<div class="petpick"><svg viewBox="0 0 90 84">${PETSVG(kind)}</svg></div><h2>${bi({en:"What is its name?",es:"¿Cómo se llama?",cs:"Jak se jmenuje?"})}</h2><input class="tin" id="petName" maxlength="16" placeholder="${kind==="dog"?"Rex":"Micka"}"><button class="btn wide" id="petOk">${ui("ok")}</button>`,b=>{
    const go=()=>{const name=b.querySelector("#petName").value.trim()||(kind==="dog"?"Rex":"Micka");
-    c.coins-=COST.pet;c.pet={kind,name,h:100,ts:0};save();closeModal();render();
+    c.pet={kind,name,h:100,ts:0};save();closeModal();render();
     party(bi({en:"NEW FRIEND",es:"NUEVO AMIGO",cs:"NOVÝ PARŤÁK"}),esc(name),bi(kind==="dog"?{en:"This is your dog!",es:"¡Este es tu perro!",cs:"Tohle je tvůj pes!"}:{en:"This is your cat!",es:"¡Este es tu gato!",cs:"Tohle je tvoje kočka!"}),`<svg viewBox="0 0 90 84" style="width:100%;height:100%">${PETSVG(kind)}</svg>`,3200).then(()=>storyModal(C().lv))};
    b.querySelector("#petOk").onclick=go;b.querySelector("#petName").addEventListener("keydown",e=>{if(e.key==="Enter")go()});setTimeout(()=>b.querySelector("#petName").focus(),50);
   })}});
