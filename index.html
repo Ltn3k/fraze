@@ -417,6 +417,7 @@ body.nocs .cats button small{display:none}
 .pinfo .price{font-weight:800;font-size:16px;white-space:nowrap}.pinfo .owned{font-weight:700;color:var(--ok);font-size:14px}
 .carb{position:absolute;top:calc(37.5% - 18px);z-index:2;width:36px;height:36px;opacity:.9}.carb.l{left:6px}.carb.r{right:6px}
 .cardots{display:flex;justify-content:center;gap:6px;margin:10px 0 4px}.cardots i{width:7px;height:7px;border-radius:50%;background:color-mix(in srgb,var(--ink) 18%,transparent);transition:all .2s}.cardots i.on{width:20px;border-radius:4px;background:var(--acc)}
+.ccard.dim{opacity:.55}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -477,7 +478,7 @@ body.nocs .cats button small{display:none}
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
 
 <div id="menu" hidden><div class="sheet">
- <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11281848</small></h2>
+ <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11282007</small></h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
@@ -495,8 +496,8 @@ body.nocs .cats button small{display:none}
 </div></div>
 <div id="toast"></div>
 
-<script src="data.js?v=11281848"></script>
-<script src="words.js?v=11281848"></script>
+<script src="data.js?v=11282007"></script>
+<script src="words.js?v=11282007"></script>
 <script>
 {
 // ── data ──
@@ -855,8 +856,8 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
-<script src="curriculum.js?v=11281848"></script>
-<script src="city.js?v=11281848"></script>
-<script src="dict.js?v=11281848"></script>
+<script src="curriculum.js?v=11282007"></script>
+<script src="city.js?v=11282007"></script>
+<script src="dict.js?v=11282007"></script>
 </body>
 </html>
