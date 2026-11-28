@@ -403,6 +403,7 @@ header,.chead{position:static}
 .walkh{text-align:center;font-weight:800;font-size:17px;margin:4px 0 10px;animation:pulse 1.2s ease-in-out infinite}
 .newin{animation:newin 1.2s ease-out}@keyframes newin{0%{filter:brightness(1.35) saturate(1.3)}100%{filter:none}}
 .btn:not(.ghost) .bi small{color:rgba(255,255,255,.82)!important;opacity:1}
+body.nocs #city .btn .bi small,body.nocs #cmodal .btn .bi small{display:none}
 </style>
 </head>
 <body data-screen="intro" data-tier="A">
@@ -463,7 +464,7 @@ header,.chead{position:static}
 <div id="cmodal" hidden><div class="sheet" id="cmodalBody"></div></div>
 
 <div id="menu" hidden><div class="sheet">
- <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11281838</small></h2>
+ <h2>Menu <small style="font-size:11px;opacity:.5;font-weight:500">verze 11281843</small></h2>
  <div class="row2"><button class="btn ghost" id="mTiers">Změnit úroveň</button><button class="btn ghost" id="mIntro">Jak to funguje</button></div>
  <div class="tools mtools"><button class="btn ghost" id="mDict">📖 Slovník</button><input id="dev" type="number" min="1" max="100" inputmode="numeric" placeholder="lvl" title="Vývojář: skok na level 1–100 (Enter)" aria-label="Skok na level"></div>
  <button class="btn" id="mCity">🏡 Moje město</button>
@@ -481,8 +482,8 @@ header,.chead{position:static}
 </div></div>
 <div id="toast"></div>
 
-<script src="data.js?v=11281838"></script>
-<script src="words.js?v=11281838"></script>
+<script src="data.js?v=11281843"></script>
+<script src="words.js?v=11281843"></script>
 <script>
 {
 // ── data ──
@@ -841,8 +842,8 @@ applyTier();
 if(S.started){show("app");buildRound()}else show(S.seen?"tiers":"intro");
 }
 </script>
-<script src="curriculum.js?v=11281838"></script>
-<script src="city.js?v=11281838"></script>
-<script src="dict.js?v=11281838"></script>
+<script src="curriculum.js?v=11281843"></script>
+<script src="city.js?v=11281843"></script>
+<script src="dict.js?v=11281843"></script>
 </body>
 </html>

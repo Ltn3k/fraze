@@ -203,7 +203,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11281838 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11281843 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -230,7 +230,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick,walkTo){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11281838" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11281843" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -303,6 +303,7 @@ function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins /
 function render(){
  $("#cBack").innerHTML="✕";$("#cBack").setAttribute("aria-label","Zavřít hru");
  $("#cRes").innerHTML=P().name?resHTML():"";
+ document.body.classList.toggle("nocs",(P().name&&(C().ch||0)>=6)||false);
  $("#city").dataset.v=P().name?(view==="lesson"&&!LS?"map":view):"start";
  if(!P().name)return renderStart();
  if(view==="lesson"&&LS)return LS.learn?renderLearn():renderLesson();
@@ -425,7 +426,7 @@ function helpHTML(){return `<h2>Jak se tu učí</h2>
 <p class="howtip">💡 <b>Nápověda:</b> podrž prst na českém textu nebo na „💡 Podrž pro nápovědu“. Ukáže se odpověď i se všemi variantami. Za odpověď s nápovědou nejsou mince.</p>
 <p class="howtip">✌️ <b>2× správně</b> a máš to. Napoprvé projde odpověď i bez otazníku${L()==="es"?" a diakritiky":""}, podruhé už musí být přesně${L()==="es"?" (otazník i diakritika)":" (u otázky otazník)"}.</p>
 <p class="howtip">🪙 Za nové věci dostaneš plnou odměnu, za opakování méně. Ovládání je stejné v angličtině i španělštině. Návod otevřeš znovu přes <b>?</b> nahoře.</p>
-<button class="btn wide" id="hok">Rozumím, jdeme na to!</button>`}
+<button class="btn wide" id="hok">${bi({en:"Got it, let's go!",es:"¡Entendido, vamos!",cs:"Rozumím, jdeme na to!"})}</button>`}
 function showHelp(then){openModal(helpHTML(),b=>b.querySelector("#hok").onclick=()=>{closeModal();then&&then()})}
 function firstHelp(){const S=A.S;S.helpSeen=S.helpSeen||{};if(S.helpSeen[L()])return;S.helpSeen[L()]=1;save();setTimeout(()=>showHelp(),150)}
 const helpBtn=`<button class="ib" data-act="help" aria-label="Nápověda">?</button>`;
@@ -446,7 +447,7 @@ function renderLearn(){
    body().innerHTML=head+bar+`<p class="small" style="margin:0 4px 8px">Slož větu z dlaždic ve správném pořadí. <b>${q.i+1}/${nw.length}</b></p>
    <div class="ccard cmp"><div class="cmpcz">${esc(tx(it,"cs"))}</div><div class="cmpline">${q.built.map((b,j)=>`<button class="dchip on" data-b="${j}">${esc(b.t)}</button>`).join("")||`<span class="small">Klepni na slova dole…</span>`}</div></div>
    <div class="dtray cmptray">${q.pool.filter(x=>!q.built.includes(x)).map(x=>`<button class="dchip" data-p="${x.j}">${esc(x.t)}</button>`).join("")}</div>
-   <div style="text-align:center;margin-top:8px"><button class="btn ghost sm" id="cRes2">↺ Znovu</button></div>`;
+   <div style="text-align:center;margin-top:8px"><button class="btn ghost sm" id="cRes2">↺ ${bi({en:"Again",es:"Otra vez",cs:"Znovu"})}</button></div>`;
    $("#lBack").onclick=()=>{view="map";LS=null;render()};
    $("#cRes2").onclick=()=>{q.built=[];paint()};
    body().querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{q.built.push(q.pool.find(x=>x.j===+b.dataset.p));
@@ -460,7 +461,7 @@ function renderLearn(){
  }
  if(step===1){
   body().innerHTML=head+bar+(lv.tip&&lv.tip[Lg]?`<div class="tipc"><b>💡 Jak na to</b><p>${esc(lv.tip[Lg])}</p></div>`:"")+`<div class="lrn">${nw.map(it=>`<div class="lcard">${isW?`<div class="cpic">${pic(it.pic)}</div>`:""}<div class="lt"><span class="lcz">${esc(tx(it,"cs"))}</span><span class="lfo">${tx(it,Lg).slice(0,3).map(v=>`<span>${esc(v)}</span>`).join("")}</span></div><button class="say" data-say="${esc(tx(it,Lg)[0])}" aria-label="Přehrát">${A.SPK}</button></div>`).join("")}</div>
-  <button class="btn wide" id="lnext" style="margin-top:12px">Dál → spojování</button>`;
+  <button class="btn wide" id="lnext" style="margin-top:12px">${bi({en:"Next: match →",es:"Siguiente: unir →",cs:"Dál → spojování"})}</button>`;
   body().querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>A.say(b.dataset.say));
   $("#lnext").onclick=()=>{LS.learn=2;render()};
  }else{
@@ -468,7 +469,7 @@ function renderLearn(){
   const paint=()=>{
    body().innerHTML=head+bar+`<p class="small" style="margin:0 4px 8px">Přetáhni ${Lg==="es"?"španělský":"anglický"} překlad na české ${isW?"slovo":"větu"} (nebo klepni na překlad a pak na ${isW?"slovo":"větu"}).</p>
    <div class="dlist">${nw.map((it,i)=>`<div class="drow drop${solved.has(i)?" ok":""}" data-i="${i}">${isW?`<div class="cpic sm">${pic(it.pic)}</div>`:""}<span class="cz">${esc(tx(it,"cs"))}</span><span class="slot">${solved.has(i)?esc(tx(it,Lg)[0]):""}</span></div>`).join("")}</div>
-   <div class="dtray">${order.filter(i=>!solved.has(i)).map(i=>`<button class="dchip${sel===i?" sel":""}" data-i="${i}">${esc(tx(nw[i],Lg)[0])}</button>`).join("")||`<button class="btn" id="lgo">${isW?"✏️ Teď to napiš":"🧩 Teď slož věty"}</button>`}</div>`;
+   <div class="dtray">${order.filter(i=>!solved.has(i)).map(i=>`<button class="dchip${sel===i?" sel":""}" data-i="${i}">${esc(tx(nw[i],Lg)[0])}</button>`).join("")||`<button class="btn" id="lgo">${isW?"✏️ "+bi({en:"Now write it",es:"Ahora escríbelo",cs:"Teď to napiš"}):"🧩 "+bi({en:"Now build the sentences",es:"Ahora forma las frases",cs:"Teď slož věty"})}</button>`}</div>`;
    bindL();
   };
   const tryDrop=(i,row)=>{if(!row||row.classList.contains("ok"))return false;const j=+row.dataset.i;
@@ -563,7 +564,7 @@ function renderTest(){
  const q=TS.qs[TS.i],Lg=L(),it=q.it,N=TS.qs.length,ans=tx(it,Lg);
  const head=`<div class="thead"><button class="ib" id="tBack" aria-label="Mapa">←</button><div class="tt"><b>${bi({en:`Test ${TS.ch}`,es:`Examen ${TS.ch}`,cs:`Test ${TS.ch}`})}</b><small>${esc(CHS[TS.ch-1].t.cs)}</small></div></div>
  <div class="stepbar"><div class="tprog"><i style="width:${TS.i/N*100}%"></i></div><span><b>${TS.i+1}/${N}</b> ✓ ${TS.ok}</span></div>`;
- const fb=TS.ans?`<div class="tfb ${TS.ans.ok?"ok":"no"}">${TS.ans.ok?"✓ Správně":`✗ Správně je: <b>${esc(ans[0])}</b>`}</div>${TS.ans.ok?"":`<button class="btn wide" id="tnext" style="margin-top:10px">Dál →</button>`}`:"";
+ const fb=TS.ans?`<div class="tfb ${TS.ans.ok?"ok":"no"}">${TS.ans.ok?"✓ Správně":`✗ Správně je: <b>${esc(ans[0])}</b>`}</div>${TS.ans.ok?"":`<button class="btn wide" id="tnext" style="margin-top:10px">${bi({en:"Next →",es:"Siguiente →",cs:"Dál →"})}</button>`}`:"";
  let main;
  if(q.mode==="c")main=`<p class="small">${bi({en:"Choose the translation.",es:"Elige la traducción.",cs:"Vyber překlad."})}</p><div class="topts">${q.opts.map((o,k)=>`<button class="topt${TS.ans?(o===ans[0]?" ok":TS.ans.pick===k?" no":""):""}" data-o="${k}" ${TS.ans?"disabled":""}>${esc(o)}</button>`).join("")}</div>`;
  else main=`<p class="small">${bi({en:"Write it.",es:"Escríbelo.",cs:"Napiš překlad."})} <span class="tag st">${Lg==="es"?"přesně, s diakritikou":"přesně"}</span></p><textarea class="tin tta" rows="1" autocomplete="off" autocapitalize="off" spellcheck="false" ${TS.ans?"readonly":""}>${TS.ans?esc(TS.ans.val):""}</textarea>${TS.ans?"":`<button class="btn wide" id="tok" style="margin-top:8px">${bi({en:"Check",es:"Comprobar",cs:"Zkontrolovat"})}</button>`}`;
@@ -584,7 +585,7 @@ function testFinish(){
  body().innerHTML=`<div class="thead"><button class="ib" id="tBack" aria-label="Mapa">←</button><div class="tt"><b>${pct} %</b><small>na postup je potřeba ${Math.round(g.pass*100)} %</small></div></div>
  <div class="ccard"><div><b>Tentokrát to nevyšlo, ale nevadí.</b><span>Tady jsou chyby. Zopakuj si je a zkus test znovu – je zdarma.</span></div></div>
  <div class="dlist" style="margin-top:8px">${TS.wrong.map(w=>`<div class="drow"><span class="cz">${esc(tx(w.it,"cs"))}</span><span class="en" style="flex:1;text-align:right"><s style="opacity:.55">${esc(w.val||"")}</s><br>${esc(tx(w.it,L())[0])}</span></div>`).join("")}</div>
- <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="tMap" style="flex:1">← Mapa</button><button class="btn" id="tAgain" style="flex:1">Zkusit znovu</button></div>`;
+ <div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="tMap" style="flex:1">← ${bi({en:"Map",es:"Mapa",cs:"Mapa"})}</button><button class="btn" id="tAgain" style="flex:1">${bi({en:"Try again",es:"Intentar otra vez",cs:"Zkusit znovu"})}</button></div>`;
  $("#tBack").onclick=$("#tMap").onclick=()=>{view="map";TS=null;render()};$("#tAgain").onclick=()=>{TS=null;startTest()};
 }
 const UNLOCK={1:{en:"The fog is gone! Your house is open.",es:"¡La niebla se fue! Tu casa está abierta.",cs:"Mlha zmizela! Dům a postava jsou otevřené."},3:{en:"The zoo is open!",es:"¡El zoo está abierto!",cs:"Otevřela se zoo!"},4:{en:"Your reward: a pet! And you can build a shop.",es:"Tu premio: ¡una mascota! Y puedes construir una tienda.",cs:"Odměna: mazlíček! A můžeš postavit obchod."},10:{en:"You finished A1!",es:"¡Terminaste el A1!",cs:"Dokončil(a) jsi úroveň A1!"}};
@@ -922,7 +923,7 @@ const tDone=(k,i)=>!!(C().quiz||{})[tKey(k,i)];
 const TGATE={living:[1,3,4,4,5],body:[1,3,4,4,5],pet:[4,4,4,4,5],zoo:[3,3,3,3,3,3,5]};
 const tOpen=(k,i)=>tDone(k,i)||(TGATE[k][i]||1)<=(C().ch||0);
 function tLim(k){const first=TOPIC[k].findIndex((_,i)=>!tDone(k,i));let lim=first<0?TOPIC[k].length-1:first;while(lim>0&&!tOpen(k,lim))lim--;return lim}
-function lockCard(k){const i=tCur(k);if(tOpen(k,i))return false;$("#game").innerHTML=`<div class="ccard lockc"><div><b>🔒 ${bi({en:"Not yet",es:"Todavía no",cs:"Zatím zamčeno"})}</b><span>Tohle se otevře po kapitole ${TGATE[k][i]} v hlavní budově. Tam se naučíš gramatiku, kterou tu budeš potřebovat.</span></div><button class="btn" data-go="tomap">← Mapa</button></div>`;return true}
+function lockCard(k){const i=tCur(k);if(tOpen(k,i))return false;$("#game").innerHTML=`<div class="ccard lockc"><div><b>🔒 ${bi({en:"Not yet",es:"Todavía no",cs:"Zatím zamčeno"})}</b><span>Tohle se otevře po kapitole ${TGATE[k][i]} v hlavní budově. Tam se naučíš gramatiku, kterou tu budeš potřebovat.</span></div><button class="btn" data-go="tomap">← ${bi({en:"Map",es:"Mapa",cs:"Mapa"})}</button></div>`;return true}
 function tCur(k){const c=C();c.tsel=c.tsel||{};const lim=tLim(k);let s=c.tsel[k];if(s==null||s>lim)s=lim;return s}
 function tChips(k){const cur=tCur(k),first=TOPIC[k].findIndex((_,i)=>!tDone(k,i)),Lg=L();
  return `<div class="chips tchips">${TOPIC[k].map((t,i)=>{const open=first<0||i<=first;return `<button class="chip${i===cur?" on":""}" ${open?`data-act="tsel-${k}-${i}"`:"disabled"}>${tDone(k,i)?"✓":open?"":"🔒"} ${i+1}. ${esc(t.t[Lg])}</button>`}).join("")}</div>`}
