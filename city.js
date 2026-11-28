@@ -203,7 +203,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11281843 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11281848 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -230,7 +230,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick,walkTo){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11281843" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11281848" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -339,17 +339,31 @@ function renderWalk(){
  const to=WALK.to;
  body().innerHTML=`<div class="walkh">${to==="store"?"🛒 "+bi({en:"Going to the shop…",es:"Vamos a la tienda…",cs:"Jdu do obchodu…"}):"🏠 "+bi({en:"Going home…",es:"Vamos a casa…",cs:"Jdu domů…"})}</div><div class="mapwrap tap" data-act="walk-skip">${mapSVG(false,to)}</div>`;
 }
+const CATS=[{id:"furn",en:"Furniture",es:"Muebles",cs:"Nábytek",items:["sofa","tv","lamp"]},{id:"deco",en:"Decorations",es:"Decoración",cs:"Dekorace",items:["picture","plant","rug"]},{id:"paint",en:"Wall paint",es:"Pintura",cs:"Barva na zeď"},{id:"food",en:"Food",es:"Comida",cs:"Potraviny"}];
+const catOpen=id=>id==="food"?true:id==="paint"?tDone("living",1):tDone("living",0);
+function furnPreview(f,wall){const[x,y,w,h]=f.g,cx=x+w/2,cy=y+h/2,vw=Math.max(w*1.45,h*1.45*4/3)+24,vh=vw*3/4;
+ return `<svg viewBox="${(cx-vw/2).toFixed(1)} ${(cy-vh/2).toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}" preserveAspectRatio="xMidYMid slice">${RDEFS}<rect x="-100" y="-100" width="600" height="290" fill="${wall||"#f6efe3"}"/><rect x="-100" y="-100" width="600" height="290" fill="url(#rShade)"/><rect x="-100" y="176" width="600" height="14" fill="#fbf6ec"/><rect x="-100" y="190" width="600" height="200" fill="url(#rFloor)"/>${FART[f.id]}</svg>`}
 function renderStore(){
  const c=C(),own=c.own||(c.own={}),Lg=L();
  const greet={en:"Hello! What would you like?",es:"¡Hola! ¿Qué desea?",cs:"Dobrý den! Co si přejete?"};
- const furn=Object.values(FURN);
+ let cat=c.storeCat&&catOpen(c.storeCat)?c.storeCat:CATS.find(k=>catOpen(k.id)).id;
+ const CAT=CATS.find(k=>k.id===cat);
+ let slides=[];
+ if(CAT.items)slides=CAT.items.map(id=>{const f=FURN[id],has=own[id];return `<div class="slide"><div class="pv">${furnPreview(f,c.paint)}</div><div class="pinfo"><div><b>${esc(f[Lg][0])}</b><small>${esc(f.cs)}</small></div>${has?`<span class="owned">✓ ${bi({en:"At home",es:"En casa",cs:"Doma"})}</span>`:`<span class="price">${f.price} 🪙</span><button class="btn" data-act="fbuy-${id}">${bi({en:"Buy",es:"Comprar",cs:"Koupit"})}</button>`}</div></div>`});
+ else if(cat==="paint")slides=PAINT.map(p=>{const on=(c.paint||"#f6efe3")===p[0];return `<div class="slide"><div class="pv"><svg viewBox="0 0 400 300">${roomSVG(own,false,p[0],0)}</svg></div><div class="pinfo"><div><b>${Lg==="es"?{white:"blanco",blue:"azul",green:"verde",red:"rojo"}[p[1]]:p[1]}</b><small>${esc({white:"bílá",blue:"modrá",green:"zelená",red:"červená"}[p[1]]||"")}</small></div>${on?`<span class="owned">✓ ${bi({en:"On the walls",es:"En las paredes",cs:"Na zdech"})}</span>`:`<span class="price">0 🪙</span><button class="btn" data-act="paint-${p[0]}">${bi({en:"Paint",es:"Pintar",cs:"Vymalovat"})}</button>`}</div></div>`});
+ else slides=Object.entries(GOODS).map(([k,g])=>`<div class="slide"><div class="pv emo">${g.pic}</div><div class="pinfo"><div><b>${esc(BYID[k][Lg][0])}</b><small>${esc(BYID[k].cs)}</small></div><span class="price">${g.price} 🪙</span><button class="btn" data-act="shop">${bi({en:"Buy",es:"Comprar",cs:"Koupit"})}</button></div></div>`);
+ const N=slides.length,idx=Math.min((c.storeIdx||{})[cat]||0,N-1);
  body().innerHTML=`${topHead(Lg==="es"?"La tienda":"The shop","Obchod",coinPill())}
- <div class="shopk"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi(greet)}</div></div>
- ${tDone("living",0)?`<div class="ccard slim"><div><b>${bi({en:"Furniture",es:"Muebles",cs:"Nábytek"})}</b><span class="small">Nákup proběhne ${Lg==="es"?"španělsky":"anglicky"} jako rozhovor s prodavačem.</span><div class="pre strip">${furn.map(f=>`<button class="pchip fbtn" ${own[f.id]?"disabled":`data-act="fbuy-${f.id}"`}><b>${esc(f[Lg][0])}</b><i>${own[f.id]?"✓ doma":f.price+" 🪙"}</i></button>`).join("")}</div></div></div>`:""}
- ${tDone("living",1)?`<div class="ccard slim"><div><b>${bi({en:"Wall paint",es:"Pintura",cs:"Barva na zeď"})}</b><div class="swatches">${PAINT.map(p=>`<button class="sw2${(c.paint||"#f6efe3")===p[0]?" on":""}" data-act="paint-${p[0]}"><i style="background:${p[0]}"></i>${colName(p[1])}</button>`).join("")}</div></div></div>`:""}
- <div class="ccard slim"><div><b>${bi({en:"Food",es:"Comida",cs:"Potraviny"})}</b><span class="small">chleba, mléko, granule</span></div><button class="btn ghost sm" data-act="shop">🧺</button></div>
- ${(c.newFurn||[]).length?`<p class="small" style="text-align:center">🛍️ V tašce: ${c.newFurn.map(id=>esc(FURN[id][Lg][0])).join(", ")}</p>`:""}
- <button class="btn wide" data-act="go-home" style="margin-top:10px">🏠 ${bi({en:"Go home",es:"Ir a casa",cs:"Jít domů"})}</button>`;
+ <div class="shopk small2"><div class="sk">${A.CRIT[1]}</div><div class="bub">${bi(greet)}</div></div>
+ <div class="dmodes cats">${CATS.map(k=>`<button class="${k.id===cat?"on":""}" ${catOpen(k.id)?`data-act="scat-${k.id}"`:"disabled"}>${catOpen(k.id)?"":"🔒 "}${esc(k[Lg])}<small>${esc(k.cs)}</small></button>`).join("")}</div>
+ <div class="carw"><button class="ib carb l" data-car="-1" aria-label="Předchozí">‹</button><div class="car" id="car">${slides.join("")}</div><button class="ib carb r" data-car="1" aria-label="Další">›</button></div>
+ <div class="cardots">${slides.map((_,i)=>`<i class="${i===idx?"on":""}"></i>`).join("")}</div>
+ ${(c.newFurn||[]).length?`<p class="small" style="text-align:center">🛍️ ${esc(c.newFurn.map(id=>FURN[id][Lg][0]).join(", "))}</p>`:""}
+ <button class="btn wide" data-act="go-home" style="margin-top:8px">🏠 ${bi({en:"Go home",es:"Ir a casa",cs:"Jít domů"})}</button>`;
+ const car=$("#car"),dots=[...body().querySelectorAll(".cardots i")];
+ car.scrollLeft=idx*car.clientWidth;
+ let raf;car.addEventListener("scroll",()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{const i=Math.round(car.scrollLeft/car.clientWidth);dots.forEach((d,j)=>d.classList.toggle("on",j===i));c.storeIdx=c.storeIdx||{};c.storeIdx[cat]=i})});
+ body().querySelectorAll("[data-car]").forEach(b=>b.onclick=()=>car.scrollBy({left:+b.dataset.car*car.clientWidth,behavior:"smooth"}));
 }
 function renderMap(){
  const c=C(),cards=[],pend=pending(),pk=pendingPick();
@@ -391,6 +405,7 @@ document.addEventListener("click",e=>{
  if(a==="feed")return petModal();
  if(a==="tomap"){view="map";return render()}
  if(a==="go-store")return goWalk("store");
+ if(a.startsWith("scat-")){C().storeCat=a.slice(5);save();return render()}
  if(a==="go-home")return goWalk("house");
  if(a==="walk-skip"){clearTimeout(goWalk.t);const to=WALK&&WALK.to;WALK=null;view=to==="store"?"store":"house";return render()}
  if(a.startsWith("fbuy-")){const id=a.slice(5);if(view!=="store")return goWalk("store");return converse(FURN[id],()=>{const c=C();c.own[id]=true;c.newFurn=(c.newFurn||[]).concat(id)})}
