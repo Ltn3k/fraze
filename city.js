@@ -204,7 +204,7 @@ function siteArt(){return `<polygon points="-34,2 0,-14 38,2 4,18" fill="rgba(40
  `<path d="M-26 -8L-12 -15L2 -21L18 -14L32 -7" stroke="#a56d38" stroke-width="1.5" fill="none"/><rect x="-6" y="-4" width="20" height="4" fill="#c98b4f" transform="rotate(-8)"/><rect x="-4" y="1" width="18" height="4" fill="#b87a40" transform="rotate(6)"/>`}
 function lotArt(){return `<polygon points="-34,0 0,-16 38,0 4,16" fill="rgba(255,255,255,.16)" stroke="rgba(255,255,255,.55)" stroke-width="1.5" stroke-dasharray="3 3"/><g opacity=".28" transform="translate(-4,6) scale(.7)">${bld({w:50,h:28,wall:"#fff",side:"#e8f2dc",roof:"#fff",roofS:"#e8f2dc"})}</g>`}
 
-// parcely na podkladu img/map.webp?v=11282007 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
+// parcely na podkladu img/map.webp?v=11282017 (px obrázku 1024); 0–5 uvnitř hradeb, 6–7 venku
 const SLOTP=[[512,222],[795,342],[800,597],[512,717],[220,597],[225,347],[700,900],[118,112]];
 const sp=k=>[SLOTP[k][0]*400/1024,SLOTP[k][1]*400/1024];
 const IMPL=["zoo","shop"],PIC={zoo:"🦁",shop:"🏪",market:"🧺",bus:"🚌",cafe:"☕",school:"🏫",doctor:"🩺",station:"🚉"};
@@ -231,7 +231,7 @@ function walkSVG(p,c){
 }
 function mapSVG(pick,walkTo){
  const c=C(),p=P(),Lg=L(),out=[DEFS],S_=slots(),t=tod();
- out.push(`<image href="img/map.webp?v=11282007" width="400" height="400"/>`);
+ out.push(`<image href="img/map.webp?v=11282017" width="400" height="400"/>`);
  PLOTS.forEach(pl=>{const k=S_[pl.id];if(k==null)return;const[x,y]=sp(k),T=`transform="translate(${x.toFixed(1)},${y.toFixed(1)})"`;
   if(pl.id==="zoo"){const n=TOPIC.zoo.filter((_,i)=>tDone("zoo",i)).length;out.push(`<g class="tap" data-act="zoo" ${T}><g transform="translate(0,14) scale(1.35)">${zooArt()}</g>${banner("Zoo",26)}${n?`<g transform="translate(34,-22)">${badge(n,"",10)}</g>`:""}</g>`)}
   else if(pl.id==="shop"&&c.b.shop)out.push(`<g class="tap" data-act="shop" ${T}><g transform="translate(-4,16) scale(.85)">${SHOP(shopLbl())}</g>${banner(pl[Lg],28)}</g>`);
@@ -301,7 +301,42 @@ function fly(el,text){
 let view="map",LS=null,nextT=null;
 const body=()=>$("#cityBody");
 function resHTML(){const c=C(),out=[];if(wallet())out.push(`<span title="Coins / mince">🪙 ${c.coins}</span>`);return out.join("")}
+// ── vývojářský režim: lišta se šipkami pro rychlý přechod mezi levely ──
+const DEV=()=>!!A.S.dev;
+function devStates(){const st=[];CHS.forEach((ch,k)=>{LV.forEach((l,i)=>{if(l.ch===k+1)st.push({lv:i+1,ch:k,lab:`Ch ${k+1} · L ${l.li}/${chSize(k+1)} · ${l.t.cs}`})});st.push({lv:CHEND[k]+1,ch:k,lab:`Ch ${k+1} · test`})});st.push({lv:LV.length+1,ch:NCH,lab:"A1 hotovo"});return st}
+function devTopic(){return {house:"living",me:"body",petv:"pet",zoo:"zoo"}[view]||null}
+function devLabel(){const c=C(),k=devTopic();
+ if(k){const i=tCur(k);return `${{living:"Dům",body:"Postava",pet:"Mazlíček",zoo:"Zoo"}[k]} · L ${i+1}/${TOPIC[k].length}${tDone(k,i)?" ✓":""}`}
+ if(view==="shopb")return `Obchod · L ${Math.min(shopLv()+1,SHOPB.length)}/${SHOPB.length}${shopLv()>=SHOPB.length?" ✓":""}`;
+ const s=devStates(),i=devIdx();return s[i]?s[i].lab:"?"}
+function devIdx(){const c=C(),s=devStates();let i=s.findIndex(x=>x.lv===c.lv&&x.ch===(c.ch||0));if(i<0)i=s.findIndex(x=>x.lv===c.lv);return Math.max(0,i)}
+function devMove(d){const c=C(),k=devTopic();
+ if(k){const i=tCur(k),q=c.quiz||(c.quiz={});
+  if(d>0){q[tKey(k,i)]=true;c.tsel=c.tsel||{};c.tsel[k]=Math.min(i+1,TOPIC[k].length-1)}
+  else{const j=TOPIC[k].map((_,x)=>x).filter(x=>tDone(k,x)).pop();if(j==null)return A.toast("Nic k vrácení");delete q[tKey(k,j)];if(c.qs)delete c.qs[tKey(k,j)];c.tsel=c.tsel||{};c.tsel[k]=j}
+  save();return render()}
+ if(view==="shopb"){c.shopLv=Math.max(0,Math.min(SHOPB.length,(c.shopLv||0)+d));save();return render()}
+ const s=devStates(),i=Math.max(0,Math.min(s.length-1,devIdx()+d)),t=s[i];
+ c.lv=t.lv;c.ch=t.ch;c.part="w";c.unfog=false;if(t.ch>=1)c.fogGone=true;
+ clearTimeout(nextT);LS=null;TS=null;if(view==="lesson"||view==="test")view="map";save();render()}
+function devStep(){const c=C();
+ if(view==="lesson"&&LS){if(LS.learn){const isS=SRC().lv.w[0].t==="s";if(LS.learn<(isS?3:2)){LS.learn++;LS.solved=null;LS.order=null;LS.cq=null}else{c.learned=c.learned||{};c.learned[SRC().key]=1;LS.learn=0}save();return render()}
+  SRC().lv.w.forEach(i=>{st(i.id).c=Math.max(st(i.id).c,NEED)});save();return roundDone()}
+ if(view==="test"&&TS){TS.ok=TS.qs.length;return testFinish()}
+ const k=devTopic();if(k){const key=tKey(k,tCur(k)),qs=c.qs||(c.qs={}),s=qs[key]||(qs[key]={step:1});if(tDone(k,tCur(k)))return A.toast("Level je hotový – použij ›");
+  if(s.step>=5){const T=TOPIC[k][tCur(k)];(T.sents||[]).forEach(x=>{st(x.id).c=Math.max(st(x.id).c,NEED)});delete qs[key];(c.quiz||(c.quiz={}))[key]=true;save();return render()}
+  s.step=Math.max(2,s.step+1);save();return render()}
+ A.toast("Tady není co přeskočit")}
+function devBar(){let b=$("#devbar");if(!DEV()){if(b)b.remove();document.body.classList.remove("devon");return}
+ if(!b){b=document.createElement("div");b.id="devbar";document.body.appendChild(b)}
+ document.body.classList.add("devon");
+ b.innerHTML=`<button data-dev="off" title="Vypnout vývojářský režim">🛠</button><button data-dev="-1" aria-label="Zpět">‹</button><span>${esc(devLabel())}</span><button data-dev="1" aria-label="Dál">›</button><button data-dev="step" title="Přeskočit krok">⏭</button>`;
+ b.querySelectorAll("[data-dev]").forEach(x=>x.onclick=()=>{const v=x.dataset.dev;if(v==="off")return devToggle();if(v==="step")return devStep();devMove(+v)})}
+function devToggle(){const S=A.S;
+ if(S.dev){S.dev=false;save();A.toast("Vývojářský režim vypnut");return render()}
+ openModal(`<h2>🛠 Vývojářský režim</h2><p>Opravdu chceš přejít do vývojářské verze? Nahoře se objeví lišta se šipkami pro přechod mezi levely a tlačítko ⏭ pro přeskočení kroku.</p><div style="display:flex;gap:8px"><button class="btn ghost" data-close style="flex:1">Ne</button><button class="btn" id="devYes" style="flex:1">Ano, zapnout</button></div>`,b=>b.querySelector("#devYes").onclick=()=>{S.dev=true;save();closeModal();render()})}
 function render(){
+ devBar();$("#cDev").classList.toggle("on",DEV());$("#cDev").onclick=devToggle;
  $("#cBack").innerHTML="✕";$("#cBack").setAttribute("aria-label","Zavřít hru");
  $("#cRes").innerHTML=P().name?resHTML():"";
  document.body.classList.toggle("nocs",(P().name&&(C().ch||0)>=6)||false);
